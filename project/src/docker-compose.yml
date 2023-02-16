@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+
+    # Nginx
+    server:
+        build:
+            context: ./web/nginx
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        networks:
+            - 42Pong
+
+    # VueJs - NodeJs
+    web:
+        build:
+            context: ./web
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        depends_on:
+            - server
+            - backend
+        volumes:
+          - ./web/app:/app
+        networks:
+            - 42Pong
+
+    # NestJs - NodeJs
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        depends_on:
+            - database
+        volumes:
+            - ./backend/app:/app
+        networks:
+            - 42Pong
+
+    # PostgresSql - Database
+    database:
+        build:
+            context: ./database
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        volumes:
+            - database_data:/var/lib/postgresql/data
+        networks:
+          - 42Pong
+
+# Volumes
+volumes:
+    database_data:
+        driver: local
+
+# Networks
+networks:
+    42Pong:
+        driver: bridge
