@@ -10,6 +10,14 @@ services:
         env_file: .env
         restart: always
         tty: true
+        depends_on:
+            - web
+        ports:
+            - "443:443"
+            - "80:80"
+        volumes:
+            - ./web/app/dist:/usr/share/nginx/html
+            - ./web/nginx/conf.d:/etc/nginx/conf.d
         networks:
             - 42Pong
 
@@ -21,44 +29,47 @@ services:
         env_file: .env
         restart: always
         tty: true
-        depends_on:
-            - server
-            - backend
+        ports:
+            - "3000:3000"
+        #depends_on:
+            #- backend
         volumes:
           - ./web/app:/app
         networks:
             - 42Pong
 
     # NestJs - NodeJs
-    backend:
-        build:
-            context: ./backend
-            dockerfile: Dockerfile
-        env_file: .env
-        restart: always
-        tty: true
-        depends_on:
-            - database
-        volumes:
-            - ./backend/app:/app
-        networks:
-            - 42Pong
-
-    # PostgresSql - Database
-    database:
-        build:
-            context: ./database
-            dockerfile: Dockerfile
-        env_file: .env
-        restart: always
-        tty: true
-        volumes:
-            - database_data:/var/lib/postgresql/data
-        networks:
-          - 42Pong
+#    backend:
+#        build:
+#            context: ./backend
+#            dockerfile: Dockerfile
+#        env_file: .env
+#        restart: always
+#        tty: true
+#        depends_on:
+#            - database
+#        volumes:
+#            - ./backend/app:/app
+#        networks:
+#            - 42Pong
+#
+#    # PostgresSql - Database
+#    database:
+#        build:
+#            context: ./database
+#            dockerfile: Dockerfile
+#        env_file: .env
+#        restart: always
+#        tty: true
+#        volumes:
+#            - database_data:/var/lib/postgresql/data
+#        networks:
+#          - 42Pong
 
 # Volumes
 volumes:
+    web_data:
+        driver: local
     database_data:
         driver: local
 
