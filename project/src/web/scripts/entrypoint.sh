@@ -8,7 +8,10 @@ while [ ! -d /app ]; do
 done
 
 # Install dependencies
-cd /app && yarn install && yarn build
+cd /app && yarn install
+
+# Build the apps
+#yarn build
 
 # Start the app
 yarn dev --port 3000

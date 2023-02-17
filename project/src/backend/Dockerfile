@@ -8,6 +8,12 @@ RUN apk update && apk upgrade \
 # Set the working directory to /app
 WORKDIR /app
 
+# Copy package.json and lock file
+COPY ./app/package*.json ./app/yarn.lock ./
+
+# Install dependencies
+RUN yarn install
+
 # Copy entrypoint script
 COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 

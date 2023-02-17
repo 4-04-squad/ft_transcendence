@@ -12,6 +12,7 @@ services:
         tty: true
         depends_on:
             - web
+            - backend
         ports:
             - "443:443"
             - "80:80"
