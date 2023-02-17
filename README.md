@@ -12,6 +12,42 @@
 - [Documentation](#Documentation)
 - [Ressources](#Ressources)
 
+## How to use
+
+### Prerequisites
+- Docker and Docker Compose
+- A 42 API
+- A 42 OAuth application
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/4-04-squad/ft_transcendence.git
+cd ft_transcendence
+
+# Create a .env and fill it with your credentials
+cd projects/src/
+cp .env.example .env
+
+# Clone frontend
+cd projects/src/web
+git clone https://github.com/4-04-squad/web.git /app
+
+# Clone the backend
+cd ../backend
+git clone git clone https://github.com/4-04-squad/backend.git /app
+
+cd ../../
+
+# Build and run the project
+make
+
+# Open the website
+open http://localhost     # You should see the website
+open http://localhost/api # You should see the backend API
+```
+
 ## Introduction
 
 This project is about creating a website for the mighty Pong contest. The website will be used by the players to
