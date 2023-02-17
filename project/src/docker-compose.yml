@@ -53,23 +53,36 @@ services:
 #        networks:
 #            - 42Pong
 #
-#    # PostgresSql - Database
-#    database:
-#        build:
-#            context: ./database
-#            dockerfile: Dockerfile
-#        env_file: .env
-#        restart: always
-#        tty: true
-#        volumes:
-#            - database_data:/var/lib/postgresql/data
-#        networks:
-#          - 42Pong
+    # PostgresSql - Database
+    database:
+        build:
+            context: ./database
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+        ports:
+            - "5432:5432"
+        volumes:
+            - database_data:/var/lib/postgresql/data
+        networks:
+          - 42Pong
+
+    # Adminer - Database management
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - "8080:8080"
+        networks:
+            - 42Pong
 
 # Volumes
 volumes:
-    web_data:
-        driver: local
     database_data:
         driver: local
 
