@@ -14,4 +14,4 @@ cd /app && yarn install
 #yarn build
 
 # Start the app
-yarn dev --port 3000
+yarn dev
