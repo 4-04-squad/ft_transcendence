@@ -21,6 +21,10 @@ DOCKER		=  docker compose -f ${DOCKER_DIR} --env-file ${ENV_FILE} -p ${NAME}
 
 all: up
 
+setup:
+	@echo "${GREEN}Cloning...${RESET}"
+	@cd ../scripts && sudo ./setup.sh
+
 dev:
 	@echo "${GREEN}Building containers dev...${RESET}"
 	@${DOCKER} build --no-cache
