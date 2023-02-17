@@ -21,7 +21,16 @@ DOCKER		=  docker compose -f ${DOCKER_DIR} --env-file ${ENV_FILE} -p ${NAME}
 
 all: up
 
+dev:
+	@echo "${GREEN}Building containers dev...${RESET}"
+	@${DOCKER} build --no-cache
+	make up
+
 up:
+	@echo "${GREEN}Building containers...${RESET}"
+	@${DOCKER} up -d
+
+build:
 	@echo "${GREEN}Building containers...${RESET}"
 	@${DOCKER} up -d --build
 

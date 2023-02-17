@@ -17,7 +17,7 @@ services:
             - "443:443"
             - "80:80"
         volumes:
-            - ./web/app/dist:/usr/share/nginx/html
+            #- ./web/app/dist:/usr/share/nginx/html
             - ./web/nginx/conf.d:/etc/nginx/conf.d
         networks:
             - 42Pong
@@ -32,10 +32,8 @@ services:
         tty: true
         ports:
             - "3000:3000"
-        #depends_on:
-            #- backend
         volumes:
-          - ./web/app:/app
+          - web_data:/app
         networks:
             - 42Pong
 
@@ -52,7 +50,7 @@ services:
         depends_on:
             - database
         volumes:
-            - ./backend/app:/app
+            - backend_data:/app
         networks:
             - 42Pong
 
@@ -87,7 +85,8 @@ services:
 # Volumes
 volumes:
     database_data:
-        driver: local
+    web_data:
+    backend_data:
 
 # Networks
 networks:
