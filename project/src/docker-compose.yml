@@ -39,20 +39,22 @@ services:
             - 42Pong
 
     # NestJs - NodeJs
-#    backend:
-#        build:
-#            context: ./backend
-#            dockerfile: Dockerfile
-#        env_file: .env
-#        restart: always
-#        tty: true
-#        depends_on:
-#            - database
-#        volumes:
-#            - ./backend/app:/app
-#        networks:
-#            - 42Pong
-#
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        ports:
+            - "3001:3001"
+        depends_on:
+            - database
+        volumes:
+            - ./backend/app:/app
+        networks:
+            - 42Pong
+
     # PostgresSql - Database
     database:
         build:
