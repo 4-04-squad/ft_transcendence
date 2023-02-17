@@ -51,7 +51,10 @@ rebuild:
 
 delete:
 	@echo "${GREEN}Deleting containers...${RESET}"
-	@${DOCKER} down -v
+	@${DOCKER} down --volumes --remove-orphans
+
+prune: ## Prune all
+	@docker system prune -a -f --volumes
 
 exec-web:
 	@echo "${GREEN}Executing web container...${RESET}"
@@ -80,9 +83,11 @@ help:
 	@echo "\033[1m  logs${RESET}          - Display logs"
 	@echo "\033[1m  rebuild${RESET}       - Rebuild containers"
 	@echo "\033[1m  delete${RESET}        - Delete containers"
+	@echo "\033[1m  prune${RESET}         - Prune all"
 	@echo "\033[1m  help${RESET}          - Display this help"
 	@echo "\033[1m  exec-web${RESET}      - Execute web container"
 	@echo "\033[1m  exec-backend${RESET}  - Execute backend container"
 	@echo "\033[1m  exec-database${RESET} - Execute database container\n"
+	@echo "\033[1m  exec-nginx${RESET}    - Execute nginx container\n"
 
 .PHONY: up down stop start restart logs rebuild delete
