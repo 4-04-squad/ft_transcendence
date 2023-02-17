@@ -23,7 +23,7 @@ all: up
 
 up:
 	@echo "${GREEN}Building containers...${RESET}"
-	@${DOCKER} up --build
+	@${DOCKER} up -d --build
 
 down:
 	@echo "${GREEN}Stopping containers...${RESET}"
@@ -47,7 +47,7 @@ logs:
 
 rebuild:
 	@echo "${GREEN}Rebuilding containers...${RESET}"
-	@${DOCKER} up --build --force-recreate
+	@${DOCKER} up -d --build --force-recreate
 
 delete:
 	@echo "${GREEN}Deleting containers...${RESET}"
@@ -64,6 +64,10 @@ exec-backend:
 exec-database:
 	@echo "${GREEN}Executing database container...${RESET}"
 	@${DOCKER} exec database sh
+
+exec-nginx:
+	@echo "${GREEN}Executing nginx container...${RESET}"
+	@${DOCKER} exec nginx sh
 
 help:
 	@echo "\n\033[1mUsage: make [target]${RESET}\n"
