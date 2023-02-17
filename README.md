@@ -24,10 +24,12 @@
 ```bash
 # Clone the repository
 git clone https://github.com/4-04-squad/ft_transcendence.git
-cd ft_transcendence
+cd ft_transcendence/project
 
-# run the setup script
-sudo ./setup.sh
+# Run the setup script
+make setup
+# Build the docker images
+make build
 
 # Open the website
 open http://localhost     # You should see the website
