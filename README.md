@@ -26,22 +26,8 @@
 git clone https://github.com/4-04-squad/ft_transcendence.git
 cd ft_transcendence
 
-# Create a .env and fill it with your credentials
-cd projects/src/
-cp .env.example .env
-
-# Clone frontend
-cd projects/src/web
-git clone https://github.com/4-04-squad/web.git /app
-
-# Clone the backend
-cd ../backend
-git clone git clone https://github.com/4-04-squad/backend.git /app
-
-cd ../../
-
-# Build and run the project
-make
+# run the setup script
+sudo ./setup.sh
 
 # Open the website
 open http://localhost     # You should see the website
