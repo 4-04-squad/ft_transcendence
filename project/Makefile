@@ -23,7 +23,7 @@ all: up
 
 setup:
 	@echo "${GREEN}Cloning...${RESET}"
-	@cd ../scripts && sudo ./setup.sh
+	@sudo ./scripts/setup.sh
 
 dev:
 	@echo "${GREEN}Building containers dev...${RESET}"
