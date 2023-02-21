@@ -15,7 +15,7 @@ COPY ./app/package*.json ./app/yarn.lock ./
 RUN yarn install
 
 # Copy .git folder
-COPY ./app/.git ./
+COPY ./app/.git ./app/.gitignore ./
 
 # Copy the current directory contents into the container at /app
 COPY ./app .
@@ -27,7 +27,7 @@ COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose the port the application will be running on
-EXPOSE 3000
+EXPOSE 3003
 
 # Start the application
 CMD ["entrypoint.sh"]
