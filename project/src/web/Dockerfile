@@ -14,6 +14,9 @@ COPY ./app/package*.json ./app/yarn.lock ./
 # Install dependencies
 RUN yarn install
 
+# Copy .git folder
+COPY ./app/.git ./
+
 # Copy the current directory contents into the container at /app
 COPY ./app .
 

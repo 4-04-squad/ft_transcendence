@@ -3,13 +3,16 @@ FROM node:18-alpine
 # Install dependencies
 RUN apk update && apk upgrade \
     && apk add --no-cache --quiet --update \
-    	   vim curl bash zsh git
+    	   vim curl bash zsh git postgresql-client
 
 # Set the working directory to /app
 WORKDIR /app
 
 # Copy package.json and lock file
 COPY ./app/package*.json ./app/yarn.lock ./
+
+# Copy .git folder
+COPY ./app/.git ./
 
 # Install dependencies
 RUN yarn install
