@@ -23,6 +23,7 @@ all: up
 
 setup:
 	@echo "${GREEN}Cloning...${RESET}"
+	@chmod +x ./scripts/setup.sh
 	@sudo ./scripts/setup.sh
 
 dev:

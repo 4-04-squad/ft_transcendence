@@ -31,7 +31,7 @@ services:
         restart: always
         tty: true
         ports:
-            - "3000:3000"
+            - "3003:3003"
         volumes:
           - web_data:/app
         networks:
