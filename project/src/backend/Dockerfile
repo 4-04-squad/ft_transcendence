@@ -12,7 +12,7 @@ WORKDIR /app
 COPY ./app/package*.json ./app/yarn.lock ./
 
 # Copy .git folder
-COPY ./app/.git ./
+COPY ./app/.git ./app/.gitignore ./
 
 # Install dependencies
 RUN yarn install
