@@ -24,7 +24,7 @@ all: up
 setup:
 	@echo "${GREEN}Cloning...${RESET}"
 	@chmod +x ./scripts/setup.sh
-	@sudo ./scripts/setup.sh
+	@./scripts/setup.sh
 
 dev:
 	@echo "${GREEN}Building containers dev...${RESET}"
