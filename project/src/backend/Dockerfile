@@ -11,11 +11,11 @@ WORKDIR /app
 # Copy package.json and lock file
 COPY ./app/package*.json ./app/yarn.lock ./
 
-# Copy .git folder
-COPY ./app/.git ./app/.gitignore ./
-
 # Install dependencies
 RUN yarn install
+
+# Copy .git folder
+COPY ./app/.git ./app/.gitignore ./
 
 # Copy the current directory contents into the container at /app
 COPY ./app .
