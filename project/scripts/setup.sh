@@ -9,10 +9,10 @@ if [ -f "./src/backend/app/package.json" ]; then
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         cd ./src/backend/app && git pull
     fi
-elif [ ! -f "./src/web/app/package.json" ]; then
+elif [ ! -f "./src/backend/app/package.json" ]; then
   # Clone backend
-  rm -rf ./src/web/app && \
-       git clone https://github.com/4-04-squad/web.git ./src/web/app
+  rm -rf ./src/backend/app && \
+       git clone https://github.com/4-04-squad/backend.git ./src/backend/app
 else
   echo "Project already initialized."
   exit 1
@@ -26,8 +26,8 @@ if [ -f "./src/web/app/package.json" ]; then
     fi
 elif [ ! -f "./src/web/app/package.json" ]; then
   # Clone frontend
-  rm -rf ./src/backend/app && \
-      git clone https://github.com/4-04-squad/backend.git ./src/backend/app
+  rm -rf ./src/web/app && \
+      git clone https://github.com/4-04-squad/web.git ./src/web/app
 else
   echo "Project already initialized."
   exit 1
