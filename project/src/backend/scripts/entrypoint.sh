@@ -10,8 +10,14 @@ done
 # Install dependencies
 cd /app && yarn install
 
+# if first start, create the database and run migrations
+if [ ! -f /app/.setup ]; then
+    npx prisma migrate dev --name init
+fi
+
+
 # Build the app
 #yarn build
 
 # Start the app
-yarn start
+yarn start:dev

@@ -10,6 +10,13 @@ SRCS_DIR	= ./src/
 DOCKER_DIR	= ${SRCS_DIR}docker-compose.yml
 NAME		= ft_transcendence
 
+# if unix use this script
+ifeq ($(OS),Windows_NT)
+	SCRIPT=./scripts/setup.sh
+else
+	SCRIPT=./scripts/setup.unix.sh
+endif
+
 # VARIABLES
 ENV_FILE	= ${SRCS_DIR}.env
 
@@ -23,8 +30,8 @@ all: up
 
 setup:
 	@echo "${GREEN}Cloning...${RESET}"
-	@chmod +x ./scripts/setup.sh
-	@./scripts/setup.sh
+	@chmod +x ${SCRIPT}
+	@${SCRIPT}
 
 dev:
 	@echo "${GREEN}Building containers dev...${RESET}"
