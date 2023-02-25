@@ -109,3 +109,5 @@ dist
 
 /project/src/web/app/
 /project/src/backend/app/
+
+/project/src/backend/app/.setup
