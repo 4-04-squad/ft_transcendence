@@ -18,7 +18,7 @@ RUN yarn install
 COPY ./app/.git ./app/.gitignore ./
 
 # Copy the current directory contents into the container at /app
-COPY ./app .
+COPY ./app ./
 
 # Copy entrypoint script
 COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -30,4 +30,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 EXPOSE 3001
 
 # Start the application
-CMD ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
