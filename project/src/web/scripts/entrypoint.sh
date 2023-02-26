@@ -10,8 +10,14 @@ done
 # Install dependencies
 cd /app && yarn install
 
-# Build the apps
-#yarn build
 
-# Start the app
-yarn dev
+# is dev mode?
+if [ "$ENVIRONMENT" = "development" ]; then
+    # Start the app in dev mode
+    echo "Starting frontend in dev mode"
+    yarn dev
+else
+    # Start the app in prod mode
+    echo "Starting frontend in prod mode"
+    yarn build
+fi

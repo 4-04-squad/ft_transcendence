@@ -10,14 +10,24 @@ done
 # Install dependencies
 cd /app && yarn install
 
-# if first start, create the database and run migrations
+# First start, create the database and run migrations
 if [ ! -f /app/.setup ]; then
     npx prisma migrate dev --name init
+else # Subsequent starts, run migrations only
+    npx prisma migrate
 fi
 
 
 # Build the app
 #yarn build
 
-# Start the app
-yarn start:dev
+# is dev mode?
+if [ "$ENVIRONMENT" = "development" ]; then
+    # Start the app in dev mode
+    echo "Starting backend in dev mode"
+    yarn start:dev
+else
+    # Start the app in prod mode
+    echo "Starting backend in prod mode"
+    yarn start
+fi
