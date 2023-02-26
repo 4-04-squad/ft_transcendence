@@ -8,6 +8,7 @@ if [ -f "./src/backend/app/package.json" ]; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         cd ./src/backend/app && git pull
+        cd ../../..
     fi
 elif [ ! -f "./src/backend/app/package.json" ]; then
   # Clone backend
@@ -23,6 +24,7 @@ if [ -f "./src/web/app/package.json" ]; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         cd ./src/web/app && git pull
+        cd ../../..
     fi
 elif [ ! -f "./src/web/app/package.json" ]; then
   # Clone frontend

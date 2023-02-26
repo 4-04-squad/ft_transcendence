@@ -13,6 +13,8 @@ cd /app && yarn install
 # First start, create the database and run migrations
 if [ ! -f /app/.setup ]; then
     npx prisma migrate dev --name init
+    npx prisma migrate
+    touch /app/.setup
 else # Subsequent starts, run migrations only
     npx prisma migrate
 fi
@@ -22,12 +24,15 @@ fi
 #yarn build
 
 # is dev mode?
-if [ "$ENVIRONMENT" = "development" ]; then
+if [ "$ENVIRONMENT" == "development" ]; then
     # Start the app in dev mode
     echo "Starting backend in dev mode"
     yarn start:dev
-else
+elif [ "$ENVIRONMENT" == "production" ]; then
     # Start the app in prod mode
     echo "Starting backend in prod mode"
     yarn start
+else
+    echo "Unknown environment: $ENVIRONMENT"
+    exit 1
 fi
