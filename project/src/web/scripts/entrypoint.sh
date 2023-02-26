@@ -12,12 +12,15 @@ cd /app && yarn install
 
 
 # is dev mode?
-if [ "$ENVIRONMENT" = "development" ]; then
+if [ "$ENVIRONMENT" == "development" ]; then
     # Start the app in dev mode
     echo "Starting frontend in dev mode"
     yarn dev
-else
+elif [ "$ENVIRONMENT" == "production" ]; then
     # Start the app in prod mode
     echo "Starting frontend in prod mode"
     yarn build
+else
+    echo "Unknown environment: $ENVIRONMENT"
+    exit 1
 fi
