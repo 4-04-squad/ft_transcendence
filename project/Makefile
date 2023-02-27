@@ -35,8 +35,9 @@ setup:
 
 dev:
 	@echo "${GREEN}Building containers dev...${RESET}"
+	@make setup
 	@${DOCKER} build --no-cache
-	make up
+	@make up
 
 up:
 	@echo "${GREEN}Building containers...${RESET}"
@@ -44,6 +45,7 @@ up:
 
 build:
 	@echo "${GREEN}Building containers...${RESET}"
+	@make setup
 	@${DOCKER} up -d --build
 
 down:
@@ -68,6 +70,7 @@ logs:
 
 rebuild:
 	@echo "${GREEN}Rebuilding containers...${RESET}"
+	@make setup
 	@${DOCKER} up -d --build --force-recreate
 
 delete:
