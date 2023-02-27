@@ -4,12 +4,9 @@
 
 # Ask if pull the latest changes if the repository is already cloned
 if [ -f "./src/backend/app/package.json" ]; then
-    read -p "Do you want to pull the latest changes from the backend repository? [y/n] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cd ./src/backend/app && git pull
-        cd ../../..
-    fi
+    echo "Updating backend repository.."
+    cd ./src/backend/app && git pull
+    cd ../../..
 elif [ ! -f "./src/backend/app/package.json" ]; then
   # Clone backend
   rm -rf ./src/backend/app && \
@@ -20,12 +17,9 @@ else
 fi
 
 if [ -f "./src/web/app/package.json" ]; then
-    read -p "Do you want to pull the latest changes from the web repository? [y/n] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cd ./src/web/app && git pull
-        cd ../../..
-    fi
+    echo "Updating frontend repository.."
+    cd ./src/web/app && git pull
+    cd ../../..
 elif [ ! -f "./src/web/app/package.json" ]; then
   # Clone frontend
   rm -rf ./src/web/app && \
