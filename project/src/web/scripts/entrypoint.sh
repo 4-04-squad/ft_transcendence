@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 # This script is used to run the application in a docker container.
 
 # Wait for the app to be mounted

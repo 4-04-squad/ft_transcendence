@@ -3,7 +3,7 @@ FROM node:18-alpine
 # Install dependencies
 RUN apk update && apk upgrade \
     && apk add --no-cache --quiet --update \
-    	   vim curl bash zsh git postgresql-client
+    	   vim curl bash zsh git postgresql-client dos2unix
 
 # Set the working directory to /app
 WORKDIR /app
@@ -22,6 +22,7 @@ COPY ./app ./
 
 # Copy entrypoint script
 COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN dos2unix /usr/local/bin/entrypoint.sh
 
 # Make entrypoint script executable
 RUN chmod +x /usr/local/bin/entrypoint.sh
