@@ -32,8 +32,10 @@ setup:
 	@echo "${GREEN}Cloning...${RESET}"
 	@chmod +x ${SCRIPT}
 	@${SCRIPT}
+	@echo "${GREEN}Copying .env file...${RESET}"
+	@cp ${ENV_FILE} ${SRCS_DIR}web/app/.env.container
 
-dev:
+dev: 
 	@echo "${GREEN}Building containers dev...${RESET}"
 	@make setup
 	@${DOCKER} build --no-cache
