@@ -9,8 +9,21 @@ while [ ! -d /app ]; do
     sleep 1
 done
 
+cd /app
+
+# read the .env file
+while IFS= read -r line || [[ -n "$line" ]]; do
+  if [[ $line == *=* ]]; then
+    # prepend VITE_APP_ prefix to each line
+    echo "VITE_APP_${line}" >> .env
+  fi
+done < .env.container
+
+# rm the .env file and rename the .env.container file to .env
+rm .env.container
+
 # Install dependencies
-cd /app && yarn install
+yarn install
 
 
 # is dev mode?
