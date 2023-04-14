@@ -33,7 +33,7 @@ services:
         ports:
             - "3003:3003"
         volumes:
-          - web_data:/app
+          - ./web/app:/app
         networks:
             - 42Pong
 
@@ -50,7 +50,7 @@ services:
         depends_on:
             - database
         volumes:
-            - backend_data:/app
+            - ./backend/app:/app
         networks:
             - 42Pong
 
@@ -85,8 +85,6 @@ services:
 # Volumes
 volumes:
     database_data:
-    web_data:
-    backend_data:
 
 # Networks
 networks:
