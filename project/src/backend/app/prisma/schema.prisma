@@ -20,6 +20,7 @@ model User {
   pseudo     String     @unique @db.VarChar(255)
   email      String     @unique
   password   String?
+  twofasecret  String?
   firstName  String?
   lastName   String?
   avatar     String?
