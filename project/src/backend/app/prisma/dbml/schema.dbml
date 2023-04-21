@@ -1,0 +1,156 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id String [pk]
+  fortyTwoId Int
+  pseudo String [unique, not null]
+  email String [unique, not null]
+  firstName String
+  lastName String
+  avatar String
+  about String
+  experience Int [not null, default: 0]
+  status UserStatus [not null, default: 'OFFLINE']
+  role UserRole [not null, default: 'USER']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  chats UserChat [not null]
+  games UserGame [not null]
+  friendRequest Friendship [not null]
+  friends Friendship [not null]
+  blockers User [not null]
+  blocked User [not null]
+  messages Message [not null]
+}
+
+Table Friendship {
+  id String [pk]
+  accepted Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user User [not null]
+  userId String [not null]
+  friend User [not null]
+  friendId String [not null]
+
+  indexes {
+    (userId, friendId) [unique]
+  }
+}
+
+Table UserChat {
+  id String [pk]
+  status UserChatStatus [not null, default: 'MEMBER']
+  permission UserChatPermission [not null, default: 'COMPLIANT']
+  chat Chat [not null]
+  chatId String [not null]
+  user User [not null]
+  userId String [not null]
+}
+
+Table Chat {
+  id String [pk]
+  name String
+  type ChatType [not null, default: 'DIRECT']
+  passwd String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  users UserChat [not null]
+  messages Message [not null]
+}
+
+Table Message {
+  id String [pk]
+  body String [not null]
+  status MessageStatus
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  chat Chat [not null]
+  chatId String [not null]
+  user User [not null]
+  userId String [not null]
+}
+
+Table UserGame {
+  id String [pk]
+  status UserGameStatus
+  score Int [not null, default: 0]
+  game Game [not null]
+  gameId String [not null]
+  user User [not null]
+  userId String [not null]
+}
+
+Table Game {
+  id String [pk]
+  status GameStatus [not null, default: 'WAITING']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  users UserGame [not null]
+}
+
+Enum UserStatus {
+  ONLINE
+  OFFLINE
+  PLAYING
+}
+
+Enum UserRole {
+  ADMIN
+  USER
+}
+
+Enum ChatType {
+  DIRECT
+  PRIVATE
+  PUBLIC
+  RESTRICTED
+}
+
+Enum MessageStatus {
+  RECEIVED
+  SENT
+}
+
+Enum GameStatus {
+  WAITING
+  INPROGRESS
+  FINISHED
+}
+
+Enum UserChatStatus {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+Enum UserGameStatus {
+  WINNER
+  LOSER
+  DRAW
+}
+
+Enum UserChatPermission {
+  BANNED
+  MUTED
+  KICKED
+  COMPLIANT
+}
+
+Ref: Friendship.userId > User.id
+
+Ref: Friendship.friendId > User.id
+
+Ref: UserChat.chatId > Chat.id
+
+Ref: UserChat.userId > User.id
+
+Ref: Message.chatId > Chat.id
+
+Ref: Message.userId > User.id
+
+Ref: UserGame.gameId > Game.id
+
+Ref: UserGame.userId > User.id

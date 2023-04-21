@@ -1,0 +1,147 @@
+// buttons
+
+@mixin btn($color, $bg, $border, $radius, $padding) {
+    display: inline-block;
+    color: $color;
+    background-color: $bg;
+    border: $border;
+    border-radius: $radius;
+    padding: $padding;
+    transition: all 0.3s $ease;
+    &:hover {
+        color: $bg;
+        background-color: $color;
+    }
+}
+
+.btn {
+    @include btn($color: var(--border-color) , $bg: var(--text-color), $border: 0, $radius: $radius-xs, $padding: 0.5rem 1rem);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    font-weight: 600;
+    width: fit-content;
+    min-width: fit-content;
+    cursor: pointer;
+
+
+    &--icon {
+      display: flex;
+      align-items: center;
+
+      svg {
+        margin-right: 0.5rem;
+      }
+
+      &.only-icon {
+        padding: 0;
+        background-color: transparent;
+
+        svg {
+          stroke: var(--text-color);
+
+          &:hover {
+            opacity: 0.6;
+          }
+        }
+      }
+
+      &.no-bg {
+        color: var(--text-color);
+        background-color: transparent;
+
+        &:hover {
+          opacity: 0.6;
+        }
+
+        svg {
+          stroke: var(--text-color);
+        }
+      }
+    }
+
+    &--normal {
+      @include btn($color: #ffffff , $bg: var(--border-color), $border: 1px solid var(--primary-color), $radius: $radius-xs, $padding: 0.5rem 1rem);
+
+      &:hover {
+        background-color: var(--primary-color);
+        color: #ffffff;
+      }
+    }
+
+    &--delete {
+      @include btn($color: #ffffff  , $bg: var(--warning-color), $border: 0, $radius: $radius-xs, $padding: 0.5rem 1rem);
+    }
+
+    &--success {
+      @include btn($color: #ffffff , $bg: var(--success-color), $border: 0, $radius: $radius-xs, $padding: 0.5rem 1rem);
+    }
+
+    &--submit {
+      @include btn($color: #ffffff , $bg: var(--success-color), $border: 0, $radius: $radius-xs, $padding: 0.5rem 1rem);
+    }
+}
+
+.btns {
+  display: flex;
+  justify-content: flex-end;
+
+  .btn {
+    margin: 0 0.2rem;
+    padding: 0.5rem;
+    color: var(--text-color);
+
+    &--icon {
+      svg {
+        margin: 0;
+      }
+    }
+  }
+} 
+
+.toggle-switch {
+    display: inline-block;
+    position: relative;
+    width: 48px;
+    height: 27.3px;
+    border-radius: 13.6px;
+    background-color: var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .toggle-switch-inner {
+    position: absolute;
+    top: 1.8px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 1.6px 3.2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+  }
+  
+  .toggle-switch-switch {
+    position: absolute;
+    top: 1.8px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 1.6px 3.2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+  }
+  
+  .toggle-switch.checked {
+    background-color: var(--border-color);
+  }
+  
+  .toggle-switch.checked .toggle-switch-inner {
+    transform: translateX(20.8px);
+  }
+  
+  .toggle-switch.checked .toggle-switch-switch {
+    transform: translateX(20.8px);
+  }

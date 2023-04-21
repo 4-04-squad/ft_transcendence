@@ -1,0 +1,34 @@
+/* TAILWIND */
+@import "tailwind";
+
+/* BASE */
+@import "partials/base/themes";
+@import "partials/base/reset";
+@import "partials/base/mixins";
+@import "partials/base/variables";
+@import "partials/base/typography";
+@import "partials/base/base";
+@import "partials/base/keyframes";
+@import "partials/base/images";
+
+/* LAYOUT */
+@import "partials/layout/titles";
+@import "partials/layout/containers";
+@import "partials/layout/grid";
+@import "partials/layout/flex-columns";
+@import "partials/layout/header";
+@import "partials/layout/footer";
+@import "partials/layout/nav";
+@import "partials/layout/head";
+
+/* PAGES */
+@import "partials/pages/pages";
+@import "partials/pages/page-404";
+
+/* UI */
+@import "partials/ui/buttons";
+@import "partials/ui/hamburger";
+@import "partials/ui/scroll";
+@import "partials/ui/forms";
+@import "partials/ui/cards";
+@import "partials/ui/table";

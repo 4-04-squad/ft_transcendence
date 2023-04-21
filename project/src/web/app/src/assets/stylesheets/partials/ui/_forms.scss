@@ -1,0 +1,120 @@
+.search {
+  position: relative;
+
+  input {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--white-color);
+    background-color: var(--white-color);
+    color: var(--black-color);
+    font-size: 1rem;
+    font-weight: normal;
+  }
+  
+  &--icon {
+    svg {
+      position: absolute;
+      top: 65%;
+      right: 0;
+      transform: translateY(-65%);
+      stroke: var(--text-color);
+    }
+  }
+}
+
+.dark {
+  .search {
+    position: relative;
+  
+    input {
+      border-color: var(--text-color);
+      background-color: var(--text-color);
+      color: var(--border-color);
+
+    }
+    
+    &--icon {
+      svg {
+        stroke: var(--border-color);
+      }
+    }
+  }
+}
+
+.forms {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 1rem;
+    margin: 1rem auto 0 auto;
+    max-width: var(--medium);
+
+    .form-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-gap: 1rem;
+
+      @include bp($tablet, max) {
+        grid-template-columns: 1fr;
+      }
+
+      &--btns {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 1rem;
+
+        @include bp($tablet, max) {
+          justify-content: center;
+        }
+
+        button {
+          margin-left: 1rem;
+        }
+      }
+    }
+    
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+
+      label {
+        margin-bottom: 0.5rem;
+        position: absolute;
+        font-size: smaller;
+        top: 0.5rem;
+        left: 1rem;
+        opacity: 0.5;
+      }
+      input {
+        padding: 2rem 1rem 0.5rem 1rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--bg-color);
+        background-color: var(--border-color);
+        width: 100%;
+      }
+      textarea {
+        padding: 2rem 1rem 0.5rem 1rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--bg-color);
+        background-color: var(--border-color);
+        width: 100%;
+      }
+      select {
+        padding: 2rem 1rem 0.5rem 1rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--bg-color);
+        background-color: var(--border-color);
+        width: 100%;
+
+        option {
+          background-color: var(--border-color);
+        }
+
+        option:hover {
+          background-color: var(--bg-color);
+        }
+      }
+    }
+  }

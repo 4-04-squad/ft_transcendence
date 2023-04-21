@@ -34,6 +34,7 @@ services:
             - "3003:3003"
         volumes:
           - ./web/app:/app
+          - exclude_web:/app/node_modules/
         networks:
             - 42Pong
 
@@ -51,6 +52,7 @@ services:
             - database
         volumes:
             - ./backend/app:/app
+            - exclude_backend:/app/node_modules/
         networks:
             - 42Pong
 
@@ -85,6 +87,8 @@ services:
 # Volumes
 volumes:
     database_data:
+    exclude_web:
+    exclude_backend:
 
 # Networks
 networks:
