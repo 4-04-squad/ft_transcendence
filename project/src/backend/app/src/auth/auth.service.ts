@@ -73,7 +73,8 @@ export class AuthService {
       data: {
         email: userEmail,
         password,
-        pseudo
+        pseudo,
+        avatar: "/public/img/marvin.png"
       },
     });
   }
