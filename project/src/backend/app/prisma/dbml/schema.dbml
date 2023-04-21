@@ -7,6 +7,7 @@ Table User {
   fortyTwoId Int
   pseudo String [unique, not null]
   email String [unique, not null]
+  password String
   firstName String
   lastName String
   avatar String

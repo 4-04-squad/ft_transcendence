@@ -56,6 +56,28 @@ export class AuthService {
     return findUser;
   }
 
+  async findUserByName(pseudo: string, password: string) {
+    // Find current user
+    const findUser = await this.prisma.user.findUnique({
+      where: {
+        pseudo
+      }
+    });
+
+    if (findUser) {
+      return findUser;
+    }
+
+    const userEmail = pseudo + "@testing.ch";
+    return await this.prisma.user.create({
+      data: {
+        email: userEmail,
+        password,
+        pseudo
+      },
+    });
+  }
+
   async logout(req: Request, res: Response, id: string) {
     // Find current user
     const findUser = await this.prisma.user.findUnique({

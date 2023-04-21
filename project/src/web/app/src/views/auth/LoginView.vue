@@ -16,10 +16,18 @@
       <LogoutButton class="btn" v-if="userStore.user">
         se deconnecter
       </LogoutButton>
-      <LoginButton class="btn btn--icon" v-else>
-        <QDIcon />
-        profile 42
-      </LoginButton>
+      <div class="flex flex-col items-center" v-else>
+        <LoginButton class="btn btn--icon text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 shadow-lg shadow-teal-500/50 dark:shadow-lg dark:shadow-teal-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
+          <QDIcon />
+          profile 42
+        </LoginButton>
+        <div class="or">
+          <span></span>
+          <h3>OR</h3>
+          <span></span>
+        </div>
+        <LoginForm />
+      </div>
     </div>
   </div>
 </template>
@@ -31,6 +39,7 @@ import { useUserStore } from "@/stores/user";
 import { QDIcon } from "@/components/icons";
 import LogoutButton from "@/components/ui/button/LogoutButton.vue";
 import LoginButton from "@/components/ui/button/LoginButton.vue";
+import LoginForm from "@/components/ui/form/LoginForm.vue";
 
 export default defineComponent({
   name: "LoginView",
@@ -38,6 +47,7 @@ export default defineComponent({
     QDIcon,
     LogoutButton,
     LoginButton,
+    LoginForm
   },
   setup() {
     const userStore = useUserStore();
@@ -62,6 +72,20 @@ export default defineComponent({
       "page-thumb";
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
+  }
+
+  .or {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    width: 100%;
+    color: white;
+  }
+  .or span {
+    background-color: white;
+    color: white;
+    width: 50%;
+    height: 1px;
   }
 
   .column {
