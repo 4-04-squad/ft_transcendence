@@ -7,6 +7,9 @@
   <div v-if="users && users.length > 0">
     <p>User name: {{ users[0].pseudo }}</p>
   </div>
+
+  <!-- GAME VIEW -->
+  <FieldView />
 </template>
 
 <script lang="ts">
@@ -15,9 +18,13 @@ import { useRoute } from "vue-router";
 import type { GameInterface } from "@/interfaces/game.interface";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
+import FieldView from "@/components/pong/FieldView.vue";
 
 export default defineComponent({
   name: "GamesView",
+  components: {
+    FieldView,
+  },
   setup() {
     const route = useRoute();
     const gameData = ref<GameInterface | null>(null);
