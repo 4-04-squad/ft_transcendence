@@ -35,19 +35,20 @@ setup:
 	@echo "${GREEN}Copying .env file...${RESET}"
 	@cp ${ENV_FILE} ${SRCS_DIR}web/app/.env.container
 
-dev: 
+setenv:
+	@echo "${GREEN}Copying .env file...${RESET}"
+	@cp ${ENV_FILE} ${SRCS_DIR}web/app/.env.container
+
+dev: setup
 	@echo "${GREEN}Building containers dev...${RESET}"
-	@make setup
-	@${DOCKER} build --no-cache
-	@make up
+	@${DOCKER} up -d --build --force-recreate
 
 up:
 	@echo "${GREEN}Building containers...${RESET}"
 	@${DOCKER} up -d
 
-build:
+build: setenv
 	@echo "${GREEN}Building containers...${RESET}"
-	@make setup
 	@${DOCKER} up -d --build
 
 down:
@@ -70,9 +71,8 @@ logs:
 	@echo "${GREEN}Displaying logs...${RESET}"
 	@${DOCKER} logs -f
 
-rebuild: down delete
+rebuild: down delete setenv
 	@echo "${GREEN}Rebuilding containers...${RESET}"
-	@make setup
 	@${DOCKER} up -d --build --force-recreate
 
 delete:

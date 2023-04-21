@@ -1,0 +1,50 @@
+.head {
+    &--no-user {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 80%;
+        text-align: center;
+
+        .title {
+            font-size: 1.5rem;
+            border-bottom: 2px solid;
+            padding: 0.5rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 1rem;
+            margin: 1rem auto;
+        }
+    }
+}
+
+.hero {
+    background-color: var(--border-color);
+    border-radius: var(--radius-sm);
+    margin: var(--spacing);
+    height: calc((var(--vh) * 40) - (var(--spacing) * 2));
+    max-height: calc((var(--vh) * 40) - (var(--spacing) * 2));
+
+    @include bp($small, max) {
+        max-height: calc((var(--vh) * 30) - (var(--spacing) * 2));
+        height: calc((var(--vh) * 30) - (var(--spacing) * 2));
+      }
+
+      .title {
+        font-size: 3rem;
+        text-align: center;
+
+        span { 
+            font-weight: bold;
+        }
+
+        @include bp($small, max) {
+            font-size: 2rem;
+        }
+      }
+}

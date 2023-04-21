@@ -8,17 +8,11 @@ while [ ! -d /app ]; do
 done
 
 # Install dependencies
-cd /app && yarn install
+cd /app
 
 # First start, create the database and run migrations
-if [ ! -f /app/.setup ]; then
-    npx prisma migrate dev --name init
-    npx prisma migrate
-    touch /app/.setup
-else # Subsequent starts, run migrations only
-    npx prisma migrate
-fi
-
+npx prisma migrate dev
+npx prisma migrate
 
 # Build the app
 #yarn build

@@ -1,0 +1,64 @@
+// Light theme
+$light-theme: (
+  primary-color: #5061f9,
+  secondary-color: #ffffff,
+  border-color: #edeff6,
+  bg-color: #e1e6f1,
+  text-color: #2c303d,
+  svg-color: #9EA1AC,
+  accent-color: #fb602f,
+  danger-color: #FD6E87,
+  warning-color: #fb602f,
+  success-color: #11bdb3,
+);
+
+// Dark theme
+$dark-theme: (
+  primary-color: #5061f9,
+  secondary-color: #2c2d31,
+  border-color: #36373a,
+  bg-color: #242528,
+  text-color: #f4f4f4,
+  svg-color: #9EA1AC,
+  accent-color: #fb602f,
+  danger-color: #FD6E87,
+  warning-color: #fb602f,
+  success-color: #11bdb3,
+);
+
+$default-theme: (
+  white-color: #FFFFFF,
+  black-color: #2c303d,
+
+  // Grid
+  global-grid: 1280px,
+  global-margin: 20px,
+
+  // Font
+  font-size: 20px,
+  line-height: 1.26,
+
+  // Easings
+  ease: ease-in-out,
+  bezier: cubic-bezier(0.175, 0.885, 0.32, 1.275),
+
+  // Spacing
+  spacing: 20px,
+
+  // Radius
+  radius: 30px,
+  radius-md: 20px,
+  radius-sm: 15px,
+  radius-xs: 5px,
+
+  // Shadow
+  shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px,
+
+  // breakpoints
+  large: 1400px,
+  desktop: 1280px,
+  medium: 1124px,
+  tablet: 860px,
+  small: 600px,
+  phone: 400px,
+);

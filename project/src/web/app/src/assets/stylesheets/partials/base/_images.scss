@@ -1,0 +1,26 @@
+.avatar {
+    object-fit: cover;
+    &.small {
+        width: 30px;
+        height: 30px;
+    }
+
+    &.medium {
+        width: 50px;
+        height: 50px;
+    }
+
+    &.large {
+        width: 100px;
+        height: 100px;
+    }
+
+    &.xlarge {
+        width: 150px;
+        height: 150px;
+    }
+
+    &--rounded {
+        border-radius: 50%;
+    }
+}

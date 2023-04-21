@@ -12,6 +12,7 @@ done
 cd /app
 
 # read the .env file
+rm -f .env
 while IFS= read -r line || [[ -n "$line" ]]; do
   if [[ $line == *=* ]]; then
     # prepend VITE_APP_ prefix to each line
@@ -21,10 +22,6 @@ done < .env.container
 
 # rm the .env file and rename the .env.container file to .env
 rm .env.container
-
-# Install dependencies
-yarn install
-
 
 # is dev mode?
 if [ "$ENVIRONMENT" == "development" ]; then

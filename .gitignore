@@ -107,7 +107,7 @@ dist
 
 .tool-versions
 
-/project/src/web/app/
-/project/src/backend/app/
+#/project/src/web/app/
+#/project/src/backend/app/
 
 /project/src/backend/app/.setup

@@ -1,0 +1,65 @@
+.main-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .login,
+    .router-link-active,
+    .router-link-exact-active {
+      background-color: var(--border-color);
+      border-radius: $radius-sm;
+
+      &.user {
+        background-color: transparent;
+      }
+
+      svg {
+        stroke: var(--text-color) !important;
+        height: 26px;
+        width: 26px;
+        transition: all 0.2s $ease;
+      }
+    }
+
+    .login {
+      background-color: var(--primary-color);
+      border-radius: $radius-sm;
+      padding: 0.5rem;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      svg {
+        stroke: #f4f4f4 !important;
+      }
+    }
+
+    .link {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      &:hover {
+        opacity: 0.8;
+      }
+
+      svg {
+        stroke: var(--svg-color);
+      }
+    }
+
+    &--login {
+      justify-content: flex-start;
+    }
+
+    &--link {
+      justify-content: center;
+    }
+
+    &--settings {
+      justify-content: flex-end;
+
+      .toggle-switch {
+        margin-top: 1rem;
+      }
+    }
+}
