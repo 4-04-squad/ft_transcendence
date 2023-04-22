@@ -6,6 +6,9 @@
                 <SearchIcon />
                 <input type="text" v-model="searchValue" placeholder="Rechercher" />
             </div>
+            <button @click="createChannel()">
+                Create
+            </button>
         </h1>
     </div>
     <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
@@ -89,6 +92,23 @@ export default defineComponent({
             headers,
             items,
         };
+    },
+    methods: {
+        async createChannel() {
+            try {
+                const response = await axios
+                    .post(
+                        `${import.meta.env.VITE_APP_API_URL}/channels/create`
+                    ).then((res) => {
+                        console.log(res);
+                        router.push({name: "channel", params: {id: res.data.channel.id}})
+                    }).catch((err) => {
+                        console.log(err);
+                    })
+            } catch (error: any) {
+                console.log(error);
+            }
+        }
     },
 });
 </script>
