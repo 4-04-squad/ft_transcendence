@@ -38,10 +38,47 @@ export class ChannelsService {
             where: {
                 id: { in: chatUser.map((userChat) => userChat.chatId)}, 
                 type: { not: ChatType.DIRECT},
+            },
+            include: {
+              users: true
             }
         })
 
-        return chats
+        // Get all user ids from the chats
+        const userIds = chats.reduce((acc, chat) => {
+          chat.users.forEach(user => {
+            if (!acc.includes(user.userId)) {
+              acc.push(user.userId)
+            }
+          })
+          return acc
+        }, [])
+    
+        // Query users by their ids
+        const users = await this.prisma.user.findMany({
+          where: {
+            id: {
+              in: userIds
+            }
+          }
+        })
+    
+        // Map user details to each chat object
+        const result = chats.map(chat => {
+          const chatUsers = chat.users.map(chatUser => {
+            const user = users.find(u => u.id === chatUser.userId)
+            return {
+              ...chatUser,
+              user
+            }
+          })
+          return {
+            ...chat,
+            users: chatUsers
+          }
+        })
+    
+        return result
     }
 
     async createChannel(CreateChannelDto): Promise<Chat | null> {
@@ -77,7 +114,8 @@ export class ChannelsService {
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: chatId, userId: userId } });
         
         if (userChannel.length > 0)
-            throw new BadRequestException("User are Already in the channel");
+            return channel;
+            //throw new BadRequestException("User are Already in the channel");
         
         if (channel.type != ChatType.PUBLIC)
             throw new BadRequestException("User can't join this channel");
