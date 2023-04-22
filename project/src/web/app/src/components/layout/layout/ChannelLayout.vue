@@ -4,7 +4,7 @@
     <slot></slot>
     <Sidebar>
       <UsersList title="Utilisateurs en ligne" v-if="isLayout"/>
-      <MembersList title="Membres" v-else/>
+      <MembersList title="Membres" :channel="route.params.id" v-else/>
     </Sidebar>
   </div>
 </template>
@@ -34,6 +34,10 @@ export default defineComponent({
       type: String,
       default: "",
     },
+    channel: {
+      type: String,
+      default: "",
+    }
   },
   setup() {
 
@@ -56,9 +60,9 @@ export default defineComponent({
       }
     });
 
-
     return {
-      isLayout
+      isLayout,
+      route
     };
   },
 });
