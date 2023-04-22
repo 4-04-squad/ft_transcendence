@@ -8,6 +8,17 @@ export class UsersService {
   remove: any;
   constructor(private prisma: PrismaService) { }
 
+  async setTwoFactorAuthenticationSecret(secret: string, id: string) {
+    let user = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        twofasecret: secret,
+      },
+    });
+  }
+
   async findOrCreate(userInputDto: UserInputDto): Promise<any> {
     let user = await this.prisma.user.findUnique({
       where: {

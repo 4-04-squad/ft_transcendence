@@ -10,6 +10,7 @@ import { GamesModule } from './games/games.module';
 import { FriendsModule } from './friends/friends.modules';
 import { MessagesModule } from './messages/messages.module';
 import { SocketsModule } from './socket/socket.module';
+import { TwoFactorAuthenticationModule } from './2fa/twoFactor.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SocketsModule } from './socket/socket.module';
     GamesModule,
     FriendsModule,
     SocketsModule,
+    TwoFactorAuthenticationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

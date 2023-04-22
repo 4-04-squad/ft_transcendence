@@ -86,6 +86,7 @@ export default defineComponent({
     setup() {
         const searchValue = ref("");
         const userStore = useUserStore();
+        const userStore = useUserStore();
         const games = ref([] as GameInterface[]);
         const headers = [
             { text: "ID", value: "id", sortable: true },
