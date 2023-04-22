@@ -5,16 +5,22 @@
     :class="class"
     v-if="isFriend === 'pending'"
   >
-    <span class="btn--friend btn--friend--accept">
+    <span class="btn--friend btn--friend--accept mr-4">
       <FriendIcon />
     </span>
   </button>
   <button
     @click="remove"
     :class="class"
+    v-if="isFriend === 'true'"
   >
     <span class="btn--friend btn--friend--decline">
       <RemoveFriendIcon />
+    </span>
+  </button>
+  <button v-else>
+    <span class="btn--friend btn--friend--pending-approval">
+      <PendingFriendIcon />
     </span>
   </button>
   </div>
@@ -49,6 +55,10 @@ export default defineComponent({
       type: String,
       default: "",
     },
+    friendshipId: {
+      type: String,
+      default: "",
+    },
     class: {
       type: String,
       default: "",
@@ -57,6 +67,8 @@ export default defineComponent({
   setup(props) {
     const userStore = useUserStore();
     let isFriend = ref(Friends.FALSE);
+    let requester = ref("");
+    let receiver = ref("");
 
     watch(
       () => props.friendId,
@@ -66,7 +78,9 @@ export default defineComponent({
             withCredentials: true,
           })
           .then((response) => {
-            console.log(props.friendId);
+            requester.value = response.data.friendship.userId;
+            receiver.value = response.data.friendship.friendId;
+
             if (response.data.friendship.accepted == true)
               isFriend.value = Friends.TRUE;
             else if (response.data.friendship.accepted == false)
@@ -85,6 +99,8 @@ export default defineComponent({
     return {
       userStore,
       isFriend,
+      requester,
+      receiver,
     };
   },
   methods: {
@@ -93,7 +109,7 @@ export default defineComponent({
       const response = axios
         .delete(
           `${import.meta.env.VITE_APP_API_URL}/friends/${
-            this.friendId
+            this.friendshipId
           }/unfriend`,
           {
             withCredentials: true,
@@ -115,8 +131,8 @@ export default defineComponent({
         .patch(
           `${import.meta.env.VITE_APP_API_URL}/friends/accept`,
           {
-            userId: this.userStore.user?.id,
-            friendId: this.friendId,
+            userId: this.receiver,
+            friendId: this.requester,
             accepted: true,
           },
           {

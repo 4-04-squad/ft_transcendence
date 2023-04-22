@@ -6,17 +6,24 @@
     </span>
   </button>
   <button
-    @click="cancel"
     :class="class"
     class="can-remove-friend"
     v-else-if="isFriend === 'pending'"
   >
-    <span class="btn--friend btn--friend--pending">
-      <PendingFriendIcon /><span class="status">En attente</span>
+    <div @click="cancel" v-if="requester === friendId">
+        <span class="btn--friend btn--friend--pending">
+        <PendingFriendIcon /><span class="status">En attente</span>
+      </span>
+      <span class="btn--friend btn--friend--remove remove-friend">
+        <RemoveFriendIcon /><span class="status">Annuler</span>
     </span>
-    <span class="btn--friend btn--friend--remove remove-friend">
-      <RemoveFriendIcon /><span class="status">Annuler</span>
-    </span>
+    </div>
+    <FriendRequestReceiveButton
+    v-else
+    :class="'ml-4'"
+      :friendId="friendId"
+      :friendshipId="friendshipId"
+    />
   </button>
   <button
     @click="remove"
@@ -37,6 +44,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from "vue";
 import { useUserStore } from "@/stores/user";
+import FriendRequestReceiveButton from "./FriendRequestReceiveButton.vue";
 import axios from "axios";
 import {
   AddFriendIcon,
@@ -59,6 +67,7 @@ export default defineComponent({
     RemoveFriendIcon,
     PendingFriendIcon,
     FriendIcon,
+    FriendRequestReceiveButton,
   },
   props: {
     friendId: {
@@ -73,6 +82,8 @@ export default defineComponent({
   setup(props) {
     const userStore = useUserStore();
     let isFriend = ref(Friends.FALSE);
+    let requester = ref("");
+    let friendshipId = ref("");
 
     watch(
       () => props.friendId,
@@ -82,7 +93,9 @@ export default defineComponent({
             withCredentials: true,
           })
           .then((response) => {
-            console.log(props.friendId);
+            requester.value = response.data.friendship.friendId;
+            friendshipId.value = response.data.friendship.id;
+            
             if (response.data.friendship.accepted == true)
               isFriend.value = Friends.TRUE;
             else if (response.data.friendship.accepted == false)
@@ -101,6 +114,7 @@ export default defineComponent({
     return {
       userStore,
       isFriend,
+      requester,
     };
   },
   methods: {
