@@ -30,15 +30,15 @@ export class GamesController {
     }
   }
 
-  @Get('/user')
+  @Get(':userId/user')
   @ApiOkResponse({description: 'Returns a game', type: GameDto })
-  async getGamesByUser(@Param('user') userId: string, @Req() req: RequestWithUser, @Res() res: Response) {
+  async getGamesByUser(@Param('userId') userId: string, @Req() req: RequestWithUser, @Res() res: Response) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
-      const games =  await this.gamesService.getGameByUserId(user.id);
+      const games =  await this.gamesService.getGameByUserId(userId);
       res.send({ games });
     }
   }

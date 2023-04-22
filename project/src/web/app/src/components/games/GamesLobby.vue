@@ -55,12 +55,10 @@
         </template>
         <template #item-game="{ game, status }">
             <ul class="btns"  v-if="status == 'WAITING'">
-                <li @click="joinGame(game)">
-                    <RouterLink :to="{ name: 'game', params: { id: game } }" >
+                <li @click="joinAndNavigate(game)">
                         <button class="btn btn--icon only-icon">
                             <AirplayIcon />
                         </button>
-                    </RouterLink>
                 </li>
             </ul>
         </template>
@@ -76,6 +74,7 @@ import EasyDataTable from "vue3-easy-data-table";
 import { SearchIcon, AirplayIcon } from "@/components/icons";
 import type { GameInterface } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
+import { joinGame, getGames } from "@/services/gameServices";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -165,22 +164,32 @@ export default defineComponent({
                 };
             });
         };
+        
+        getGames().then((response) => {                
+            games.value = response.data.games;
+            items.value = games.value.map((game) => {
+                return {
+                    id: game.id,
+                    game: game.id,
+                    status: game.status,
+                    players: game.users,
+                    users: game.users.length,
+                };
+            });
+        })
+        .catch((error) => {
+            console.log(error);
+            if (axios.isAxiosError(error)) {
+                console.log(error.response?.data);
+                if (error.response?.status == 401) {
+                    router.push({ path: "/" });
+                }
+            }
+        });
 
-        axios
-            .get(`${import.meta.env.VITE_APP_API_URL}/games`, {
-                withCredentials: true,
-            })
-            .then((response) => {                
-                games.value = response.data.games;
-                items.value = games.value.map((game) => {
-                    return {
-                        id: game.id,
-                        game: game.id,
-                        status: game.status,
-                        players: game.users,
-                        users: game.users.length,
-                    };
-                });
+        const joinAndNavigate = (gameId: number) => {
+            joinGame(gameId).then((response) => {
+                router.push({ name: "game", params: { id: gameId } });
             })
             .catch((error) => {
                 console.log(error);
@@ -191,19 +200,7 @@ export default defineComponent({
                     }
                 }
             });
-        
-        const joinGame = (gameId: number) => {
-            axios
-                .post(`${import.meta.env.VITE_APP_API_URL}/games/join`, {
-                    gameId: gameId,
-                }, {
-                    withCredentials: true,
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
         };
-
 
         return {
             searchValue,
@@ -214,6 +211,7 @@ export default defineComponent({
             filterFinished,
             filterAll,
             joinGame,
+            joinAndNavigate,
         };
     },
 });
