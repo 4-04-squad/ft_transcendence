@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Chat, ChatType, UserChatPermission, UserChatStatus } from '@prisma/client';
+import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { memberStatusDto } from './dto/channels.dto';
 
@@ -24,8 +24,19 @@ export class ChannelsService {
         return chat;       
     }
 
-    async getChannelById(chatId: string): Promise<Chat> {
-        return await this.prisma.chat.findUnique({ where: { id: chatId } });        
+    async getChannelById(chatId: string): Promise<User[] | null> {
+        let chatUser = await this.prisma.userChat.findMany({
+            where: {
+                chatId: chatId
+            }
+        })
+        const users = await this.prisma.user.findMany({
+            where: {
+                id: { in: chatUser.map((userChat) => userChat.userId)}
+            },
+        })
+
+        return users;
     }
 
     async getChannelsByUser(userTofindId: string): Promise<Chat[] | null> {

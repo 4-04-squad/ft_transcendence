@@ -51,7 +51,7 @@ export default defineComponent({
             withCredentials: true,
           })
           .then((response) => {
-            console.log(response.data.channels);
+            members.value = response.data.users;
           })
           .catch((error) => {
             console.log(error);
