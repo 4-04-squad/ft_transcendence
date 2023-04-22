@@ -8,6 +8,7 @@ Table User {
   pseudo String [unique, not null]
   email String [unique, not null]
   password String
+  twofasecret String
   firstName String
   lastName String
   avatar String
