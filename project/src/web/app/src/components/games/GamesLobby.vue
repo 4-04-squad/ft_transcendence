@@ -53,10 +53,10 @@
                 </div>
             </div>
         </template>
-        <template #item-game="{ game }">
-            <ul class="btns">
-                <li>
-                    <RouterLink :to="{ name: 'game', params: { id: game } }">
+        <template #item-game="{ game, status }">
+            <ul class="btns"  v-if="status == 'WAITING'">
+                <li @click="joinGame(game)">
+                    <RouterLink :to="{ name: 'game', params: { id: game } }" >
                         <button class="btn btn--icon only-icon">
                             <AirplayIcon />
                         </button>
@@ -75,6 +75,7 @@ import type { Header, Item } from "vue3-easy-data-table";
 import EasyDataTable from "vue3-easy-data-table";
 import { SearchIcon, AirplayIcon } from "@/components/icons";
 import type { GameInterface } from "@/interfaces/game.interface";
+import { useUserStore } from "@/stores/user";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -85,7 +86,7 @@ export default defineComponent({
     },
     setup() {
         const searchValue = ref("");
-
+        const userStore = useUserStore();
         const games = ref([] as GameInterface[]);
         const headers = [
             { text: "ID", value: "id", sortable: true },
@@ -107,7 +108,7 @@ export default defineComponent({
             removeActiveClass();
             document.querySelector(".only-waiting")?.classList.add("active");
             items.value = games.value
-                .filter((game) => game.status == "WAITING")
+                .filter((game) => game.status == "WAITING" && !game.users.some((user) => user.id == userStore.user.id))
                 .map((game) => {
                     return {
                         id: game.id,
@@ -169,10 +170,8 @@ export default defineComponent({
             .get(`${import.meta.env.VITE_APP_API_URL}/games`, {
                 withCredentials: true,
             })
-            .then((response) => {
-                console.log(response.data.games);
+            .then((response) => {                
                 games.value = response.data.games;
-
                 items.value = games.value.map((game) => {
                     return {
                         id: game.id,
@@ -192,6 +191,19 @@ export default defineComponent({
                     }
                 }
             });
+        
+        const joinGame = (gameId: number) => {
+            axios
+                .post(`${import.meta.env.VITE_APP_API_URL}/games/join`, {
+                    gameId: gameId,
+                }, {
+                    withCredentials: true,
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        };
+
 
         return {
             searchValue,
@@ -201,6 +213,7 @@ export default defineComponent({
             filterInProgress,
             filterFinished,
             filterAll,
+            joinGame,
         };
     },
 });
