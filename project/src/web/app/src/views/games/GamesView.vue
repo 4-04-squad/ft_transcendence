@@ -27,8 +27,6 @@ export default defineComponent({
     watch(
       () => route.params.id,
       async (newVal, oldVal) => {
-        console.log("newVal", newVal);
-        console.log("oldVal", oldVal);
         try {
           if (!newVal) return;
           const response = await axios.get(
