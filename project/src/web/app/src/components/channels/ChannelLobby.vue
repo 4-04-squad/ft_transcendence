@@ -15,19 +15,15 @@
         :buttons-pagination="true" empty-message="Aucun channel trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
         rows-per-page-message="Channels par page">
         <template #item-name="{ name, channel }">
-            <RouterLink :to="{ name: 'channel', params: { id: channel } }">
-                <span v-if="name">{{ name }}</span>
-                <span v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
-            </RouterLink>
+            <span @click.stop="joinChannel(channel)" v-if="name">{{ name }}</span>
+            <span @click.stop="joinChannel(channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
         </template>
         <template #item-channel="{ channel }">
             <ul class="btns">
                 <li>
-                    <RouterLink :to="{ name: 'channel', params: { id: channel } }">
-                        <button class="btn btn--icon only-icon">
-                            <MessageIcon /> 
-                        </button>
-                    </RouterLink>
+                    <button @click="joinChannel(channel)" class="btn btn--icon only-icon">
+                        <MessageIcon /> 
+                    </button>
                 </li>
             </ul>
         </template>
@@ -66,7 +62,6 @@ export default defineComponent({
                 withCredentials: true,
             })
             .then((response) => {
-                //console.log(response.data.channels);
                 channels.value = response.data.channels;
 
                 items.value = channels.value.map((channel) => {
@@ -108,7 +103,35 @@ export default defineComponent({
             } catch (error: any) {
                 console.log(error);
             }
-        }
+        },
+        async joinChannel(id: string) {
+        try {
+            const response = await axios
+            .post(
+                `${import.meta.env.VITE_APP_API_URL}/channels/join`,
+                {
+                chatId: id,
+                },
+                {
+                withCredentials: true,
+                headers: {"Content-Type": "application/json",
+                },
+                }
+            ).then((res) => {
+                this.$router.push({
+                name: "channel",
+                params: {
+                    id: res.data.channel.id,
+                },
+                });
+            })
+                .catch((err) => {
+                console.log(err);
+                });
+            } catch (error: any) {
+            console.log(error);
+            }
+    },
     },
 });
 </script>
