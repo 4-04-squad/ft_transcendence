@@ -188,7 +188,7 @@ export default defineComponent({
       const response = await axios
         .delete(
           `${import.meta.env.VITE_APP_API_URL}/friends/${
-            this.friendshipId
+            this.friendId
           }/unfriend`,
           {
             withCredentials: true,
