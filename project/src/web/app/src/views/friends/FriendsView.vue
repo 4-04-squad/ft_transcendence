@@ -100,7 +100,7 @@ export default defineComponent({
         withCredentials: true,
       })
       .then((response) => {
-        users.value = response.data.users;
+        users.value = response.data.friends;
         items.value = users.value.map((user) => ({
           avatar: user.avatar,
           pseudo: user.pseudo,
