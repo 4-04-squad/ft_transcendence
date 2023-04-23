@@ -22,12 +22,7 @@
         <div class="form-fields">
           <div class="form-field">
             <label for="pseudo">Pseudo</label>
-            <input
-              type="text"
-              id="pseudo"
-              name="pseudo"
-              :value="user?.pseudo"
-            />
+            <input type="text" id="pseudo" name="pseudo" :value="user?.pseudo" />
           </div>
           <div class="form-field">
             <label for="email">Email</label>
@@ -37,32 +32,16 @@
         <div class="form-fields">
           <div class="form-field">
             <label for="firstname">Nom</label>
-            <input
-              type="text"
-              id="firstname"
-              name="firstname"
-              :value="user?.firstName"
-            />
+            <input type="text" id="firstname" name="firstname" :value="user?.firstName" />
           </div>
           <div class="form-field">
             <label for="lastname">Prénom</label>
-            <input
-              type="text"
-              id="lastname"
-              name="lastname"
-              :value="user?.lastName"
-            />
+            <input type="text" id="lastname" name="lastname" :value="user?.lastName" />
           </div>
         </div>
         <div class="form-field">
           <label for="about">Bio</label>
-          <textarea
-            name="about"
-            id="about"
-            cols="30"
-            rows="4"
-            :value="user?.about"
-          ></textarea>
+          <textarea name="about" id="about" cols="30" rows="4" :value="user?.about"></textarea>
         </div>
         <div class="form-field" v-if="user?.role === 'ADMIN'">
           <label for="role">Role</label>
@@ -72,14 +51,10 @@
           </select>
         </div>
         <div class="form-fields form-fields--btns">
-          <input class="btn btn--submit" type="submit" value="Modifier" />
-          <button
-            class="btn btn--delete"
-            @click.prevent="deleteUser"
-            v-if="user?.role === 'ADMIN'"
-          >
-            Supprimer
+          <button class="btn btn--delete" @click.prevent="deleteUser" v-if="isAllowed">
+            Supprimer le compte
           </button>
+          <input class="btn btn--submit" type="submit" value="Modifier" />
         </div>
       </form>
     </div>
@@ -101,81 +76,88 @@ export default defineComponent({
   },
   setup() {
     const userStore = useUserStore();
-
-    return {
-      userStore,
-    };
-  },
-  async created() {
-    const userStore = useUserStore();
     const route = useRoute();
 
-    let user: UserInterface | undefined = undefined;
+    // Get the user from the store
+    const user = userStore.user;
 
-    // Check current route params to know if we are on the current user profile or not
-    if (route.params.id) {
-      // Get user by pseudo from API if we are on another user profile
-      const response = await axios
-        .get(`${import.meta.env.VITE_APP_API_URL}/users/${route.params.id}`, {
-          withCredentials: true,
-        })
-        .then((response) => {
-          user = response.data.user;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else {
-      // Get current user from store
-      user = userStore.user;
-    }
+    // Get the user id from the route
+    const userId = route.params.id;
 
-    this.$data.user = user;
-  },
-  data() {
+    // only current user or admin can edit his profile
+    const isAllowed = user?.id === userId || user?.role === "ADMIN";
+
     return {
-      user: undefined as UserInterface | undefined,
+      user,
+      userStore,
+      formData: new FormData(),
+      isAllowed,
     };
   },
   methods: {
     async updateUser(event: { preventDefault: () => void; target: any }) {
       event.preventDefault();
 
-      // TODO: convert to FormData to JSON
-
-      try {
-        await axios.patch(
-          `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}`,
-          formObject,
-          {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        alert("User updated successfully!");
-      } catch (error) {
-        console.log(error);
+      // Get the form Object
+      const formObject = {
+        pseudo: event.target.pseudo.value,
+        email: event.target.email.value,
+        firstName: event.target.firstname.value,
+        lastName: event.target.lastname.value,
+        about: event.target.about.value,
+        role: event.target.role.value
       }
+
+      // Convert the form object to JSON
+      const formJSON = JSON.stringify(formObject);
+
+      // Append the JSON to the form data
+      this.formData.append("user", formJSON);
+      
+
+      // Check if the user has uploaded a new avatar
+      if (event.target.avatar.files.length > 0) {
+        this.formData.append("avatar", event.target.avatar.files[0]);
+      }
+
+      // Update user
+      try {
+          await axios.patch(
+            `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}`,
+            this.formData,
+            {
+              withCredentials: true,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          alert("User updated successfully!");
+        } catch (error) {
+          console.log(error);
+        }
     },
     async deleteUser() {
       if (!confirm("Voulez-vous vraiment supprimer votre compte ?")) {
         return;
       }
-      try {
-        await axios.delete(
-          `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}`,
-          {
-            withCredentials: true,
-          }
-        );
-        // Remove the user from the store
-        this.userStore.setUser(undefined);
-        // Navigate to the home page
-        this.$router.push("/login");
-      } catch (error) {
-        console.log(error);
+      if (this.isAllowed) {
+        try {
+          await axios.delete(
+            `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}`,
+            {
+              withCredentials: true,
+            }
+          ).then(() => {
+            this.userStore.clearUser();
+            this.$router.push({ path: "/login" });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        } catch (error) {
+          console.log(error);
+        }
       }
     },
   },

@@ -110,6 +110,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: UserDto })
   async remove(
     @Param('id', ParseUUIDPipe) userId: string,
     @Req() req: RequestWithUser,
@@ -117,7 +118,7 @@ export class UsersController {
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
-    if (req.user) {
+    if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
       if (req.user.id === userId || req.user.role === 'ADMIN') {
@@ -125,7 +126,7 @@ export class UsersController {
         res.clearCookie(process.env.JWT_NAME);
         res.send({ message: 'User deleted' });
       } else {
-        res.status(401).send({ message: 'Unauthorized' });
+        res.status(401).send({ message: 'Unauthorized to delete the user.' });
       }
     }
   }
