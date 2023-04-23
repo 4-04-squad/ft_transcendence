@@ -5,6 +5,8 @@
         <h1 class="title">
           Hello, <span>{{ userStore.user?.pseudo }}</span>
         </h1>
+        <button class="btn" @click="generateQr">2FA</button>
+        <img class="h-48 w-48" :src="qrCode"/>
       </div>
       <div class="content-wrapper">
         <div class="grid">
@@ -25,6 +27,7 @@ import MainLayout from "@/components/layout/layout/MainLayout.vue";
 import { defineComponent } from "vue";
 import { useUserStore } from "@/stores/user";
 import router from "@/router";
+import axios from "axios";
 
 export default defineComponent({
   name: "HomeView",
@@ -33,11 +36,36 @@ export default defineComponent({
   },
   setup() {
     const userStore = useUserStore();
+    const qrCode = null;
 
     return {
       userStore,
+      qrCode
     };
   },
+  methods: {
+    async generateQr() {
+      console.log("2fa");
+
+      axios.post(`${import.meta.env.VITE_APP_API_URL}/2fa/generate`,
+        {
+          withCredentials: true,
+        }
+      ).then((response) => {
+        console.log(response);
+        
+        this.qrCode = response.data;
+
+        // let blob = new Blob([response.data], { type: 'image/png' });
+        // console.log(blob);
+        // let url = URL.createObjectURL(blob);
+        // this.qrCode = url.slice(5);
+        // console.log(this.qrCode);
+      }).catch((error) => {
+        console.log(error);
+      });
+    },
+  }
 });
 </script>
 

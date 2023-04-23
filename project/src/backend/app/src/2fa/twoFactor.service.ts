@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { authenticator } from 'otplib';
 import { PrismaService } from 'src/prisma.service';
 import { UsersService } from 'src/users/users.service';
-import { toFileStream } from 'qrcode';
+import { toFileStream,toDataURL  } from 'qrcode';
 import { Response } from 'express';
 
 @Injectable()
@@ -26,6 +26,7 @@ export class TwoFactorAuthenticationService {
 	}
 
 	public async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
-		return toFileStream(stream, otpauthUrl);
+		return toDataURL(otpauthUrl);
+		//return toFileStream(stream, otpauthUrl);
 	}
 }
