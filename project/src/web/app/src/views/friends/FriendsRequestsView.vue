@@ -43,7 +43,7 @@
       <template #item-profile="{ profile, pseudo }">
         <ul class="btns">
           <li>
-            <FriendRequestReceiveButton
+            <FriendRequestButton
               :friendId="profile"
               class="btn btn--icon only-icon"
             />
@@ -71,7 +71,7 @@ import EasyDataTable from "vue3-easy-data-table";
 import type { UserInterface } from "@/interfaces/user.interface";
 import { SearchIcon, ExternalLinkIcon } from "@/components/icons";
 import UserCard from "@/components/user/UserCard.vue";
-import FriendRequestReceiveButton from "@/components/ui/button/FriendRequestReceiveButton.vue";
+import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue";
 
 export default defineComponent({
   name: "FriendsRequestsView",
@@ -79,7 +79,7 @@ export default defineComponent({
     EasyDataTable,
     SearchIcon,
     ExternalLinkIcon,
-    FriendRequestReceiveButton,
+    FriendRequestButton,
     UserCard,
   },
   setup() {

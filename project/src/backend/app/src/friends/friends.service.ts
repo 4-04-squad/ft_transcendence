@@ -275,4 +275,20 @@ export class FriendsService {
 
         return friendship || friendship2;
       }
+
+      async getAllFriendships(userId: string): Promise<User[]> {
+        // return all accepted friendships users
+        const friendships = await this.prisma.friendship.findMany({
+          where: {
+            userId: userId,
+            accepted: true,
+          },
+          include: {
+            friend: true,
+          },
+        });
+        const friends = friendships.map((friendship) => friendship.friend);
+
+        return friends;
+      }
 }
