@@ -8,7 +8,6 @@ import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { UserDto } from './dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { UserAvatarService } from './user-avatar.service';
 
 @Controller('users')
 @ApiTags('Users')
@@ -17,7 +16,6 @@ export class UsersController {
   constructor(
     private usersService: UsersService,
     private authMiddleware: AuthMiddleware,
-    private userAvatarService: UserAvatarService
   ) { }
 
   @Get()
@@ -44,7 +42,7 @@ export class UsersController {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
-      res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized.' });
     } else {
       this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
       res.send({ user });
@@ -88,7 +86,7 @@ export class UsersController {
 
   @Post('/create')
   async createUser(@Body() data: UserDto): Promise<User> {
-    return await this.usersService.createUser(data);
+    return this.usersService.createUser(data);
   }
 
   @Patch(':id/edit')
@@ -106,31 +104,43 @@ export class UsersController {
     } else {
       if (req.user.id === userId || req.user.role === 'ADMIN') {
         let user = await this.usersService.updateUser(userId, data);
-        res.send({ user });
+        res.send({ user, message: 'User updated' });
       } else {
         res.status(401).send({ message: 'Unauthorized' });
       }
     }
   }
 
-  @Patch(':userId/avatar')
-  @UseInterceptors(
-    FileInterceptor('avatar', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const fileExtension = file.originalname.split('.').pop();
-          cb(null, uniqueSuffix + '-' + file.fieldname + '.' + fileExtension);
-        },
-      }),
-    }),
-  )
-  async uploadAvatar(
-    @Param('userId') userId: string,
+  @Patch(':id/avatar')
+  @UseInterceptors(FileInterceptor('avatar', {
+    storage: diskStorage({
+      destination: './uploads/avatars',
+      filename: (req, file, cb) => {
+        const filename = file.originalname.split('.')[0];
+        const extension = file.originalname.split('.')[1];
+        cb(null, `${filename}-${Date.now()}.${extension}`);
+      }
+    })
+  }))
+  @ApiOkResponse({ type: UserDto })
+  async updateUserAvatar(
+    @Param('id', ParseUUIDPipe) userId: string,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<string> {
-    return this.userAvatarService.uploadAvatar(file, userId);
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+    @Next() next: NextFunction
+  ) {
+    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
+    if (!req.user) {
+      res.status(401).send({ message: 'Unauthorized' });
+    } else {
+      if (req.user.id === userId || req.user.role === 'ADMIN') {
+        let user = await this.usersService.updateUserAvatar(userId, file);
+        res.send({ user, message: 'Avatar updated' });
+      } else {
+        res.status(401).send({ message: 'Unauthorized' });
+      }
+    }
   }
 
   @Delete(':id')

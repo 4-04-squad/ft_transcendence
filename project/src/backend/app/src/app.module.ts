@@ -11,6 +11,18 @@ import { FriendsModule } from './friends/friends.modules';
 import { MessagesModule } from './messages/messages.module';
 import { SocketsModule } from './socket/socket.module';
 import { TwoFactorAuthenticationModule } from './2fa/twoFactor.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
+const staticOptions = {
+  rootPath: join(process.cwd(), 'uploads', 'avatars'),
+  serveRoot: '/api/uploads',
+  serveStaticOptions: {
+    index: false,
+    extensions: ['jpg', 'jpeg', 'png', 'gif'],
+    maxAge: 60 * 60 * 24 * 365,
+  },
+};
 
 @Module({
   imports: [
@@ -25,6 +37,7 @@ import { TwoFactorAuthenticationModule } from './2fa/twoFactor.module';
     FriendsModule,
     SocketsModule,
     TwoFactorAuthenticationModule,
+    ServeStaticModule.forRoot(staticOptions),
   ],
   controllers: [AppController],
   providers: [AppService],

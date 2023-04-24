@@ -16,13 +16,7 @@
           </div>
           <div class="user-card__upload">
             <label for="avatar">Changer l'avatar</label>
-            <input 
-            type="file"
-            id="avatar"
-            name="avatar"
-            ref="avatarRef"
-            @change="handleFileChange"
-            />
+            <input type="file" id="avatar" name="avatar" ref="avatarRef" @change="handleFileChange" />
           </div>
         </div>
         <div class="form-fields">
@@ -79,15 +73,11 @@ export default defineComponent({
   components: {
     EditIcon,
   },
-  data() {
-  return {
-    selectedFile: null,
-  };
-},
   setup() {
     const userStore = useUserStore();
     const route = useRoute();
     const avatarRef = ref();
+    const selectedFile = ref(null);
 
     // Get the user from the store
     const user = userStore.user;
@@ -103,14 +93,44 @@ export default defineComponent({
       avatarRef,
       userStore,
       isAllowed,
+      selectedFile,
     };
   },
   methods: {
     handleFileChange(event: { target: { files: any; }; }) {
       this.selectedFile = event.target.files[0];
-  },
+    },
     async updateUser(event: { preventDefault: () => void; }) {
       event.preventDefault();
+
+      // Check if the user has uploaded a new avatar
+      const hasFiles = this.selectedFile !== null;
+      let avatarUrl = this.user?.avatar;
+
+      if (hasFiles) {
+
+        // Update user with avatar
+        const formData = new FormData();
+        formData.append('avatar', this.selectedFile);
+        try {
+          const response = await axios.patch(`${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}/avatar`,
+            formData
+            , {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+              withCredentials: true,
+            })
+            .then((res) => {
+              this.userStore.user.avatar = res.data.user.avatar;
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        } catch (error) {
+          console.error('Error uploading avatar:', error);
+        }
+      }
 
       // Get the form Object
       const formObject = {
@@ -122,49 +142,26 @@ export default defineComponent({
         role: this.user.role || "USER",
       };
 
-       // Check if the user has uploaded a new avatar
-       const hasFiles = this.selectedFile !== null;
-       console.log("user upload avatar", this.selectedFile);
-
-        if (hasFiles) {
-
-          // Update user with avatar
-          try {
-            const formData = new FormData();
-            formData.append('avatar', this.selectedFile);
-
-            const response = await axios.patch(`${process.env.API_URL}/users/${this.user?.id}/avatar`, formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-              withCredentials: true,
-            });
-            console.log('Avatar uploaded successfully:', response.data);
-          } catch (error) {
-            console.error('Error uploading avatar:', error);
-          }
-        }
-
-        // Update user without avatar
-        /* try {
-          await axios.patch(
-            `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}/edit`,
-            JSON.stringify(formObject),
-            {
-              withCredentials: true,
-              headers: {
-                "Content-Type": "application/json",
-              }
+      // Update user without avatar
+      try {
+        await axios.patch(
+          `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}/edit`,
+          JSON.stringify(formObject),
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
             }
-          )
-            .then((res) => {
-              // Update the user in the store
-              this.userStore.setUser(this.user);
-              this.$router.push({ path: "/profile" });
-            })
-        } catch (error) {
-          console.log(error);
-        } */
+          }
+        )
+          .then((res) => {
+            // Update the user in the store
+            this.userStore.setUser(this.user);
+            this.$router.push({ path: "/profile" });
+          })
+      } catch (error) {
+        console.log(error);
+      }
     },
 
     async deleteUser() {

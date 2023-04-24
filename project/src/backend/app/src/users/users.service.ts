@@ -157,5 +157,15 @@ export class UsersService {
 
     return user;
   }
+
+  async updateUserAvatar(userId: string, file: Express.Multer.File) : Promise<User> {
+    const { filename, mimetype } = file;
+    const avatarUrl = `${process.env.API_URL}/uploads/${filename}`;
+  
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+    });
+  }
 }
 
