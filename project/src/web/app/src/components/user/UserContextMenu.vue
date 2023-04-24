@@ -7,7 +7,7 @@
                 </RunConversationButton>
             </li>
             <li>
-                <GameProposalButton>
+                <GameProposalButton :user="user?.id">
                     Lancer une partie
                 </GameProposalButton>
             </li>
