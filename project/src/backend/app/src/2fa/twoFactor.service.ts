@@ -14,7 +14,7 @@ export class TwoFactorAuthenticationService {
 
 	public async generateTwoFactorAuthenticationSecret(user: any) {
 		const secret = authenticator.generateSecret();
-		console.log
+		console.log(secret);
 		const otpauthUrl = authenticator.keyuri(user.email, process.env.TITLE, secret);
 
 		await this.usersService.setTwoFactorAuthenticationSecret(secret, user.id);
@@ -27,6 +27,12 @@ export class TwoFactorAuthenticationService {
 
 	public async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
 		return toDataURL(otpauthUrl);
-		//return toFileStream(stream, otpauthUrl);
+	}
+
+	public isTwoFactorAuthenticationCodeValid(twoFactorAuthenticationCode: string, user: any) {
+		return authenticator.verify({
+			token: twoFactorAuthenticationCode,
+			secret: user.twofasecret
+		})
 	}
 }

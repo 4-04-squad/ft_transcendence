@@ -17,6 +17,19 @@ export class UsersService {
         twofasecret: secret,
       },
     });
+    return user;
+  }
+
+  async turnOnTwoFactorAuthentication(id: string) {
+    let user = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        twofaenabled: true,
+      },
+    });
+    return user;
   }
 
   async findOrCreate(userInputDto: UserInputDto): Promise<any> {

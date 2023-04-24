@@ -4,6 +4,7 @@ import {
 	Res,
 	UseGuards,
 	Req,
+	Body,
 } from '@nestjs/common';
 import { AuthMiddleware } from 'src/users/users.middleware';
 import { TwoFactorAuthenticationService } from './twoFactor.service';
@@ -11,6 +12,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags } from '@nestjs/swagger';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('2fa')
 @ApiTags('2fa')
@@ -18,6 +20,7 @@ export class TwoFactorAuthenticationController {
 	constructor(
 		private readonly twoFactorAuthenticationService: TwoFactorAuthenticationService,
 		private authMiddleware: AuthMiddleware,
+		private usersService: UsersService
 	) { }
 
 	@Post('generate')
@@ -33,5 +36,25 @@ export class TwoFactorAuthenticationController {
 
 			res.send({ ret });
 		  }
+	}
+
+	@Post('turn-on')
+	async turnOnTwoFactorAuthentication(
+		@Req() request: RequestWithUser,
+		@Res() res: Response,
+		@Body() body: { tfa_code: string }
+	) {
+		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
+		const user = request.user;
+		console.log(body.tfa_code)
+
+    	const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
+      		body.tfa_code, user
+    	);
+		console.log(isCodeValid);
+		if (!isCodeValid) {
+			res.send({ message: 'Wrong authentication code' });
+		}
+		await this.usersService.turnOnTwoFactorAuthentication(user.id);
 	}
 }
