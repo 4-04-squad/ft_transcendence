@@ -30,8 +30,8 @@ export class TwoFactorAuthenticationController {
 			const { otpauthUrl } = await this.twoFactorAuthenticationService.generateTwoFactorAuthenticationSecret(request.user);
 
 			const ret = await this.twoFactorAuthenticationService.pipeQrCodeStream(res, otpauthUrl);
-			console.log(ret);
-			return ret;
+
+			res.send({ ret });
 		  }
 	}
 }
