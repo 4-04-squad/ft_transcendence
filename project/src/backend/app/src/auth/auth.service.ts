@@ -74,7 +74,7 @@ export class AuthService {
         email: userEmail,
         password,
         pseudo,
-        avatar: "/public/img/marvin.png"
+        avatar: "/img/marvin.png"
       },
     });
   }
