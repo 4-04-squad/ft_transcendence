@@ -1,37 +1,55 @@
 <template>
- <div v-if="userStore.user?.id !== friendId">
-  <button @click="add" :class="class" v-if="isFriend === 'false'">
-    <span class="btn--friend btn--friend--add">
-      <AddFriendIcon /><span class="status">Ajouter</span>
-    </span>
-  </button>
-  <button
-    @click="cancel"
+  <div class="btns" v-if="userStore.user?.id !== friendId">
+    <button
+    @click="accept"
     :class="class"
-    class="can-remove-friend"
-    v-else-if="isFriend === 'pending'"
+    v-if="isFriend === 'pending' && requester === friendId"
   >
-    <span class="btn--friend btn--friend--pending">
-      <PendingFriendIcon /><span class="status">En attente</span>
-    </span>
-    <span class="btn--friend btn--friend--remove remove-friend">
-      <RemoveFriendIcon /><span class="status">Annuler</span>
+    <span class="btn--friend btn--friend--accept mr-4">
+      <FriendIcon /><span class="status">Accepter</span>
     </span>
   </button>
   <button
     @click="remove"
     :class="class"
     class="can-remove-friend"
-    v-else-if="isFriend === 'true'"
+    v-if="isFriend === 'true'"
   >
-    <span class="btn--friend btn--friend--accepted">
-      <FriendIcon /><span class="status">Amis</span>
+    <span class="btn--friend btn--friend--accept">
+      <FriendIcon /><span class="status">Ami</span>
     </span>
-    <span class="btn--friend btn--friend--remove remove-friend">
+    <span class="btn--friend btn--friend--decline remove-friend">
       <RemoveFriendIcon /><span class="status">Supprimer</span>
     </span>
   </button>
- </div>
+  <button
+  @click="cancel"
+  :class="class"
+  v-else-if="isFriend === 'pending' && requester === friendId"
+  >
+    <span class="btn--friend btn--friend--pending">
+      <RemoveFriendIcon /><span class="status">Refuser</span>
+    </span>
+  </button>
+  <button
+    @click="cancel"
+    :class="class"
+    v-else-if="isFriend === 'pending' && requester !== friendId"
+  >
+    <span class="btn--friend btn--friend--pending">
+      <PendingFriendIcon /><span class="status">Annuler</span>
+    </span>
+  </button>
+  <button 
+    @click="add"
+    :class="class"
+    v-else-if="isFriend === 'false'"
+  >
+    <span class="btn--friend btn--friend--add">
+      <AddFriendIcon /><span class="status">Ajouter</span>
+    </span>
+  </button>
+  </div>
 </template>
 
 <script lang="ts">
@@ -43,14 +61,9 @@ import {
   RemoveFriendIcon,
   PendingFriendIcon,
   FriendIcon,
-} from "@/components/icons";
 
-enum Friends {
-  FALSE = "false",
-  TRUE = "true",
-  PENDING = "pending",
-  APPROVE = "approve",
-}
+} from "@/components/icons";
+import { FriendsRequestStatus } from "@/interfaces/friend.interface";
 
 export default defineComponent({
   name: "FriendRequestButton",
@@ -72,28 +85,69 @@ export default defineComponent({
   },
   setup(props) {
     const userStore = useUserStore();
-    let isFriend = ref(Friends.FALSE);
+    let isFriend = ref(FriendsRequestStatus.FALSE as FriendsRequestStatus);
+    let requester = ref("" as string);
+    let receiver = ref("" as string);
+    let friendshipId = ref("" as string);
 
     watch(
       () => props.friendId,
       async () => {
-        const response = axios
+        const response = await axios
           .get(`${import.meta.env.VITE_APP_API_URL}/friends/${props.friendId}`, {
             withCredentials: true,
           })
           .then((response) => {
-            console.log(props.friendId);
+            requester.value = response.data.friendship.userId;
+            receiver.value = response.data.friendship.friendId;
+            friendshipId.value = response.data.friendship.id;
+
             if (response.data.friendship.accepted == true)
-              isFriend.value = Friends.TRUE;
+              isFriend.value = FriendsRequestStatus.TRUE;
             else if (response.data.friendship.accepted == false)
-              isFriend.value = Friends.PENDING;
-            else isFriend.value = Friends.FALSE;
+              isFriend.value = FriendsRequestStatus.PENDING;
+            else 
+              isFriend.value = FriendsRequestStatus.FALSE;
           })
           .catch((error) => {
             if (error.response?.status == 400) {
-              isFriend.value = Friends.PENDING;
+              isFriend.value = FriendsRequestStatus.PENDING;
             }
           });
+      },
+      { immediate: true } // Call the function immediately when the component is created
+    );
+
+    // watch isFriend to update the button
+    watch(
+      () => isFriend.value,
+      async () => {
+        const response = await axios
+            .get(
+              `${import.meta.env.VITE_APP_API_URL}/friends/${props.friendId}`,
+              {
+                withCredentials: true,
+              }
+            )
+            .then((response) => {
+              requester.value = response.data.friendship.userId;
+              receiver.value = response.data.friendship.friendId;
+              friendshipId.value = response.data.friendship.id;
+
+              if (!response.data.friendship)
+                isFriend.value = FriendsRequestStatus.FALSE;
+              else if (response.data.friendship.accepted == true)
+                isFriend.value = FriendsRequestStatus.TRUE;
+              else if (response.data.friendship.accepted == false)
+                isFriend.value = FriendsRequestStatus.PENDING;
+              else 
+                isFriend.value = FriendsRequestStatus.FALSE;
+            })
+            .catch((error) => {
+              if (error.response?.status == 400) {
+                isFriend.value = FriendsRequestStatus.PENDING;
+              }
+            });
       },
       { immediate: true } // Call the function immediately when the component is created
     );
@@ -101,12 +155,14 @@ export default defineComponent({
     return {
       userStore,
       isFriend,
+      requester,
+      receiver,
+      friendshipId,
     };
   },
   methods: {
-    add() {
-      // Add the current user as friend of the user we are on if not friend
-      const response = axios
+    async add() {
+      const response = await axios
         .post(
           `${import.meta.env.VITE_APP_API_URL}/friends/add`,
           {
@@ -118,22 +174,18 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          if (response.data.friendship.accepted == true)
-            this.isFriend = Friends.TRUE;
-          else if (response.data.friendship.accepted == false)
-            this.isFriend = Friends.PENDING;
-          else this.isFriend = Friends.FALSE;
+          this.isFriend = FriendsRequestStatus.PENDING;
         })
         .catch((error) => {
           if (error.response?.status == 400) {
             console.log(error.response?.data);
-            this.isFriend = Friends.TRUE;
+            this.isFriend = FriendsRequestStatus.TRUE;
           }
         });
     },
-    remove() {
+    async remove() {
       // Remove the current user as friend of the user we are on if friend
-      const response = axios
+      const response = await axios
         .delete(
           `${import.meta.env.VITE_APP_API_URL}/friends/${
             this.friendId
@@ -143,18 +195,19 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          this.isFriend = Friends.FALSE;
+          // update the `isFriend` ref variable
+          this.isFriend = FriendsRequestStatus.FALSE;
         })
         .catch((error) => {
           if (error.response?.status == 400) {
             console.log(error.response?.data);
-            this.isFriend = Friends.FALSE;
+            this.isFriend = FriendsRequestStatus.FALSE;
           }
         });
     },
-    cancel() {
+    async cancel() {
       // Remove the current user as friend of the user we are on if friend
-      const response = axios
+      const response = await axios
         .delete(`${import.meta.env.VITE_APP_API_URL}/friends/${
             this.friendId
           }/cancel`,
@@ -163,23 +216,23 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          this.isFriend = Friends.FALSE;
+          this.isFriend = FriendsRequestStatus.FALSE;
         })
         .catch((error) => {
           if (error.response?.status == 400) {
             console.log(error.response?.data);
-            this.isFriend = Friends.FALSE;
+            this.isFriend = FriendsRequestStatus.FALSE;
           }
         });
     },
-    accept() {
+    async accept() {
       // Approve the current user as friend of the user we are on if friend
-      const response = axios
+      const response = await axios
         .patch(
           `${import.meta.env.VITE_APP_API_URL}/friends/accept`,
           {
-            userId: this.userStore.user?.id,
-            friendId: this.friendId,
+            userId: this.receiver,
+            friendId: this.requester,
             accepted: true,
           },
           {
@@ -187,12 +240,12 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          this.isFriend = Friends.TRUE;
+          this.isFriend = FriendsRequestStatus.TRUE;
         })
         .catch((error) => {
           if (error.response?.status == 400) {
             console.log(error.response?.data);
-            this.isFriend = Friends.TRUE;
+            this.isFriend = FriendsRequestStatus.TRUE;
           }
         });
     },
@@ -205,26 +258,22 @@ export default defineComponent({
   display: flex;
   align-items: center;
 
-  svg {
-    margin-right: 1rem;
-  }
-
   .status {
+    margin-left: 0.5rem;
+  }
+}
+
+.can-remove-friend {
+
+  .remove-friend {
     display: none;
   }
-}
-.remove-friend {
-  display: none;
-}
-.can-remove-friend {
+
   &:hover {
-    .btn--friend--pending {
+    .btn--friend--accept {
       display: none;
     }
 
-    .btn--friend--accepted {
-      display: none;
-    }
     .remove-friend {
       display: flex;
     }

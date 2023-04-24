@@ -25,7 +25,7 @@ export class FriendsController {
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
-            let friends = await this.friendsService.getFriends(req.user.id);
+            let friends = await this.friendsService.getAllFriendships(req.user.id);
             res.send({ friends });
         }
     }
