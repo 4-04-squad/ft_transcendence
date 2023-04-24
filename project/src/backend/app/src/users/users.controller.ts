@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res, Next } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res, Next, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User, UserStatus } from '@prisma/client';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
@@ -6,6 +6,8 @@ import { AuthMiddleware } from './users.middleware';
 import { NextFunction, Response } from 'express';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { UserDto } from './dto/user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 @Controller('users')
 @ApiTags('Users')
@@ -18,8 +20,8 @@ export class UsersController {
 
   @Get()
   async getAllUsers(
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
@@ -33,14 +35,14 @@ export class UsersController {
   @Get('@me')
   @ApiOkResponse({ type: UserDto })
   async loginUser(
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
-      res.status(401).send({ message: 'Unauthorized' });
+      res.status(401).send({ message: 'Unauthorized.' });
     } else {
       this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
       res.send({ user });
@@ -51,8 +53,8 @@ export class UsersController {
   @ApiOkResponse({ type: UserDto })
   async getUserById(
     @Param('id') userId: string,
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
@@ -68,9 +70,9 @@ export class UsersController {
   @ApiOkResponse({ type: UserDto })
   async getUserByStatus(
     @Param('status') status: string,
-    @Param('limit') limit: string, 
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Param('limit') limit: string,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
@@ -84,7 +86,7 @@ export class UsersController {
 
   @Post('/create')
   async createUser(@Body() data: UserDto): Promise<User> {
-    return await this.usersService.createUser(data);
+    return this.usersService.createUser(data);
   }
 
   @Patch(':id/edit')
@@ -92,8 +94,8 @@ export class UsersController {
   async updateUser(
     @Param('id', ParseUUIDPipe) userId: string,
     @Body() data: UserDto,
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
@@ -102,7 +104,39 @@ export class UsersController {
     } else {
       if (req.user.id === userId || req.user.role === 'ADMIN') {
         let user = await this.usersService.updateUser(userId, data);
-        res.send({ user });
+        res.send({ user, message: 'User updated' });
+      } else {
+        res.status(401).send({ message: 'Unauthorized' });
+      }
+    }
+  }
+
+  @Patch(':id/avatar')
+  @UseInterceptors(FileInterceptor('avatar', {
+    storage: diskStorage({
+      destination: './uploads/avatars',
+      filename: (req, file, cb) => {
+        const filename = file.originalname.split('.')[0];
+        const extension = file.originalname.split('.')[1];
+        cb(null, `${filename}-${Date.now()}.${extension}`);
+      }
+    })
+  }))
+  @ApiOkResponse({ type: UserDto })
+  async updateUserAvatar(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+    @Next() next: NextFunction
+  ) {
+    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
+    if (!req.user) {
+      res.status(401).send({ message: 'Unauthorized' });
+    } else {
+      if (req.user.id === userId || req.user.role === 'ADMIN') {
+        let user = await this.usersService.updateUserAvatar(userId, file);
+        res.send({ user, message: 'Avatar updated' });
       } else {
         res.status(401).send({ message: 'Unauthorized' });
       }
@@ -110,14 +144,15 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: UserDto })
   async remove(
     @Param('id', ParseUUIDPipe) userId: string,
     @Req() req: RequestWithUser,
-    @Res({ passthrough: true }) res: Response, 
+    @Res({ passthrough: true }) res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
-    if (req.user) {
+    if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
       if (req.user.id === userId || req.user.role === 'ADMIN') {
@@ -125,7 +160,7 @@ export class UsersController {
         res.clearCookie(process.env.JWT_NAME);
         res.send({ message: 'User deleted' });
       } else {
-        res.status(401).send({ message: 'Unauthorized' });
+        res.status(401).send({ message: 'Unauthorized to delete the user.' });
       }
     }
   }

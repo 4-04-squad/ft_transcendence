@@ -81,7 +81,7 @@ export class AuthController {
         lastName: last_name,
         fortyTwoId: id,
         pseudo: login,
-        avatar: image.versions.medium
+        avatar: image.versions.medium || "/img/marvin.png"
       });
 
       if (user) {
