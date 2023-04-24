@@ -8,36 +8,43 @@
             </div>
             <ul class="games-filters">
                 <li>
-                    <button class="btn btn--normal btn-game-filter only-waiting" @click="filterMine">
+                    <button class="btn btn--normal btn-game-filter only-waiting" @click="filterGames('MINE')">
                         Mes parties
                     </button>
                 </li>
                 <li>
-                    <button class="btn btn--normal btn-game-filter only-waiting" @click="filterWaiting">
+                    <button class="btn btn--normal btn-game-filter only-waiting" @click="filterGames('WAITING')">
                         En attente
                     </button>
                 </li>
                 <li>
-                    <button class="btn btn--normal btn-game-filter only-in-progress" @click="filterInProgress">
+                    <button class="btn btn--normal btn-game-filter only-in-progress" @click="filterGames('INPROGRESS')">
                         En cours
                     </button>
                 </li>
                 <li>
-                    <button class="btn btn--normal btn-game-filter only-finished" @click="filterFinished">
+                    <button class="btn btn--normal btn-game-filter only-finished" @click="filterGames('FINISHED')">
                        Terminée
                     </button>
                 </li>
                 <li>
-                    <button class="btn btn--normal btn-game-filter only-all active" @click="filterAll">
+                    <button class="btn btn--normal btn-game-filter only-all active" @click="filterGames('ALL')">
                         Tout
                     </button>
                 </li>
             </ul>
         </h1>
     </div>
-    <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
-        :buttons-pagination="true" empty-message="Aucun game trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
-        rows-per-page-message="Games par page">
+    <EasyDataTable
+        :headers="headers"
+        :items="items"
+        :theme-color="'var(--primary-color)'"
+        :buttons-pagination="true"
+        empty-message="Aucun game trouvé"
+        :rows-items="[10, 15, 20]"
+        :rows-per-page="5"
+        rows-per-page-message="Games par page"
+    >
         <template #item-id="{ id }">
             <RouterLink :to="{ name: 'game', params: { id: id } }">
                 <span>Game <span class="game-name">#{{ id }}</span></span>
@@ -71,7 +78,7 @@
 </template>
   
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, computed, watch } from "vue";
 import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
@@ -102,96 +109,63 @@ export default defineComponent({
         const items = ref([] as Item[]);
 
         const removeActiveClass = () => {
-            document.querySelector(".only-waiting")?.classList.remove("active");
-            document.querySelector(".only-in-progress")?.classList.remove("active");
-            document.querySelector(".only-finished")?.classList.remove("active");
-            document.querySelector(".only-all")?.classList.remove("active");
-        };
-
-        const filterWaiting = () => {
-            removeActiveClass();
-            document.querySelector(".only-waiting")?.classList.add("active");
-            items.value = games.value
-                .filter((game) => game.status == "WAITING" && !game.users.some((user) => user.id == userStore.user.id))
-                .map((game) => {
-                    return {
-                        id: game.id,
-                        game: game.id,
-                        status: game.status,
-                        players: game.users,
-                        users: game.users.length,
-                    };
-                });
-        };
-
-        const filterInProgress = () => {
-            removeActiveClass();
-            document.querySelector(".only-in-progress")?.classList.add("active");
-            items.value = games.value
-                .filter((game) => game.status == "INPROGRESS")
-                .map((game) => {
-                    return {
-                        id: game.id,
-                        game: game.id,
-                        status: game.status,
-                        players: game.users,
-                        users: game.users.length,
-                    };
-                });
-        };
-
-        const filterFinished = () => {
-            removeActiveClass();
-            document.querySelector(".only-finished")?.classList.add("active");
-            items.value = games.value
-                .filter((game) => game.status == "FINISHED")
-                .map((game) => {
-                    return {
-                        id: game.id,
-                        game: game.id,
-                        status: game.status,
-                        players: game.users,
-                        users: game.users.length,
-                    };
-                });
-        };
-
-        const filterMine = () => {
-            removeActiveClass();
-            document.querySelector(".only-finished")?.classList.add("active");
-            items.value = games.value
-                .filter((game) => game.users.some((user) => user.id == userStore.user.id))
-                .map((game) => {
-                    return {
-                        id: game.id,
-                        game: game.id,
-                        status: game.status,
-                        players: game.users,
-                        users: game.users.length,
-                    };
-                });
-        };
-
-        const filterAll = () => {
-            removeActiveClass();
-            document.querySelector(".only-all")?.classList.add("active");
-            console.log('items value: ',games.value.filter((game) => !(game.status == "WAITING" && game.users.some((user) => user.id == userStore.user.id))));
-            items.value = games.value
-                .filter((game) => !(game.status == "WAITING" && game.users.some((user) => user.id == userStore.user.id)))
-                .map((game) => {
-                    return {
-                        id: game.id,
-                        game: game.id,
-                        status: game.status,
-                        players: game.users,
-                        users: game.users.length,
-                    };
+            document.querySelectorAll(".btn-game-filter").forEach((element) => {
+                element.classList.remove("active");
             });
         };
-        
+
+        watch(searchValue, () => {
+            items.value = filteredItems.value;
+        });
+
+        const filteredItems = computed(() => {
+            if (searchValue.value.trim() === "") return games.value.map(mapGameToItem);
+            return games.value.filter((game) => {
+                return (
+                    game.users.some((user) => user.pseudo.toLowerCase().includes(searchValue.value.toLowerCase())) ||
+                    game.id.toString().includes(searchValue.value) ||
+                    game.status.toLowerCase().includes(searchValue.value.toLowerCase())
+                );
+            }).map(mapGameToItem);
+        });
+
+        const mapGameToItem = (game: GameInterface) => {
+            return {
+                id: game.id,
+                game: game.id,
+                status: game.status,
+                players: game.users,
+                users: game.users.length,
+            };
+        };
+
+        const filterGames = (type: string) => {
+            removeActiveClass();
+            document.querySelector(`.only-${type.toLowerCase()}`)?.classList.add("active");
+            const userId = userStore.user.id;
+
+            items.value = games.value
+                .filter((game) => {
+                    switch (type) {
+                        case "MINE":
+                            return game.users.some((user) => user.id == userId);
+                        case "WAITING":
+                            return game.status == "WAITING" && !game.users.some((user) => user.id == userId);
+                        case "INPROGRESS":
+                            return game.status == "INPROGRESS";
+                        case "FINISHED":
+                            return game.status == "FINISHED";
+                        case "ALL":
+                        default:
+                            return !(game.status == "WAITING" && game.users.some((user) => user.id == userId));
+                    }
+                })
+                .map(mapGameToItem);
+        };
+
         getGames().then((response) => {                
             games.value = response.data.games;
-            filterAll();
+            filterGames("ALL");
         })
         .catch((error) => {
             console.log(error);
@@ -227,11 +201,7 @@ export default defineComponent({
             searchValue,
             headers,
             items,
-            filterWaiting,
-            filterInProgress,
-            filterFinished,
-            filterAll,
-            filterMine,
+            filterGames,
             joinGame,
             joinAndNavigate,
         };
@@ -281,4 +251,17 @@ export default defineComponent({
         color: var(--success-color);
     }
 }
+
+.players {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    
+  }
+  
+.players__item {
+    margin-right: 5px;
+}
+
+
 </style>
