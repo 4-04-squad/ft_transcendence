@@ -7,6 +7,8 @@ import { AuthMiddleware } from './users.middleware';
 import { AuthService } from '../auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from '../auth/auth.module';
+import { UserAvatarService } from './user-avatar.service';
+
 @Module({
   imports: [
     AuthModule,
@@ -16,6 +18,6 @@ import { AuthModule } from '../auth/auth.module';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, PrismaService, JwtStrategy, AuthMiddleware, AuthService],
+  providers: [UsersService, PrismaService, JwtStrategy, AuthMiddleware, AuthService, UserAvatarService],
 })
 export class UsersModule {}

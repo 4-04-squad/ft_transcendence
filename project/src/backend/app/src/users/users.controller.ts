@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res, Next } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res, Next, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User, UserStatus } from '@prisma/client';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
@@ -6,6 +6,9 @@ import { AuthMiddleware } from './users.middleware';
 import { NextFunction, Response } from 'express';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { UserDto } from './dto/user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { UserAvatarService } from './user-avatar.service';
 
 @Controller('users')
 @ApiTags('Users')
@@ -14,12 +17,13 @@ export class UsersController {
   constructor(
     private usersService: UsersService,
     private authMiddleware: AuthMiddleware,
+    private userAvatarService: UserAvatarService
   ) { }
 
   @Get()
   async getAllUsers(
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
@@ -33,8 +37,8 @@ export class UsersController {
   @Get('@me')
   @ApiOkResponse({ type: UserDto })
   async loginUser(
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
@@ -51,8 +55,8 @@ export class UsersController {
   @ApiOkResponse({ type: UserDto })
   async getUserById(
     @Param('id') userId: string,
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
@@ -68,9 +72,9 @@ export class UsersController {
   @ApiOkResponse({ type: UserDto })
   async getUserByStatus(
     @Param('status') status: string,
-    @Param('limit') limit: string, 
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Param('limit') limit: string,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
@@ -92,8 +96,8 @@ export class UsersController {
   async updateUser(
     @Param('id', ParseUUIDPipe) userId: string,
     @Body() data: UserDto,
-    @Req() req: RequestWithUser, 
-    @Res() res: Response, 
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
@@ -109,12 +113,32 @@ export class UsersController {
     }
   }
 
+  @Patch(':userId/avatar')
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const fileExtension = file.originalname.split('.').pop();
+          cb(null, uniqueSuffix + '-' + file.fieldname + '.' + fileExtension);
+        },
+      }),
+    }),
+  )
+  async uploadAvatar(
+    @Param('userId') userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<string> {
+    return this.userAvatarService.uploadAvatar(file, userId);
+  }
+
   @Delete(':id')
   @ApiOkResponse({ type: UserDto })
   async remove(
     @Param('id', ParseUUIDPipe) userId: string,
     @Req() req: RequestWithUser,
-    @Res({ passthrough: true }) res: Response, 
+    @Res({ passthrough: true }) res: Response,
     @Next() next: NextFunction
   ) {
     await new Promise(resolve => this.authMiddleware.use(req, res, resolve));

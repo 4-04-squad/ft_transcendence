@@ -8,7 +8,7 @@
     </div>
     <div class="content-wrapper">
       <!-- User: form -->
-      <form class="forms" @submit.prevent="updateUser">
+      <form class="forms">
         <!-- User: avatar upload -->
         <div class="user-card grid full-card">
           <div class="column user-card__avatar large">
@@ -16,32 +16,38 @@
           </div>
           <div class="user-card__upload">
             <label for="avatar">Changer l'avatar</label>
-            <input type="file" id="avatar" name="avatar" />
+            <input 
+            type="file"
+            id="avatar"
+            name="avatar"
+            ref="avatarRef"
+            @change="handleFileChange"
+            />
           </div>
         </div>
         <div class="form-fields">
           <div class="form-field">
             <label for="pseudo">Pseudo</label>
-            <input type="text" id="pseudo" name="pseudo" :value="user?.pseudo" />
+            <input type="text" id="pseudo" name="pseudo" v-model="user.pseudo" />
           </div>
           <div class="form-field">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" :value="user?.email" />
+            <input type="email" id="email" name="email" v-model="user.email" />
           </div>
         </div>
         <div class="form-fields">
           <div class="form-field">
             <label for="firstname">Nom</label>
-            <input type="text" id="firstname" name="firstname" :value="user?.firstName" />
+            <input type="text" id="firstname" name="firstname" v-model="user.firstName" />
           </div>
           <div class="form-field">
             <label for="lastname">Prénom</label>
-            <input type="text" id="lastname" name="lastname" :value="user?.lastName" />
+            <input type="text" id="lastname" name="lastname" v-model="user.lastName" />
           </div>
         </div>
         <div class="form-field">
           <label for="about">Bio</label>
-          <textarea name="about" id="about" cols="30" rows="4" :value="user?.about"></textarea>
+          <textarea name="about" id="about" cols="30" rows="4" v-model="user.about"></textarea>
         </div>
         <div class="form-field" v-if="user?.role === 'ADMIN'">
           <label for="role">Role</label>
@@ -54,7 +60,7 @@
           <button class="btn btn--delete" @click.prevent="deleteUser" v-if="isAllowed">
             Supprimer le compte
           </button>
-          <input class="btn btn--submit" type="submit" value="Modifier" />
+          <input class="btn btn--submit" type="submit" value="Modifier" @click.prevent="updateUser" />
         </div>
       </form>
     </div>
@@ -62,11 +68,10 @@
 </template>
 
 <script lang="ts">
-import type { UserInterface } from "@/interfaces/user.interface";
 import { useUserStore } from "@/stores/user";
 import { useRoute } from "vue-router";
 import axios from "axios";
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import { EditIcon } from "@/components/icons";
 
 export default defineComponent({
@@ -74,9 +79,15 @@ export default defineComponent({
   components: {
     EditIcon,
   },
+  data() {
+  return {
+    selectedFile: null,
+  };
+},
   setup() {
     const userStore = useUserStore();
     const route = useRoute();
+    const avatarRef = ref();
 
     // Get the user from the store
     const user = userStore.user;
@@ -89,54 +100,73 @@ export default defineComponent({
 
     return {
       user,
+      avatarRef,
       userStore,
-      formData: new FormData(),
       isAllowed,
     };
   },
   methods: {
-    async updateUser(event: { preventDefault: () => void; target: any }) {
+    handleFileChange(event: { target: { files: any; }; }) {
+      this.selectedFile = event.target.files[0];
+  },
+    async updateUser(event: { preventDefault: () => void; }) {
       event.preventDefault();
 
       // Get the form Object
       const formObject = {
-        pseudo: event.target.pseudo.value,
-        email: event.target.email.value,
-        firstName: event.target.firstname.value,
-        lastName: event.target.lastname.value,
-        about: event.target.about.value,
-        role: event.target.role.value
-      }
+        pseudo: this.user.pseudo,
+        email: this.user.email,
+        firstName: this.user.firstName,
+        lastName: this.user.lastName,
+        about: this.user.about,
+        role: this.user.role || "USER",
+      };
 
-      // Convert the form object to JSON
-      const formJSON = JSON.stringify(formObject);
+       // Check if the user has uploaded a new avatar
+       const hasFiles = this.selectedFile !== null;
+       console.log("user upload avatar", this.selectedFile);
 
-      // Append the JSON to the form data
-      this.formData.append("user", formJSON);
-      
+        if (hasFiles) {
 
-      // Check if the user has uploaded a new avatar
-      if (event.target.avatar.files.length > 0) {
-        this.formData.append("avatar", event.target.avatar.files[0]);
-      }
+          // Update user with avatar
+          try {
+            const formData = new FormData();
+            formData.append('avatar', this.selectedFile);
 
-      // Update user
-      try {
+            const response = await axios.patch(`${process.env.API_URL}/users/${this.user?.id}/avatar`, formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+              withCredentials: true,
+            });
+            console.log('Avatar uploaded successfully:', response.data);
+          } catch (error) {
+            console.error('Error uploading avatar:', error);
+          }
+        }
+
+        // Update user without avatar
+        /* try {
           await axios.patch(
-            `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}`,
-            this.formData,
+            `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}/edit`,
+            JSON.stringify(formObject),
             {
               withCredentials: true,
               headers: {
                 "Content-Type": "application/json",
-              },
+              }
             }
-          );
-          alert("User updated successfully!");
+          )
+            .then((res) => {
+              // Update the user in the store
+              this.userStore.setUser(this.user);
+              this.$router.push({ path: "/profile" });
+            })
         } catch (error) {
           console.log(error);
-        }
+        } */
     },
+
     async deleteUser() {
       if (!confirm("Voulez-vous vraiment supprimer votre compte ?")) {
         return;
@@ -152,9 +182,9 @@ export default defineComponent({
             this.userStore.clearUser();
             this.$router.push({ path: "/login" });
           })
-          .catch((error) => {
-            console.log(error);
-          });
+            .catch((error) => {
+              console.log(error);
+            });
         } catch (error) {
           console.log(error);
         }
