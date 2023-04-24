@@ -12,7 +12,7 @@
         <!-- User: avatar upload -->
         <div class="user-card grid full-card">
           <div class="column user-card__avatar large">
-            <img :src="user?.avatar" alt="avatar" />
+            <img :src="previewUrl || user?.avatar" alt="avatar" />
           </div>
           <div class="user-card__upload">
             <label for="avatar">Changer l'avatar</label>
@@ -73,6 +73,11 @@ export default defineComponent({
   components: {
     EditIcon,
   },
+  data() {
+  return {
+    previewUrl: null as string | ArrayBuffer | null,
+  };
+},
   setup() {
     const userStore = useUserStore();
     const route = useRoute();
@@ -99,6 +104,7 @@ export default defineComponent({
   methods: {
     handleFileChange(event: { target: { files: any; }; }) {
       this.selectedFile = event.target.files[0];
+      this.previewUrl = URL.createObjectURL(this.selectedFile);
     },
     async updateUser(event: { preventDefault: () => void; }) {
       event.preventDefault();
