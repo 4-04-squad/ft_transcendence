@@ -8,6 +8,11 @@
             </div>
             <ul class="games-filters">
                 <li>
+                    <button class="btn btn--normal btn-game-filter only-waiting" @click="filterMine">
+                        Mes parties
+                    </button>
+                </li>
+                <li>
                     <button class="btn btn--normal btn-game-filter only-waiting" @click="filterWaiting">
                         En attente
                     </button>
@@ -151,31 +156,42 @@ export default defineComponent({
                 });
         };
 
+        const filterMine = () => {
+            removeActiveClass();
+            document.querySelector(".only-finished")?.classList.add("active");
+            items.value = games.value
+                .filter((game) => game.users.some((user) => user.id == userStore.user.id))
+                .map((game) => {
+                    return {
+                        id: game.id,
+                        game: game.id,
+                        status: game.status,
+                        players: game.users,
+                        users: game.users.length,
+                    };
+                });
+        };
+
         const filterAll = () => {
             removeActiveClass();
             document.querySelector(".only-all")?.classList.add("active");
-            items.value = games.value.map((game) => {
-                return {
-                    id: game.id,
-                    game: game.id,
-                    status: game.status,
-                    players: game.users,
-                    users: game.users.length,
-                };
+            console.log('items value: ',games.value.filter((game) => !(game.status == "WAITING" && game.users.some((user) => user.id == userStore.user.id))));
+            items.value = games.value
+                .filter((game) => !(game.status == "WAITING" && game.users.some((user) => user.id == userStore.user.id)))
+                .map((game) => {
+                    return {
+                        id: game.id,
+                        game: game.id,
+                        status: game.status,
+                        players: game.users,
+                        users: game.users.length,
+                    };
             });
         };
         
         getGames().then((response) => {                
             games.value = response.data.games;
-            items.value = games.value.map((game) => {
-                return {
-                    id: game.id,
-                    game: game.id,
-                    status: game.status,
-                    players: game.users,
-                    users: game.users.length,
-                };
-            });
+            filterAll();
         })
         .catch((error) => {
             console.log(error);
@@ -188,6 +204,11 @@ export default defineComponent({
         });
 
         const joinAndNavigate = (gameId: number) => {
+            const game = games.value.find((game) => game.id == gameId);
+            if (game?.users.some((user) => user.id == userStore.user.id)){
+                router.push({ name: "game", params: { id: gameId } });
+                return;
+            }
             joinGame(gameId).then((response) => {
                 router.push({ name: "game", params: { id: gameId } });
             })
@@ -210,6 +231,7 @@ export default defineComponent({
             filterInProgress,
             filterFinished,
             filterAll,
+            filterMine,
             joinGame,
             joinAndNavigate,
         };
