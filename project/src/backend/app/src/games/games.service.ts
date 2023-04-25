@@ -119,6 +119,30 @@ export class GamesService {
     return gamesWithUsers;
   }
 
+  async getGamesStatistics(userId: string): Promise<any> {
+    const userGames = await this.prisma.userGame
+      .findMany({ where: { userId: userId } })
+      .catch((err) => {
+        throw new BadRequestException(err);
+      });
+    const games = await this.prisma.game
+      .findMany({
+        where: { id: { in: userGames.map((userGame) => userGame.gameId) } },
+      })
+      .catch((err) => {
+        throw new BadRequestException(err);
+      });
+    const gamesStatistics = {
+      totalGames: games.length,
+      totalWins: userGames.filter((userGame) => userGame.status == 'WINNER')
+        .length,
+      totalLoses: userGames.filter((userGame) => userGame.status == 'LOSER')
+        .length,
+      averageScore: userGames.reduce((a, b) => a + b.score, 0) / games.length,
+    };
+    return gamesStatistics;
+  }
+
   async create(userId: string): Promise<Game | void> {
     const game = await this.prisma.game
       .create({
