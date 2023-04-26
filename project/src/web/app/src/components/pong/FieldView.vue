@@ -9,130 +9,191 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+//import { oneKeyStroke } from "@vueuse/core";
 
 export default defineComponent({
 	name: "FieldView",
-	data() {
-		return {
-			context: {},
-			ball: {
-				x: (window.innerWidth - 260) / 2 - 10,
-				y: (window.innerHeight - 145) / 2,
-				velocity: 0
-			},
-			score: {
+	components: {
+	},
+	setup() {
+		let context = {}
+		let ball = {
+				xb: (window.innerWidth - 260) / 2 - 10,
+				yb: (window.innerHeight - 145) / 2,
+				x: 0,
+				y: 0,
+				velocity: 3,
+				rol: 1
+		}
+		let score = {
 				p1: 0,
 				p2: 0,
 				max_score: 9
-			},
-			player1: {
+		}
+		let player1 = {
+				me: 0,
+				speed: 10,
+				x: 0,
+				y: 0,
+				ply: 1
+		}
+		let player2 = {
 				me: 0,
 				speed: 10,
 				tile: 75,
 				x: 0,
-				y: 0
-			},
-			player2: {
-				me: 0,
-				speed: 10,
-				tile: 75,
-				x: 0,
-				y: 0
-			}
+				y: 0,
+				ply: 2
+		}
+		return {
+			player1,
+			player2,
+			ball,
+			score,
+			context
 		}
 	},
-	setup() {
-	},
 	methods: {
+		moveplayer(player: Object) {
+			this.context.fillRect(player.x, player.y, 10, 75);
+			let up = "w";
+			let down = "s";
+			if (player.ply == 2)
+			{
+				up = "ArrowUp";
+				down = "ArrowDown";
+			}
+			/*onKeyStroke([up, down], (e) => {
+				if (event.defaultPrevented) {
+					return;
+    			}
+				switch (event.key) {
+					case down:
+						this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
+						if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25)))
+							player.y = this.context.canvas.height - player.tile;
+						else
+							player.y += player.speed;
+						break;
+					case up:
+						this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
+						if ((player.y - player.speed) <= 0)
+							player.y = 0;
+						else
+							player.y -= player.speed;
+						break;
+					default:
+						return;
+				}
+				event.preventDefault();
+				this.context.fillRect(player.x, player.y, 10, player.tile);
+			},
+			})*/
+			window.addEventListener("keydown", (event) => {
+				if (event.defaultPrevented) {
+				return;
+    		}
+			switch (event.key) {
+				case down:
+					this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
+					if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25)))
+						player.y = this.context.canvas.height - player.tile;
+					else
+						player.y += player.speed;
+					break;
+				case up:
+					this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
+					if ((player.y - player.speed) <= 0)
+						player.y = 0;
+					else
+						player.y -= player.speed;
+					break;
+				default:
+					return;
+			}
+			event.preventDefault();
+			this.context.fillRect(player.x, player.y, 10, player.tile);
+		},
+		);
+		},
+
+		createbackground()
+		{
+			// link the canvas to context
+			this.context = <HTMLCanvasElement> this.$refs.Field.getContext("2d");
+			this.context.canvas.width = window.innerWidth - 260;
+			this.context.canvas.height = window.innerHeight - 145;
+			
+			// choose the color by the theme
+			let body = document.getElementsByTagName('body')[0];
+			if (body.classList.contains("dark"))
+				this.context.fillStyle = 'white';
+			else
+				this.context.fillStyle = 'black';
+		},
+
+		updatecsore()
+		{
+			// Putting the middle line
+			this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
+
+			// Draw score & update
+			this.context.font = '48px arial';
+			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
+			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);
+		},
+
+		updateball()
+		{
+			// do the calcul for the ball nad the upadate of score
+				//
+			// Draw the Ball
+			if (this.ball.rol == 1 && this.ball.x + this.ball.velocity >= this.context.canvas.width)
+			{
+				this.ball.rol = 0;
+				this.ball.x = this.ball.xb;
+				this.ball.y = this.ball.yb;
+				this.score.p1++;
+			}
+			else if (this.ball.rol == 0 && this.ball.x - this.ball.velocity <= 0)
+			{
+				this.ball.rol = 1;
+				this.ball.x = this.ball.xb;
+				this.ball.y = this.ball.yb;
+				this.score.p2++;
+			}
+			if (this.ball.rol == 0)
+				this.ball.x -= this.ball.velocity;
+			else
+				this.ball.x += this.ball.velocity;
+			this.context.fillRect(this.ball.x, this.ball.y, 20, 20)
+		},
+
+		update()
+		{
+			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+			this.updatecsore();
+			this.updateball();
+			this.moveplayer(this.player2);
+			this.moveplayer(this.player1);
+			window.requestAnimationFrame(this.update);
+		}
 	},
 	mounted() {
-		this.context = <HTMLCanvasElement> this.$refs.Field.getContext("2d");
-		this.context.canvas.width = window.innerWidth - 260;
-		this.context.canvas.height = window.innerHeight - 145;
-
-		// choose color
-		let body = document.getElementsByTagName('body')[0];
-		if (body.classList.contains("dark"))
-			this.context.fillStyle = 'white';
-		else
-			this.context.fillStyle = 'black';
-
-		// Set line in background
-		this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
-
-		//set spawn point for each player
+		this.createbackground();
+		//set spawn point for player1
 		this.player1.x = 10;
 		this.player1.y = this.context.canvas.height / 2 - 25;
-		
+
+		//set spawn point for player2
 		this.player2.x = this.context.canvas.width - 20;
 		this.player2.y = this.context.canvas.height / 2 - 25;
-		
-		// Player 1
-		this.context.fillRect(this.player1.x, this.player1.y, 10, 75);
-		window.addEventListener("keydown", (event) => {
-				if (event.defaultPrevented) {
-				return;
-    		}
-			switch (event.key) {
-				case "s":
-					this.context.clearRect(this.player1.x, 0, 10, this.context.canvas.height);
-					if ((this.player1.y - this.player1.speed) >= (this.context.canvas.height - (this.player1.tile + 25)))
-						this.player1.y = this.context.canvas.height - this.player1.tile;
-					else
-						this.player1.y += this.player1.speed;
-					break;
-				case "w":
-					this.context.clearRect(this.player1.x, 0, 10, this.context.canvas.height);
-					if ((this.player1.y - this.player1.speed) <= 0)
-						this.player1.y = 0;
-					else
-						this.player1.y -= this.player1.speed;
-					break;
-				default:
-					return;
-			}
-			event.preventDefault();
-			this.context.fillRect(this.player1.x, this.player1.y, 10, this.player1.tile);	
-		},
-		);
 
-		// Player 2
-		this.context.clearRect(this.player2.x, 0, 10, this.context.canvas.height);
-		this.context.fillRect(this.player2.x, this.player2.y, 10, 75);
-		window.addEventListener("keydown", (event) => {
-				if (event.defaultPrevented) {
-				return;
-    		}
-			switch (event.key) {
-				case "l":
-					this.context.clearRect(this.player2.x, 0, 10, this.context.canvas.height);
-					if ((this.player2.y - this.player2.speed) >= (this.context.canvas.height - (this.player2.tile + 25)))
-						this.player2.y = this.context.canvas.height - this.player2.tile;
-					else
-						this.player2.y += this.player2.speed;
-					break;
-				case "o":
-					this.context.clearRect(this.player2.x, 0, 10, this.context.canvas.height);
-					if ((this.player2.y - this.player2.speed) <= 0)
-						this.player2.y = 0;
-					else
-						this.player2.y -= this.player2.speed;
-					break;
-				default:
-					return;
-			}
-			event.preventDefault();
-			this.context.fillRect(this.player2.x, this.player2.y, 10, this.player2.tile);	
-		},
-		);
+		//set spawn point for ball
+		this.ball.x = this.ball.xb;
+		this.ball.y = this.ball.yb;
 
-		// Draw score
-		this.context.font = '48px rog fonts';
-		this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
-		this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 10, 50);
-
-		// Ball
-		this.context.fillRect(this.ball.x, this.ball.y, 20, 20)
+		window.requestAnimationFrame(this.update);
 	},
 });
 		/*
