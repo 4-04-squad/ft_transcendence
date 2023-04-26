@@ -39,10 +39,15 @@ export default defineComponent({
 			)
 				.then((res) => {
 					console.log(res)
-					this.userStore.setUser(res.data.user as UserInterface);
-					if (this.userStore.user) {
-						console.log("User is logged in " + this.userStore.user.pseudo);
-						router.push({ path: "/" });
+					if (res.status === 206) {
+						console.log("2fa required " + res.data.user.id);
+						router.push({ path: "/login_2fa" });
+					} else {
+						this.userStore.setUser(res.data.user as UserInterface);
+						if (this.userStore.user) {
+							console.log("User is logged in " + this.userStore.user.pseudo);
+							router.push({ path: "/" });
+						}
 					}
 				})
 				.catch((err) => {

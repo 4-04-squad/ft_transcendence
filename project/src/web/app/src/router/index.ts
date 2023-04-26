@@ -210,6 +210,14 @@ const router = createRouter({
       },
       component: () => import("@/views/2fa/TwoFactorView.vue"),
     },
+    {
+      path: "/login_2fa",
+      name: "login_2fa",
+      meta: {
+        title: "Two factor authentification login",
+      },
+      component: () => import("@/views/2fa/TwoFactorLoginView.vue"),
+    },
   ],
 });
 

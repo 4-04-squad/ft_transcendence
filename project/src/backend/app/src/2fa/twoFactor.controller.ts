@@ -6,6 +6,7 @@ import {
 	Req,
 	Body,
 	UnauthorizedException,
+	ForbiddenException,
 } from '@nestjs/common';
 import { AuthMiddleware } from 'src/users/users.middleware';
 import { TwoFactorAuthenticationService } from './twoFactor.service';
@@ -14,6 +15,7 @@ import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('2fa')
 @ApiTags('2fa')
@@ -21,7 +23,8 @@ export class TwoFactorAuthenticationController {
 	constructor(
 		private readonly twoFactorAuthenticationService: TwoFactorAuthenticationService,
 		private authMiddleware: AuthMiddleware,
-		private usersService: UsersService
+		private usersService: UsersService,
+		private authService: AuthService
 	) { }
 
 	@Post('generate')
@@ -73,11 +76,10 @@ export class TwoFactorAuthenticationController {
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 		}
+		
+		// Set jwt cookie with 2fa
+		res = this.authService.createCookie(res, user, true);
 	
-		//const accessTokenCookie = this.authenticationService.getCookieWithJwtAccessToken(request.user.id, true);
-	
-		//request.res.setHeader('Set-Cookie', [accessTokenCookie]);
-	
-		return request.user;
+		res.send({ user });
 	}
 }

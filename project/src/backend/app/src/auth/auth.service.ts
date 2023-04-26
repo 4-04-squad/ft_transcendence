@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, ForbiddenException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
@@ -122,5 +122,24 @@ export class AuthService {
         }
       ),
     }
+  }
+
+  createCookie(res: Response, user: any, tfa: boolean) {
+    const token = this.createToken(user, tfa);
+
+    // Check token
+    if (!token) {
+      throw new ForbiddenException('Forbidden, token is missing.');
+    }
+
+    console.log('JWT cookie:', token);
+    
+    // Set jwt cookie
+    return res.cookie(process.env.JWT_NAME, token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 86400000, // 1 day
+    });
   }
 }

@@ -28,22 +28,10 @@ export class AuthController {
     }
 
     if (!req.cookies[process.env.JWT_NAME]) {
-      const token = this.authService.createToken(user);
+      res = this.authService.createCookie(res, user, false);
 
-      // Check token
-      if (!token) {
-        throw new ForbiddenException('Forbidden, token is missing.');
-      }
-
-      //console.log('JWT cookie:', token);
-      
-      // Set jwt cookie
-      res.cookie(process.env.JWT_NAME, token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 86400000, // 1 day
-      });
+      if (user.twofaenabled)
+        res.status(206).send({ user });
     }
 
     res.send({ user });
