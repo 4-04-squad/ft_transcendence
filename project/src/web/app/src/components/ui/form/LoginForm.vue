@@ -38,6 +38,7 @@ export default defineComponent({
 				}
 			)
 				.then((res) => {
+					console.log(res)
 					this.userStore.setUser(res.data.user as UserInterface);
 					if (this.userStore.user) {
 						console.log("User is logged in " + this.userStore.user.pseudo);

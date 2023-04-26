@@ -45,6 +45,7 @@ export class UsersController {
       res.status(401).send({ message: 'Unauthorized.' });
     } else {
       this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
+      console.log(user);
       res.send({ user });
     }
   }

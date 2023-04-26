@@ -5,6 +5,7 @@ import {
 	UseGuards,
 	Req,
 	Body,
+	UnauthorizedException,
 } from '@nestjs/common';
 import { AuthMiddleware } from 'src/users/users.middleware';
 import { TwoFactorAuthenticationService } from './twoFactor.service';
@@ -53,8 +54,30 @@ export class TwoFactorAuthenticationController {
     	);
 		console.log(isCodeValid);
 		if (!isCodeValid) {
-			res.send({ message: 'Wrong authentication code' });
+			throw new UnauthorizedException('Wrong authentication code');
 		}
 		await this.usersService.turnOnTwoFactorAuthentication(user.id);
+	}
+
+	@Post('authenticate')
+	async authenticate(
+		@Req() request: RequestWithUser,
+		@Res() res: Response,
+		@Body() body: { tfa_code: string }
+	) {
+		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
+		const user = request.user;
+		const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
+			body.tfa_code, request.user
+		);
+		if (!isCodeValid) {
+			throw new UnauthorizedException('Wrong authentication code');
+		}
+	
+		//const accessTokenCookie = this.authenticationService.getCookieWithJwtAccessToken(request.user.id, true);
+	
+		//request.res.setHeader('Set-Cookie', [accessTokenCookie]);
+	
+		return request.user;
 	}
 }

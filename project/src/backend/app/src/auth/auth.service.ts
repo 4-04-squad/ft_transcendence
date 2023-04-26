@@ -111,8 +111,8 @@ export class AuthService {
     });
   }
   
-  createToken(user: any) {
-    const payload = { email: user.email, sub: user.id};
+  createToken(user: any, tfa = false) {
+    const payload = { email: user.email, sub: user.id, tfa};
     return {
       access_token: this.jwtService.sign(
         payload, 
