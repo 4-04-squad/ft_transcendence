@@ -61,6 +61,24 @@ export class TwoFactorAuthenticationController {
 			throw new UnauthorizedException('Wrong authentication code');
 		}
 		await this.usersService.turnOnTwoFactorAuthentication(user.id);
+
+		user.twofaenabled = true;
+
+		res.status(200).send({ user });
+	}
+
+	@Post('turn-off')
+	async turnOffTwoFactorAuthentication(
+		@Req() request: RequestWithUser,
+		@Res() res: Response
+	) {
+		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
+		const user = request.user;
+		await this.usersService.turnOffTwoFactorAuthentication(user.id);
+
+		user.twofaenabled = false;
+
+		res.status(200).send({ user });
 	}
 
 	@Post('authenticate')

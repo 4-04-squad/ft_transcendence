@@ -32,6 +32,18 @@ export class UsersService {
     return user;
   }
 
+  async turnOffTwoFactorAuthentication(id: string) {
+    let user = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        twofaenabled: false,
+      },
+    });
+    return user;
+  }
+
   async findOrCreate(userInputDto: UserInputDto): Promise<any> {
     let user = await this.prisma.user.findUnique({
       where: {

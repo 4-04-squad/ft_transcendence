@@ -2,7 +2,14 @@
   <MainLayout>
     <div id="two-factor">
       <div class="content-wrapper flex flex-col items-center">
-        <button class="btn text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 shadow-lg shadow-teal-500/50 dark:shadow-lg dark:shadow-teal-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2" @click="generateQr">Generate QR</button>
+        <button v-if="userStore.user.twofaenabled" class="btn text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+          @click="removeTfa">
+          Remove 2FA
+        </button>
+        <button v-else-if="!userStore.user.twofaenabled && qrCode == null" class="btn text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 shadow-lg shadow-teal-500/50 dark:shadow-lg dark:shadow-teal-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2"
+          @click="generateQr">
+          Activate 2FA
+        </button>
         <div v-if="qrCode" class="flex flex-col items-center mt-4">
           <img class="h-48 w-48" :src="qrCode" alt="qrCode"/>
           <div class="flex justify-center mt-4">
@@ -35,6 +42,7 @@ import MainLayout from "@/components/layout/layout/MainLayout.vue";
 import { defineComponent  } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
+import type { UserInterface } from "@/interfaces/user.interface";
 
 export default defineComponent({
   name: "TwoFactorView",
@@ -79,6 +87,8 @@ export default defineComponent({
         }
       ).then((response) => {
         console.log(response);
+        this.userStore.setUser(response.data.user as UserInterface);
+        this.qrCode = null;
       }).catch((error) => {
         console.log(error);
       });
@@ -87,6 +97,18 @@ export default defineComponent({
 		codeRef(index) {
       return `code${index + 1}`;
     },
+    async removeTfa() {
+      axios.post(`${import.meta.env.VITE_APP_API_URL}/2fa/turn-off`,
+        {
+          withCredentials: true,
+        }
+      ).then((response) => {
+        console.log(response);
+        this.userStore.setUser(response.data.user as UserInterface);
+      }).catch((error) => {
+        console.log(error);
+      });
+    }
 	}
 
 });
