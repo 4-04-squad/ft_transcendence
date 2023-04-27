@@ -207,6 +207,7 @@ const router = createRouter({
       name: "2fa",
       meta: {
         title: "Two factor authentification",
+        requiresAuth: true,
       },
       component: () => import("@/views/2fa/TwoFactorView.vue"),
     },

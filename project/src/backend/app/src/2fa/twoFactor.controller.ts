@@ -16,6 +16,7 @@ import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from '../auth/auth.service';
+import { UserStatus } from '@prisma/client';
 
 @Controller('2fa')
 @ApiTags('2fa')
@@ -69,7 +70,13 @@ export class TwoFactorAuthenticationController {
 		@Body() body: { tfa_code: string }
 	) {
 		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
+		
+		console.log('AUTHENTICATE');
+		if (!request.cookies[process.env.JWT_TMP_NAME])
+			return
+
 		const user = request.user;
+
 		const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
 			body.tfa_code, request.user
 		);
@@ -78,8 +85,27 @@ export class TwoFactorAuthenticationController {
 		}
 		
 		// Set jwt cookie with 2fa
-		res = this.authService.createCookie(res, user, true);
+		const token = this.authService.createToken(user, true);
+
+		// Check token
+		if (!token) {
+		throw new ForbiddenException('Forbidden, token is missing.');
+		}
+
+		console.log('JWT real cookie:', token);
+		
+		res.clearCookie(process.env.JWT_TMP_NAME);
+		
+		this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
+
+		// Set jwt cookie
+		res.cookie(process.env.JWT_NAME, token, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'none',
+			maxAge: 86400000, // 1 day
+		});
 	
-		res.send({ user });
+		res.status(201).send({ user });
 	}
 }

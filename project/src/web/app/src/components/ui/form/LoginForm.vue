@@ -35,6 +35,9 @@ export default defineComponent({
 				},
 				{
 					withCredentials: true,
+					headers: {
+						"Content-Type": "application/json",
+					},
 				}
 			)
 				.then((res) => {

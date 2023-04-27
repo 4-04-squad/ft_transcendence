@@ -17,24 +17,51 @@ export class AuthController {
   @Post('signin')
   async loginWithUsername(@Body() body: {pseudo: string, password: string}, @Req() req: RequestWithUser, @Res() res: Response) {
     
-    const user = await this.authService.findUserByName(
-      body.pseudo,
-      body.password
-    );
+    const { pseudo, password } = body;
+    const jwtName = process.env.JWT_NAME;
+    const jwtTmpName = process.env.JWT_TMP_NAME;
+    const user = await this.authService.findUserByName(pseudo, password);
+  
+    // Check if user has a JWT token
+    if (!req.cookies[jwtName]) {
+      const isTwoFactorEnabled = user.twofaenabled;
+  
+      // Create a token
+      const token = isTwoFactorEnabled
+        ? this.authService.createTempToken(user, false)
+        : this.authService.createToken(user, false);
+  
+      // Check token
+      if (!token) {
+        throw new ForbiddenException('Forbidden, token is missing.');
+      }
+  
+      // Set the JWT cookie
 
+      const maxAge = isTwoFactorEnabled ? 600000 : 86400000;
+      const cookieName = isTwoFactorEnabled ? jwtTmpName : jwtName;
+      res.cookie(cookieName, token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge 
+      });
+  
+      // Send the response
+      const statusCode = isTwoFactorEnabled ? 206 : 200;
+      res.status(statusCode).send({ user });
+      if (isTwoFactorEnabled)
+        return;
+    }
+  
+    // Set user as ONLINE
     if (user) {
-      // Set user as ONLINE
       this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
     }
-
-    if (!req.cookies[process.env.JWT_NAME]) {
-      res = this.authService.createCookie(res, user, false);
-
-      if (user.twofaenabled)
-        res.status(206).send({ user });
-    }
-
+  
+    // Send the response
     res.send({ user });
+  
   }
 
   @Get('login')

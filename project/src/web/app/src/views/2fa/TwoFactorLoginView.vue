@@ -53,13 +53,16 @@ export default defineComponent({
 				{ tfa_code: input },
 				{
 					withCredentials: true,
+					headers: {
+						"Content-Type": "application/json",
+					},
 				}).then((response) => {
 					console.log(response);
 					this.userStore.setUser(response.data.user as UserInterface);
-						if (this.userStore.user) {
-							console.log("User is logged in " + this.userStore.user.pseudo);
-							router.push({ path: "/" });
-						}
+					if (this.userStore.user) {
+						console.log("User is logged in " + this.userStore.user.pseudo);
+						router.push({ path: "/" });
+					}
 				}).catch((error) => {
 					console.log(error);
 				});
