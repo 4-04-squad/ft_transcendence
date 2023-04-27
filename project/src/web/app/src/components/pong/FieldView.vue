@@ -22,7 +22,9 @@ export default defineComponent({
 				yb: (window.innerHeight - 145) / 2,
 				x: 0,
 				y: 0,
+				width: 20,
 				velocity: 3,
+				rebound: 0,
 				rol: 1
 		}
 		let score = {
@@ -33,16 +35,21 @@ export default defineComponent({
 		let player1 = {
 				me: 0,
 				speed: 10,
+				tile: 75,
+				tilewidth: 10,
 				x: 0,
 				y: 0,
+				paddley: 0,
 				ply: 1
 		}
 		let player2 = {
 				me: 0,
 				speed: 10,
 				tile: 75,
+				tilewidth: 10,
 				x: 0,
 				y: 0,
+				paddley: 0,
 				ply: 2
 		}
 		return {
@@ -55,7 +62,7 @@ export default defineComponent({
 	},
 	methods: {
 		moveplayer(player: Object) {
-			this.context.fillRect(player.x, player.y, 10, 75);
+			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			let up = "w";
 			let down = "s";
 			if (player.ply == 2)
@@ -97,22 +104,34 @@ export default defineComponent({
 				case down:
 					this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
 					if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25)))
+					{
 						player.y = this.context.canvas.height - player.tile;
+						player.paddley = player.y + player.tile;
+					}
 					else
+					{
 						player.y += player.speed;
+						player.paddley = player.y + player.tile;
+					}
 					break;
 				case up:
 					this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
 					if ((player.y - player.speed) <= 0)
+					{
 						player.y = 0;
+						player.paddley = player.y + player.tile;
+					}
 					else
+					{
 						player.y -= player.speed;
+						player.paddley = player.y + player.tile;
+					}
 					break;
 				default:
 					return;
 			}
 			event.preventDefault();
-			this.context.fillRect(player.x, player.y, 10, player.tile);
+			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 		},
 		);
 		},
@@ -145,14 +164,13 @@ export default defineComponent({
 
 		updateball()
 		{
-			// do the calcul for the ball nad the upadate of score
-				//
-			// Draw the Ball
-			if (this.ball.rol == 1 && this.ball.x + this.ball.velocity >= this.context.canvas.width)
+			// calcul where the ball is and if she touch something
+			if (this.ball.rol == 1 && this.ball.x + this.ball.velocity + this.ball.width >= this.context.canvas.width)
 			{
 				this.ball.rol = 0;
 				this.ball.x = this.ball.xb;
 				this.ball.y = this.ball.yb;
+				this.ball.velocity = 3;
 				this.score.p1++;
 			}
 			else if (this.ball.rol == 0 && this.ball.x - this.ball.velocity <= 0)
@@ -160,13 +178,37 @@ export default defineComponent({
 				this.ball.rol = 1;
 				this.ball.x = this.ball.xb;
 				this.ball.y = this.ball.yb;
+				this.ball.velocity = 3;
 				this.score.p2++;
 			}
+			else if (this.ball.rol == 1 && this.ball.x + this.ball.velocity + this.ball.width >= this.player2.x)
+			{
+				if ((this.ball.y >= this.player2.y && this.ball.y <= this.player2.paddley) 
+					|| (this.ball.y + this.ball.width >= this.player2.y && this.ball.y + this.ball.width <= this.player2.paddley))
+				{
+					if (++this.ball.rebound % 5 == 0)
+						this.ball.velocity++;
+					this.ball.rol = 0;
+				}
+			}
+			else if (this.ball.rol == 0 && (this.ball.x - this.player1.tilewidth) - this.ball.velocity <= this.player1.x)
+			{
+				if ((this.ball.y >= this.player1.y && this.ball.y <= this.player1.paddley)
+					|| (this.ball.y + this.ball.width >= this.player1.y && this.ball.y + this.ball.width <= this.player1.paddley))
+				{
+					if (++this.ball.rebound % 5 == 0)
+						this.ball.velocity++;
+					this.ball.rol = 1;
+				}
+			}
+			else
+				;
+			// draw the ball
 			if (this.ball.rol == 0)
 				this.ball.x -= this.ball.velocity;
 			else
 				this.ball.x += this.ball.velocity;
-			this.context.fillRect(this.ball.x, this.ball.y, 20, 20)
+			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
 
 		update()
@@ -184,14 +226,17 @@ export default defineComponent({
 		//set spawn point for player1
 		this.player1.x = 10;
 		this.player1.y = this.context.canvas.height / 2 - 25;
+		this.player1.paddley = this.player1.y + this.player1.tile;
 
 		//set spawn point for player2
 		this.player2.x = this.context.canvas.width - 20;
 		this.player2.y = this.context.canvas.height / 2 - 25;
+		this.player2.paddley = this.player2.y + this.player2.tile;
 
 		//set spawn point for ball
 		this.ball.x = this.ball.xb;
 		this.ball.y = this.ball.yb;
+		this.ball.rol = Math.floor(Math.random() * 2);
 
 		window.requestAnimationFrame(this.update);
 	},
