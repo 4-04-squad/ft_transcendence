@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onUnmounted, watch, ref, inject } from "vue";
+import { defineComponent, onUnmounted, onMounted, watch, ref, inject } from "vue";
 import { useRoute } from "vue-router";
 import type { Socket } from "socket.io-client";
 import axios from "axios";
@@ -20,7 +20,6 @@ export default defineComponent({
     let channelData = ref(null);
     const userStore = useUserStore();
     const socket = inject('socket') as Socket;
-
 
     const fetchChatDataAndJoinChat = async (chatId: string) => {
       try {
