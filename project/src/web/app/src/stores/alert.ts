@@ -26,7 +26,7 @@ export const useAlertStore = defineStore("alert", {
             }
 
             banner && banner.classList.add("active");
-            alert && setTimeout(() => this.clearAlert(), 4000);
+            alert && setTimeout(() => this.clearAlert(), 5000);
         },
         clearAlert() {
             const banner = document.getElementById("alert-banner");
