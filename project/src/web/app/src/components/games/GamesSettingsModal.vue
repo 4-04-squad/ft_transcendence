@@ -1,8 +1,5 @@
 <template>
-	<div class="modal-container">
-	  <div class="modal-backdrop" @click="closeModal"></div>
-	  <form class="modal">
-		<h1 class="modal-title">Créer une game</h1>
+	<Modal :onCreate="createButtonHandler" :title="'Créer une game'">
 		<div class="form-group">
 		  <label for="ball-speed">Vitesse de la balle</label>
 		  <input type="range" id="ball-speed" v-model="ballSpeed" min="1" max="10" />
@@ -33,23 +30,19 @@
 		</div>
 		<div class="form-group color">
 			<label for="background-color">Score maximum</label>
-			<input type="number" id="background-color" v-model="scoreMax" />
+			<input type="number" id="score-max" v-model="scoreMax" />
 		  </div>
-		<div class="modal-action number">
-			<button class="btn btn--cancel" @click="closeModal">Annuler</button>
-			<button class="btn btn--submit" @click="createButtonHandler">Créer</button>
-		</div>
-	</form>
-	</div>
+	</Modal>
   </template>
   
   <script lang="ts">
   import { defineComponent, ref, watch } from "vue";
+  import Modal from "@/components/ui/form/Modal.vue";
 
   export default defineComponent({
 	name: "GameSettingsModal",
-	props: {
-	  isOpen: Boolean,
+	components: {
+	  Modal,
 	},
 	setup(props, { emit }) {
 	  const ballSpeed = ref(5);
@@ -60,12 +53,6 @@
 	  const paddleColor = ref("#ffffff");
 	  const backgroundColor = ref("#000000");
 	  const scoreMax = ref(5);
-  
-	  // check the changes of the settings
-	  watch([ballSpeed, paddleSpeed, ballColor, backgroundColor], () => {
-		console.log('settings changed', ballSpeed.value, paddleSpeed.value, ballColor.value, backgroundColor.value);
-	  });
-
 	  const createButtonHandler = () => {
 		emit("onCreate", {
 			gameId: 0,
@@ -101,50 +88,6 @@
   </script>
   
   <style lang="scss">
-  .modal-container {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-  }
-  
-  .modal-backdrop {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0.5);
-	z-index: 1001;
-  }
-  
-  .modal {
-	width: 30rem;
-	background-color: var(--secondary-color);
-	border-radius: 0.6rem;
-	padding: 1rem;
-	z-index: 1002;
-	label{
-		font-weight: bold;
-	}
-
-	.modal-action{
-		display: flex;
-		gap: 1rem;
-		justify-content: flex-end;
-	}
-  }
-  
-  .modal-title {
-	margin-bottom: 1rem;
-	text-align: center;
-  }
-  
   .form-group {
 	margin-bottom: 1rem;
 	display: flex;
@@ -174,43 +117,15 @@
 		border-radius: 0.3rem;
 		padding: 0;
 	}
-
-	}
+}
 	  
 
-  .form-group.color .form-group.number {
+.form-group.color .form-group.number {
 	flex-direction: row;
 	align-items: center;
 	align-content: center;
 	justify-content: space-between;
-  }
+}
   
-  .btn {
-	&--submit {
-	  background-color: var(--primary-color);
-	  color: #fff;
-	  border: none;
-	  padding: 10px 20px;
-	  cursor: pointer;
-	  transition: background-color 0.3s ease;
-  
-	  &:hover {
-		background-color: var(--primary-color);
-	  }
-	}
-  
-	&--cancel {
-	  background-color: var(--danger-color);
-	  color: #fff;
-	  border: none;
-	  padding: 10px 20px;
-	  cursor: pointer;
-	  transition: background-color 0.3s ease;
-  
-	  &:hover {
-		background-color: var(--danger-color);
-	  }
-	}
-  }
 
 </style>

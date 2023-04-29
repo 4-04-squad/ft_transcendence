@@ -26,6 +26,8 @@ export default defineComponent({
     const settings = ref<IGameSettings | null>(null);
     const gamesettingsStore = useGamesSettingsStore();
 
+    // TODO: when the game is finish delete the settings from the store
+
     // Fetch chat data on route change
     watch(
       () => route.params.id,

@@ -196,6 +196,7 @@ export default defineComponent({
         };
 
         const createGameAndNavigate = (gameSettings: IGameSettings) => {
+            // create game add the settings to the store and navigate to the game
             createGame().then((response) => {
                 gamesettingsStore.addGameSettings({
                     ...gameSettings,
@@ -216,10 +217,12 @@ export default defineComponent({
 
         const joinAndNavigate = (gameId: number) => {
             const game = games.value.find((game) => game.id == gameId);
+            // if user is already in the game, just navigate to it
             if (game?.users.some((user) => user.id == userStore.user.id)){
                 router.push({ name: "game", params: { id: gameId } });
                 return;
             }
+            // else join the game and navigate to it
             joinGame(gameId).then((response) => {
                 router.push({ name: "game", params: { id: gameId } });
             })
