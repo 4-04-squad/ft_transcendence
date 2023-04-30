@@ -22,7 +22,18 @@ export const getGamesByUser = (userId: number) => {
     return axios.get(`${API_URL}/games/${userId}/user`, {
         withCredentials: true,
     });
-};		
+};	
+
+/**
+ * @description Get game by id
+ * @param gameId
+ * @returns {Promise<AxiosResponse<any>>}
+ */
+export const getGameById = (gameId: number) => {
+  return axios.get(`${API_URL}/games/${gameId}`, {
+    withCredentials: true,
+  });
+};
 
 /**
  * @description Join a game

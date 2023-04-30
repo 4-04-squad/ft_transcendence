@@ -13,3 +13,15 @@ export const enum GameStatus {
   INPROGRESS = "INPROGRESS",
   FINISHED = "FINISHED",
 }
+
+export interface IGameSettings {
+  gameId: string;
+  ballSize: number;
+  ballSpeed: number;
+  paddleSize: number;
+  paddleSpeed: number;
+  paddleColor: string;
+  backgroundColor: string;
+  ballColor: string;
+  scoreLimit: number;
+}
