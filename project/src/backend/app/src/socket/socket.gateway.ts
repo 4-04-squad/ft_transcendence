@@ -38,6 +38,105 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     }
   }
 
+  /*
+  * Emit action : GAME
+  */
+
+  // new game
+  createSocketGame(gameId: string) {
+    const roomName = `${gameId}`;
+    this.server.to(roomName).emit('newGame', { gameId });
+  }
+
+  // delete game
+  deleteSocketGame(gameId: string) {
+    const roomName = `${gameId}`;
+    this.server.to(roomName).emit('deleteGame', { gameId });
+  }
+
+  // join game
+  joinSocketGame(gameId: string, userId: string) {
+    const roomName = `${gameId}`;
+    this.server.to(roomName).emit('joinGame', { gameId, userId });
+  }
+
+  // leave game
+  leaveSocketGame(gameId: string, userId: string) {
+    const roomName = `${gameId}`;
+    this.server.to(roomName).emit('leaveGame', { gameId, userId });
+  }
+
+  // move player
+  movePlayer(gameId: string, userId: string, position: any) {
+    const roomName = `${gameId}`;
+    // emit in room
+    this.server.to(roomName).emit('movePlayer', { gameId, userId, position });
+  }
+
+  // move ball
+  moveBall(gameId: string, x: number, y: number) {
+    const roomName = `${gameId}`;
+    // emit in room
+    this.server.to(roomName).emit('moveBall', { gameId, x, y });
+  }
+
+
+  /*
+  * Handle action
+  */
+
+  @SubscribeMessage('joinGame')
+  onJoinGame(client: Socket, data: { gameId: string, userId: string }) {
+    const roomName = `${data.gameId}`;
+    const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
+
+    if (userRooms.has(roomName)) {
+      return;
+    }
+
+    client.join(roomName);
+    this.logger.log(`Client ${data.userId} joined game ${data.gameId}`);
+
+    userRooms.add(roomName);
+    this.connectedRooms.set(data.userId, userRooms);
+  }
+
+  @SubscribeMessage('leaveGame')
+  onLeaveGame(client: Socket, data: { gameId: string, userId: string }) {
+    const roomName = `${data.gameId}`;
+    const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
+
+    if (!userRooms.has(roomName)) {
+      return;
+    }
+
+    client.leave(roomName);
+    this.logger.log(`Client ${data.userId} left game ${data.gameId}`);
+
+    userRooms.delete(roomName);
+    this.connectedRooms.set(data.userId, userRooms);
+
+    if (userRooms.size === 0) {
+      this.connectedRooms.delete(data.userId);
+    }
+
+    this.leaveSocketGame(data.gameId, data.userId);
+  }
+
+  @SubscribeMessage('movePlayer')
+  onMovePlayer(client: Socket, data: { gameId: string, userId: string, position: any }) {
+    const roomName = `${data.gameId}`;
+    // emit in room
+    this.server.to(roomName).emit('movePlayer', { gameId: data.gameId, userId: data.userId, position: data.position });
+  }
+
+  @SubscribeMessage('moveBall')
+  onMoveBall(client: Socket, data: { gameId: string, x: number, y: number}) {
+    const roomName = `${data.gameId}`;
+
+    // emit in room
+    this.server.to(roomName).emit('moveBall', { gameId: data.gameId, x: data.x, y: data.y });
+  }
 
   /*
   * Emit action : CHAT

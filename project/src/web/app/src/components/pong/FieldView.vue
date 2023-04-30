@@ -1,7 +1,7 @@
 <template>
 	<div class="field-view-container">
 		<div class="field-view-container__game-zone">
-			<canvas id="Field" ref="Field" ></canvas>
+			<canvas id="Field" ref="Field"></canvas>
 		</div>
 	</div>
 </template>
@@ -14,6 +14,10 @@ export default defineComponent({
 	name: "FieldView",
 	props: {
 		gameData: {
+			type: Object,
+			required: true,
+		},
+		socket: {
 			type: Object,
 			required: true,
 		},
@@ -55,6 +59,33 @@ export default defineComponent({
 			paddley: 0,
 			ply: 2
 		}
+
+		// Socket event listeners
+		props.socket.on("joinGame", (data) => {
+			console.log("User joined game:", data);
+		});
+
+		props.socket.on("leaveGame", (data) => {
+			console.log("User left game:", data);
+		});
+
+		props.socket.on("movePlayer", (data) => {
+			console.log("Player moved:", data);
+			if (data.userId === player1Id) {
+				player1.y = data.position.y;
+				player1.paddley = player1.y + player1.tile;
+			} else if (data.userId === player2Id) {
+				player2.y = data.position.y;
+				player2.paddley = player2.y + player2.tile;
+			}
+		});
+
+		props.socket.on("moveBall", (data) => {
+			console.log("Ball moved:", data);
+			ball.x = data.x;
+    		ball.y = data.y;
+		});
+
 		return {
 			player1,
 			player2,
@@ -62,7 +93,37 @@ export default defineComponent({
 			score,
 			context,
 			gameData: props.gameData,
+			socket: props.socket,
 		}
+	},
+	beforeUnmount() {
+		window.removeEventListener("resize", this.handleWindowResize);
+		window.removeEventListener("keydown", this.moveplayer); // You'll need to update moveplayer to use a named function instead of an anonymous function
+	},
+
+	mounted() {
+		this.createbackground();
+		//set spawn point for player1
+		this.player1.x = 10;
+		this.player1.y = this.context.canvas.height / 2 - 25;
+		this.player1.paddley = this.player1.y + this.player1.tile;
+
+		//set spawn point for player2
+		this.player2.x = this.context.canvas.width - 20;
+		this.player2.y = this.context.canvas.height / 2 - 25;
+		this.player2.paddley = this.player2.y + this.player2.tile;
+
+		//set spawn point for ball
+		this.ball.x = this.ball.xb;
+		this.ball.y = this.ball.yb;
+		this.ball.rol = Math.floor(Math.random() * 2);
+
+		// Initialize player movement
+		this.moveplayer(this.player1);
+		this.moveplayer(this.player2);
+
+		window.requestAnimationFrame(this.update);
+		window.addEventListener("resize", this.handleWindowResize);
 	},
 	methods: {
 		moveplayer(player: Object) {
@@ -73,32 +134,6 @@ export default defineComponent({
 				up = "ArrowUp";
 				down = "ArrowDown";
 			}
-			/*onKeyStroke([up, down], (e) => {
-				if (event.defaultPrevented) {
-					return;
-				}
-				switch (event.key) {
-					case down:
-						this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
-						if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25)))
-							player.y = this.context.canvas.height - player.tile;
-						else
-							player.y += player.speed;
-						break;
-					case up:
-						this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
-						if ((player.y - player.speed) <= 0)
-							player.y = 0;
-						else
-							player.y -= player.speed;
-						break;
-					default:
-						return;
-				}
-				event.preventDefault();
-				this.context.fillRect(player.x, player.y, 10, player.tile);
-			},
-			})*/
 			window.addEventListener("keydown", (event) => {
 				if (event.defaultPrevented) {
 					return;
@@ -130,6 +165,17 @@ export default defineComponent({
 						return;
 				}
 				event.preventDefault();
+
+				// Send player movement to server
+				this.socket.emit("movePlayer", {
+					userId: this.gameData.userId,
+					position: {
+						x: player.x,
+						y: player.y,
+					},
+				});
+
+				// cette ligne permet de dessiner le joueur a sa nouvelle position mais pas dans cette fonction
 				this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			},
 			);
@@ -178,11 +224,17 @@ export default defineComponent({
 			}
 			else
 				;
+			
 			// draw the ball
 			if (this.ball.rol == 0)
 				this.ball.x -= this.ball.velocity;
 			else
 				this.ball.x += this.ball.velocity;
+
+			// socket to send the ball position to the other player
+			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
+
+			// Cette fonction doit être appelé à chaque fois que la position de la balle change	mais pas dans cette fonction
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
 
@@ -216,50 +268,20 @@ export default defineComponent({
 			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
 		},
 
-		
+
 		handleWindowResize() {
-		this.createbackground();
-		this.player1.y = this.context.canvas.height / 2 - 25;
-		this.player1.paddley = this.player1.y + this.player1.tile;
-		
-		this.player2.x = this.context.canvas.width - 20; // Update the x position of player2
-		this.player2.y = this.context.canvas.height / 2 - 25;
-		this.player2.paddley = this.player2.y + this.player2.tile;
-		
-		this.ball.x = this.ball.xb;
-		this.ball.y = this.ball.yb;
-		this.redrawPlayers();
+			this.createbackground();
+			this.player1.y = this.context.canvas.height / 2 - 25;
+			this.player1.paddley = this.player1.y + this.player1.tile;
+
+			this.player2.x = this.context.canvas.width - 20; // Update the x position of player2
+			this.player2.y = this.context.canvas.height / 2 - 25;
+			this.player2.paddley = this.player2.y + this.player2.tile;
+
+			this.ball.x = this.ball.xb;
+			this.ball.y = this.ball.yb;
+			this.redrawPlayers();
 		},
-	},
-
-	beforeUnmount() {
-		window.removeEventListener("resize", this.handleWindowResize);
-		window.removeEventListener("keydown", this.moveplayer); // You'll need to update moveplayer to use a named function instead of an anonymous function
-	},
-
-	mounted() {
-		this.createbackground();
-		//set spawn point for player1
-		this.player1.x = 10;
-		this.player1.y = this.context.canvas.height / 2 - 25;
-		this.player1.paddley = this.player1.y + this.player1.tile;
-
-		//set spawn point for player2
-		this.player2.x = this.context.canvas.width - 20;
-		this.player2.y = this.context.canvas.height / 2 - 25;
-		this.player2.paddley = this.player2.y + this.player2.tile;
-
-		//set spawn point for ball
-		this.ball.x = this.ball.xb;
-		this.ball.y = this.ball.yb;
-		this.ball.rol = Math.floor(Math.random() * 2);
-
-		// Initialize player movement
-		this.moveplayer(this.player1);
-		this.moveplayer(this.player2);
-
-		window.requestAnimationFrame(this.update);
-		window.addEventListener("resize", this.handleWindowResize);
 	},
 });
 		/*
@@ -282,7 +304,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-	#Field {
-		border: 3px solid;
-	}
+#Field {
+	border: 3px solid;
+}
 </style>
