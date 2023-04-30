@@ -11,19 +11,10 @@ done
 
 cd /app
 
-# read the .env file
-rm -f .env
-while IFS= read -r line || [[ -n "$line" ]]; do
-  if [[ $line == *=* ]]; then
-    # prepend VITE_APP_ prefix to each line
-    echo "VITE_APP_${line}" >> .env
-  fi
-done < .env.container
+# Get all environment variables and write them to .env file
+env | grep -E "^[A-Z_]+=.*$" | sed -E 's/^([A-Z_]+)=(.*)$/VITE_APP_\1="\2"/' > .env
 
-# rm the .env file and rename the .env.container file to .env
-rm .env.container
-
-# is dev mode?
+# Check the environment and start the app
 if [ "$ENVIRONMENT" == "development" ]; then
     # Start the app in dev mode
     echo "Starting frontend in dev mode"

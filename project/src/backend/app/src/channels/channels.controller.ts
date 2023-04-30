@@ -42,9 +42,17 @@ export class ChannelsController {
 
     @Get(':id')
     async getChannelsById(
-        @Param('id', ParseUUIDPipe) channelId: string
-        ): Promise<Chat> {
-        return await this.channelsService.getChannelById(channelId);
+        @Param('id', ParseUUIDPipe) channelId: string,
+        @Req() req: RequestWithUser, @Res() res: Response
+        ) {
+        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
+        const user = req.user;
+        if (!user)
+            res.status(401).send({ message: 'unauthorized' });
+        else {
+            const users = await this.channelsService.getChannelById(channelId);
+            res.send({ users });
+        }
     }
 
     @Post('create')
@@ -81,10 +89,9 @@ export class ChannelsController {
         }
     }
 
-    @Patch('memberStatus/:id')
+    @Patch('memberStatus')
     @ApiOkResponse({ type: memberStatusDto })
     async memberStatus(
-        @Param('id', ParseUUIDPipe) userId: string,
         @Body() data: memberStatusDto, 
         @Req() req: RequestWithUser, 
         @Res() res: Response

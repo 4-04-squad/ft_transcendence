@@ -32,12 +32,6 @@ setup:
 	@echo "${GREEN}Cloning...${RESET}"
 	@chmod +x ${SCRIPT}
 	@${SCRIPT}
-	@echo "${GREEN}Copying .env file...${RESET}"
-	@cp ${ENV_FILE} ${SRCS_DIR}web/app/.env.container
-
-setenv:
-	@echo "${GREEN}Copying .env file...${RESET}"
-	@cp ${ENV_FILE} ${SRCS_DIR}web/app/.env.container
 
 dev: setup
 	@echo "${GREEN}Building containers dev...${RESET}"
@@ -47,7 +41,7 @@ up:
 	@echo "${GREEN}Building containers...${RESET}"
 	@${DOCKER} up -d
 
-build: setenv
+build:
 	@echo "${GREEN}Building containers...${RESET}"
 	@${DOCKER} up -d --build
 
@@ -71,7 +65,7 @@ logs:
 	@echo "${GREEN}Displaying logs...${RESET}"
 	@${DOCKER} logs -f
 
-rebuild: down delete setenv
+rebuild: down delete
 	@echo "${GREEN}Rebuilding containers...${RESET}"
 	@${DOCKER} up -d --build --force-recreate
 

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Chat, ChatType, UserChatPermission, UserChatStatus } from '@prisma/client';
+import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { memberStatusDto } from './dto/channels.dto';
 
@@ -24,8 +24,19 @@ export class ChannelsService {
         return chat;       
     }
 
-    async getChannelById(chatId: string): Promise<Chat> {
-        return await this.prisma.chat.findUnique({ where: { id: chatId } });        
+    async getChannelById(chatId: string): Promise<User[] | null> {
+        let chatUser = await this.prisma.userChat.findMany({
+            where: {
+                chatId: chatId
+            }
+        })
+        const users = await this.prisma.user.findMany({
+            where: {
+                id: { in: chatUser.map((userChat) => userChat.userId)}
+            },
+        })
+
+        return users;
     }
 
     async getChannelsByUser(userTofindId: string): Promise<Chat[] | null> {
@@ -38,10 +49,47 @@ export class ChannelsService {
             where: {
                 id: { in: chatUser.map((userChat) => userChat.chatId)}, 
                 type: { not: ChatType.DIRECT},
+            },
+            include: {
+              users: true
             }
         })
 
-        return chats
+        // Get all user ids from the chats
+        const userIds = chats.reduce((acc, chat) => {
+          chat.users.forEach(user => {
+            if (!acc.includes(user.userId)) {
+              acc.push(user.userId)
+            }
+          })
+          return acc
+        }, [])
+    
+        // Query users by their ids
+        const users = await this.prisma.user.findMany({
+          where: {
+            id: {
+              in: userIds
+            }
+          }
+        })
+    
+        // Map user details to each chat object
+        const result = chats.map(chat => {
+          const chatUsers = chat.users.map(chatUser => {
+            const user = users.find(u => u.id === chatUser.userId)
+            return {
+              ...chatUser,
+              user
+            }
+          })
+          return {
+            ...chat,
+            users: chatUsers
+          }
+        })
+    
+        return result
     }
 
     async createChannel(CreateChannelDto): Promise<Chat | null> {
@@ -77,7 +125,8 @@ export class ChannelsService {
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: chatId, userId: userId } });
         
         if (userChannel.length > 0)
-            throw new BadRequestException("User are Already in the channel");
+            return channel;
+            //throw new BadRequestException("User are Already in the channel");
         
         if (channel.type != ChatType.PUBLIC)
             throw new BadRequestException("User can't join this channel");
@@ -98,29 +147,23 @@ export class ChannelsService {
         return false;
     }
 
-    async memberStatus(userId: string, data: memberStatusDto): Promise <Chat | null> {
+    async memberStatus(userId: string, data: memberStatusDto): Promise <UserChat | null> {
         const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
-        const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
-        if (userChannel.length != 1)
-            return null;
-        if (userChannel[0].status == UserChatStatus.OWNER || userChannel[0].status == UserChatStatus.ADMIN) {
-            const memberChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: data.userId } });
-            if (memberChannel.length != 1) {
-                if (userChannel[0].status == UserChatStatus.OWNER) {
-                    if (data.status == UserChatStatus.ADMIN || data.status == UserChatStatus.MEMBER) {
-                        memberChannel[0].status = data.status;
-                    }
-                    if (await this.isPermission(data.permission)) {
-                        memberChannel[0].status = UserChatStatus.MEMBER;
-                        memberChannel[0].permission = data.permission;
-                    }
-                }
-                if (userChannel[0].status == UserChatStatus.ADMIN && memberChannel[0].status == UserChatStatus.MEMBER) {
-                    if (await this.isPermission(data.permission)) {
-                        memberChannel[0].permission = data.permission;
-                    }                   
-                }
+        const userChannel = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: userId } });
+        console.log(userChannel);
+        if (userChannel.status != UserChatStatus.OWNER && userChannel.status != UserChatStatus.ADMIN)
+            throw new BadRequestException("Not allowed to perform this action");
+        const memberChannel = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: data.userId } });
+        if (userChannel.status == UserChatStatus.OWNER) {           
+            if (data.status == UserChatStatus.ADMIN || data.status == UserChatStatus.MEMBER || !data.status) {    
+                if (data.permission == UserChatPermission.KICKED)
+                    return (await this.prisma.userChat.delete({ where: { id: memberChannel.id } }));        
+                return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { status: data.status, permission: data.permission } }));
             }
+        }
+        console.log("ICI");
+        if (userChannel.status == UserChatStatus.ADMIN && memberChannel.status == UserChatStatus.MEMBER) {
+            return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { permission: data.permission } }));
         }
     }
 

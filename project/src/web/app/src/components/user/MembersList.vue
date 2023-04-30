@@ -7,7 +7,7 @@
       :key="member.id"
       v-if="members.length"
     >
-      <UserCard :user="member" :full="'full'" />
+      <UserCard :type="'member'" :menu="true" :user="member" :full="'full'" :object="channel" />
     </div>
     <p class="users-list__message" v-else>Aucun membres</p>
   </div>
@@ -51,7 +51,7 @@ export default defineComponent({
             withCredentials: true,
           })
           .then((response) => {
-            console.log(response.data.channels);
+            members.value = response.data.users;
           })
           .catch((error) => {
             console.log(error);

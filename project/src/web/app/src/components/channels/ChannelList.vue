@@ -40,7 +40,6 @@ export default defineComponent({
         withCredentials: true,
       })
       .then((response) => {
-        console.log(response.data.channels);
         channels.value = response.data.channels;
       })
       .catch((error) => {
