@@ -2,10 +2,7 @@
   <div v-if="chat" class="chat-view">
     <section class="chat-view__container">
       <div class="chat-view__container__messages">
-        <Message v-for="message in messages" 
-          :key="message.id" 
-          :message="message" 
-          :user="message.user"/>
+        <Message v-for="message in messages" :key="message.id" :message="message" :user="message.user" />
       </div>
     </section>
     <form class="chat-view__submit" @submit.prevent="sendMessage">
@@ -22,6 +19,7 @@ import { MessageStatus, type MessageInterface } from "@/interfaces/message.inter
 import { useUserStore } from "@/stores/user";
 import { defineComponent, ref, watch } from "vue";
 import Message from "./Message.vue";
+import { useRoute } from "vue-router";
 
 export default defineComponent({
   name: "ChatConversation",
@@ -34,7 +32,7 @@ export default defineComponent({
       required: true,
     },
     chat: {
-      type: Object || null,
+      type: Object,
       default: null,
     },
   },
@@ -42,27 +40,27 @@ export default defineComponent({
     const messages = ref([] as MessageInterface[]);
     const newMessage = ref("");
     const userStore = useUserStore();
+    const route = useRoute();
 
     const sendMessage = () => {
       if (newMessage.value.trim() !== "") {
         const message = {
-        id: new Date().getTime(), // id with timestamp
-        status: MessageStatus.SENT,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        body: newMessage.value.trim(),
-        user: userStore.user,
-        chatId: props.chat.id,
-      };
+          id: new Date().getTime(), // id with timestamp
+          status: MessageStatus.SENT,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          body: newMessage.value.trim(),
+          user: userStore.user,
+          chatId: props.chat.id || route.params.id,
+        };
+  
         props.socket.emit("newMessage", message);
         newMessage.value = "";
       }
     };
 
     props.socket.on("newMessage", (message: MessageInterface) => {
-      if (message.chatId === props.chat.id) {
-        messages.value.push(message); // Push the new message into the messages array
-      }
+      messages.value.push(message);
     });
 
     // Reset messages array when chat changes
@@ -70,6 +68,17 @@ export default defineComponent({
       () => props.chat,
       () => {
         messages.value = [];
+      }
+    );
+
+    // Scroll to bottom when new message is added
+    watch(
+      () => messages.value.length,
+      () => {
+        const container = document.querySelector(".chat-view__container");
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
       }
     );
 

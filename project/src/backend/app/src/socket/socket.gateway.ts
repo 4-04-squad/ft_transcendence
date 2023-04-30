@@ -1,4 +1,4 @@
-import { WebSocketServer } from '@nestjs/websockets';
+import { MessageBody, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
@@ -18,13 +18,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   private connectedRooms = new Map<string, Set<string>>();
   private connectedClients = new Set<string>();
 
-  @WebSocketServer()
-  private server: Server;
-
-  // Define the init method as required by the OnGatewayInit interface
-  public init(server: Server) {
-    this.server = server;
-  }
+  @WebSocketServer() server;
 
   afterInit(server: any) {
     this.logger.log('WebSocket server initialized');
@@ -44,7 +38,11 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     }
   }
 
-  
+
+  /*
+  * Emit action : CHAT
+  */
+
   async getChatIdFromSocket(socket: Socket): Promise<string | null> {
     const roomName = await socket.rooms.values().next().value;
     if (roomName) {
@@ -68,32 +66,33 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
 
   // new chat
-  async createSocketRoom(chatId: string) {
+  createSocketRoom(chatId: string) {
     const roomName = `${chatId}`;
     this.server.to(roomName).emit('newChat', { chatId });
   }
 
   // delete chat
-  async deleteSocketRoom(chatId: string) {
+  deleteSocketRoom(chatId: string) {
     const roomName = `${chatId}`;
     this.server.to(roomName).emit('deleteChat', { chatId });
   }
 
   // join chat
-  async joinSocketRoom(chatId: string, userId: string) {
+  joinSocketRoom(chatId: string, userId: string) {
     const roomName = `${chatId}`;
     this.server.to(roomName).emit('joinChat', { chatId, userId });
   }
 
   // leave chat
-  async leaveSocketRoom(chatId: string, userId: string) {
+  leaveSocketRoom(chatId: string, userId: string) {
     const roomName = `${chatId}`;
     this.server.to(roomName).emit('leaveChat', { chatId, userId });
   }
 
   // new message
-  async newMessage(chatId: string, message: any) {
+  newMessage(chatId: string, message: any) {
     const roomName = `${chatId}`;
+    // emit in room
     this.server.to(roomName).emit('newMessage', message);
   }
 
@@ -104,7 +103,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   */
 
   @SubscribeMessage('joinChat')
-  async onJoinChat(client: Socket, data: { chatId: string, userId: string }) {
+  onJoinChat(client: Socket, data: { chatId: string, userId: string }) {
     const roomName = `${data.chatId}`;
     const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
 
@@ -120,7 +119,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   }
 
   @SubscribeMessage('leaveChat')
-  async onLeaveChat(client: Socket, data: { chatId: string, userId: string }) {
+  onLeaveChat(client: Socket, data: { chatId: string, userId: string }) {
     const roomName = `${data.chatId}`;
     const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
 
@@ -136,22 +135,22 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   }
 
   @SubscribeMessage('newMessage')
-  async onNewMessage(client: Socket, message: any) {
-    const chatId = await this.getChatIdFromSocket(client);
-    if (chatId) {
-      this.logger.log(`Client ${client.id} sent message to chat ${chatId}`);
-      this.newMessage(chatId, message);
+  onNewMessage(@MessageBody() message: any) {
+    if (message.chatId) {
+      // emit to room
+      this.newMessage(message.chatId, message);
     }
   }
 
+
   @SubscribeMessage('newChat')
-  async onNewChat(client: Socket, chatId: string) {
+  onNewChat(client: Socket, chatId: string) {
     this.logger.log(`Client ${client.id} created chat ${chatId}`);
     this.createSocketRoom(chatId);
   }
 
   @SubscribeMessage('deleteChat')
-  async onDeleteChat(client: Socket, chatId: string) {
+  onDeleteChat(client: Socket, chatId: string) {
     this.logger.log(`Client ${client.id} deleted chat ${chatId}`);
     this.deleteSocketRoom(chatId);
   }
