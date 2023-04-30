@@ -1,6 +1,6 @@
 <template>
-  <div id="page-games"></div>
-  <div v-if="gameData">
+  <div id="page-games">
+    <div v-if="gameData">
     <p>Game status: {{ gameData.status }}</p>
     <p>Game ID: {{ gameData.id }}</p>
     <p v-if="users && users.length > 0">User name: {{ users[0].pseudo }}</p>
@@ -9,7 +9,8 @@
   </div>
 
   <!-- GAME VIEW -->
-  <FieldView />
+  <FieldView v-if="gameData" :gameData="gameData"/>
+  </div>
 </template>
 
 <script lang="ts">
