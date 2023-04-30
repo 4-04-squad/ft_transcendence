@@ -1,5 +1,7 @@
 import { useUserStore } from "@/stores/user";
+import { useAlertStore } from "@/stores/alert";
 import { createRouter, createWebHistory } from "vue-router";
+import type { AlertInterface } from "@/interfaces/alert.interface";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -186,6 +188,14 @@ const router = createRouter({
       ],
     },
     {
+      path: "/:pathMatch(.*)*", 
+      name: "not-found",
+      meta: {
+        title: "Page non trouvée",
+      },
+      component: () => import("@/views/NotFoundView.vue"),
+    },
+    {
       path: "/",
       name: "home",
       meta: {
@@ -207,6 +217,14 @@ const router = createRouter({
 
 const isAuthenticated = () => {
   const userStore = useUserStore();
+  const alertStore = useAlertStore();
+  if (!userStore.isAuthenticated) {
+      const alert = {
+        status: 401,
+        message: 'Vous devez être connecté pour accéder à cette page',
+    } as AlertInterface;
+    alertStore.setAlert(alert);
+  }
   return userStore.isAuthenticated;
 };
 
@@ -215,7 +233,6 @@ router.beforeEach((to, from, next) => {
     if (!isAuthenticated()) {
       next({
         path: "/login",
-        query: { redirect: to.fullPath },
       });
       return;
     }

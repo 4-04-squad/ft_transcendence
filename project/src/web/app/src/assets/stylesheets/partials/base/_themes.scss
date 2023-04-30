@@ -7,9 +7,6 @@ $light-theme: (
   text-color: #2c303d,
   svg-color: #9EA1AC,
   accent-color: #fb602f,
-  danger-color: #FD6E87,
-  warning-color: #fb602f,
-  success-color: #11bdb3,
 );
 
 // Dark theme
@@ -21,14 +18,20 @@ $dark-theme: (
   text-color: #f4f4f4,
   svg-color: #9EA1AC,
   accent-color: #fb602f,
-  danger-color: #FD6E87,
-  warning-color: #fb602f,
-  success-color: #11bdb3,
 );
 
 $default-theme: (
   white-color: #FFFFFF,
   black-color: #2c303d,
+  
+  danger-color: #ff6348,
+  danger-text: #a31800,
+  warning-color: #fb602f,
+  warning-text: #922502,
+  success-color: #11bdb3,
+  success-text: #085e59,
+  info-color: #dfe4ea,
+  info-text: #5a7089,
 
   // Grid
   global-grid: 1280px,
@@ -44,6 +47,7 @@ $default-theme: (
 
   // Spacing
   spacing: 20px,
+  spacing-md: 15px,
 
   // Radius
   radius: 30px,
