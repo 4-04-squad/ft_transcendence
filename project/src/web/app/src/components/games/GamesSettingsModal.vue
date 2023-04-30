@@ -29,7 +29,7 @@
 		  <input type="color" id="background-color" v-model="backgroundColor" />
 		</div>
 		<div class="form-group color">
-			<label for="background-color">Score maximum</label>
+			<label for="score-max">Score maximum</label>
 			<input type="number" id="score-max" v-model="scoreMax" />
 		  </div>
 	</Modal>
@@ -52,7 +52,7 @@
 	  const ballColor = ref("#ffffff");
 	  const paddleColor = ref("#ffffff");
 	  const backgroundColor = ref("#000000");
-	  const scoreMax = ref(5);
+	  const scoreMax = ref(10);
 	  const createButtonHandler = () => {
 		emit("onCreate", {
 			gameId: 0,
@@ -112,7 +112,7 @@
 	}
 
 	input[type="number"]{
-		width: 4rem;
+		width: 2rem;
 		height: 1.8rem;
 		border-radius: 0.3rem;
 		padding: 0;
@@ -120,7 +120,7 @@
 }
 	  
 
-.form-group.color .form-group.number {
+.form-group.color {
 	flex-direction: row;
 	align-items: center;
 	align-content: center;
