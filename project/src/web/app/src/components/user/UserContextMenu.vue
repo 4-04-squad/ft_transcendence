@@ -11,6 +11,26 @@
                     Lancer une partie
                 </GameProposalButton>
             </li>
+            <li v-if="type === 'member'">
+                <permissionMemberButton :user="user?.id" :channel="object" :permission="'KICKED'">
+                    Kick
+                </permissionMemberButton>
+            </li>
+            <li v-if="type === 'member'">
+                <permissionMemberButton :user="user?.id" :channel="object" :permission="'BANNED'">
+                    Ban
+                </permissionMemberButton>
+            </li>
+            <li v-if="type === 'member'">
+                <permissionMemberButton :user="user?.id" :channel="object" :permission="'MUTED'">
+                    Mute
+                </permissionMemberButton>
+            </li>
+            <li v-if="type === 'member'">
+                <permissionMemberButton :user="user?.id" :channel="object" :status="'ADMIN'">
+                    Promote
+                </permissionMemberButton>
+            </li>
         </ul>
     </div>
 </template>
@@ -19,19 +39,30 @@
 import type { UserInterface } from "@/interfaces/user.interface";
 import { useUserStore } from "@/stores/user";
 import { defineComponent } from "vue";
+import { UserChatPermission } from "@/interfaces/user.interface"
 import RunConversationButton from "@/components/ui/button/RunConversationButton.vue";
 import GameProposalButton from "@/components/ui/button/GameProposalButton.vue";
+import permissionMemberButton from "@/components/ui/button/permissionMemberButton.vue";
 
 export default defineComponent({
     name: "UserContextMenu",
     components: {
         RunConversationButton,
         GameProposalButton,
+        permissionMemberButton,
     },
     props: {
         user: {
             type: Object as () => UserInterface,
             default: undefined,
+        },
+        type: {
+            type: String,
+            default: "",
+        },
+        object: {
+            type: String,
+            default: "",
         },
     },
     setup(props) {
@@ -58,7 +89,7 @@ export default defineComponent({
     bottom: -100%;
     background-color: var(--primary-color);
     width: 100%;
-    z-index: -1;
+    z-index: 5;
     padding: 0.5rem;
     border-bottom-left-radius: var(--radius-sm);
     border-bottom-right-radius: var(--radius-sm);

@@ -6,7 +6,7 @@
                 <SearchIcon />
                 <input type="text" v-model="searchValue" placeholder="Rechercher" />
             </div>
-            <button @click="createChannel()">
+            <button class="btn btn--submit" @click="createChannel()" >
                 Create
             </button>
         </h1>

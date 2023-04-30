@@ -21,7 +21,7 @@
         <p v-if="preview.length" class="preview">{{ preview }}</p>
       </div>
       <!-- context menu -->
-      <UserContextMenu :user="user"/>
+      <UserContextMenu :user="user" :type="type" :object="object" />
     </div>
   </RouterLink>
 </template>
@@ -67,6 +67,14 @@ export default defineComponent({
     menu: {
       type: Boolean,
       default: false,
+    },
+    type: {
+      type: String,
+      default: "user",
+    },
+    object: {
+      type: String,
+      default: "",
     },
   },
   setup(props) {

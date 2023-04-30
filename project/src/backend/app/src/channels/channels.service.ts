@@ -147,29 +147,23 @@ export class ChannelsService {
         return false;
     }
 
-    async memberStatus(userId: string, data: memberStatusDto): Promise <Chat | null> {
+    async memberStatus(userId: string, data: memberStatusDto): Promise <UserChat | null> {
         const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
-        const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
-        if (userChannel.length != 1)
-            return null;
-        if (userChannel[0].status == UserChatStatus.OWNER || userChannel[0].status == UserChatStatus.ADMIN) {
-            const memberChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: data.userId } });
-            if (memberChannel.length != 1) {
-                if (userChannel[0].status == UserChatStatus.OWNER) {
-                    if (data.status == UserChatStatus.ADMIN || data.status == UserChatStatus.MEMBER) {
-                        memberChannel[0].status = data.status;
-                    }
-                    if (await this.isPermission(data.permission)) {
-                        memberChannel[0].status = UserChatStatus.MEMBER;
-                        memberChannel[0].permission = data.permission;
-                    }
-                }
-                if (userChannel[0].status == UserChatStatus.ADMIN && memberChannel[0].status == UserChatStatus.MEMBER) {
-                    if (await this.isPermission(data.permission)) {
-                        memberChannel[0].permission = data.permission;
-                    }                   
-                }
+        const userChannel = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: userId } });
+        console.log(userChannel);
+        if (userChannel.status != UserChatStatus.OWNER && userChannel.status != UserChatStatus.ADMIN)
+            throw new BadRequestException("Not allowed to perform this action");
+        const memberChannel = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: data.userId } });
+        if (userChannel.status == UserChatStatus.OWNER) {           
+            if (data.status == UserChatStatus.ADMIN || data.status == UserChatStatus.MEMBER || !data.status) {    
+                if (data.permission == UserChatPermission.KICKED)
+                    return (await this.prisma.userChat.delete({ where: { id: memberChannel.id } }));        
+                return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { status: data.status, permission: data.permission } }));
             }
+        }
+        console.log("ICI");
+        if (userChannel.status == UserChatStatus.ADMIN && memberChannel.status == UserChatStatus.MEMBER) {
+            return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { permission: data.permission } }));
         }
     }
 

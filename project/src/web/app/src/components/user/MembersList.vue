@@ -7,7 +7,7 @@
       :key="member.id"
       v-if="members.length"
     >
-      <UserCard :user="member" :full="'full'" />
+      <UserCard :type="'member'" :menu="true" :user="member" :full="'full'" :object="channel" />
     </div>
     <p class="users-list__message" v-else>Aucun membres</p>
   </div>
