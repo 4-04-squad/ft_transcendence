@@ -157,4 +157,7 @@ export class UpdateUserDto {
 
   @ApiProperty()
   avatar?: string;
+
+  @ApiProperty()
+  twofasecret?: string;
 }  

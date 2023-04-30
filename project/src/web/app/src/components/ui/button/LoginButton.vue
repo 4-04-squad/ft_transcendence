@@ -53,6 +53,21 @@ export default defineComponent({
             // clear the interval and close the popup
             clearInterval(interval);
             popup?.close();
+            // set the default image
+            if (!response.data.user.avatar) {
+              await axios.patch(
+                  `${import.meta.env.VITE_APP_API_URL}/users/${response.data.user.id}/edit`,
+                  {
+                    avatar: "/public/img/marvin.png"
+                  },
+                  {
+                    withCredentials: true,
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+            }
             // set the user in the store
             this.userStore.setUser(response.data.user as UserInterface);
             if (this.userStore.user) {

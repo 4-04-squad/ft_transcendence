@@ -8,6 +8,17 @@ export class UsersService {
   remove: any;
   constructor(private prisma: PrismaService) { }
 
+  async setTwoFactorAuthenticationSecret(secret: string, id: string) {
+    let user = await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        twofasecret: secret,
+      },
+    });
+  }
+
   async findOrCreate(userInputDto: UserInputDto): Promise<any> {
     let user = await this.prisma.user.findUnique({
       where: {
@@ -134,8 +145,26 @@ export class UsersService {
   }
 
   async deleteUser(userId: string): Promise<User> {
-    return await this.prisma.user.delete({ 
-      where: { id: userId } 
+    // Delete user from database
+    const user = await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    // check if user was deleted
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+
+    return user;
+  }
+
+  async updateUserAvatar(userId: string, file: Express.Multer.File) : Promise<User> {
+    const { filename, mimetype } = file;
+    const avatarUrl = `${process.env.API_URL}/uploads/${filename}`;
+  
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
     });
   }
 }
