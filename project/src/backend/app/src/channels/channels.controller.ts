@@ -89,10 +89,9 @@ export class ChannelsController {
         }
     }
 
-    @Patch('memberStatus/:id')
+    @Patch('memberStatus')
     @ApiOkResponse({ type: memberStatusDto })
     async memberStatus(
-        @Param('id', ParseUUIDPipe) userId: string,
         @Body() data: memberStatusDto, 
         @Req() req: RequestWithUser, 
         @Res() res: Response

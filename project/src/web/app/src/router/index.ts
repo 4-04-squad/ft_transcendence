@@ -124,6 +124,22 @@ const router = createRouter({
           },
           component: () => import("@/views/channels/ChannelsView.vue"),
         },
+        {
+          path: "/channels/create",
+          name: "channel-create",
+          meta: {
+            title: "Channel-create"
+          },
+          component: () => import("@/views/channels/ChannelsView.vue"),
+        },
+        {
+          path: "/channels/:id/edit",
+          name: "channel-edit",
+          meta: {
+            title: "Channel-edit"
+          },
+          component: () => import("@/views/channels/ChannelsView.vue"),
+        },
       ],
     },
     {
