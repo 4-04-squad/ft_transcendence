@@ -49,7 +49,14 @@ export default defineComponent({
             withCredentials: true,
           });
           // check if the user is logged in
-          if (response.status === 200) {
+          if (response.status === 206) {
+            clearInterval(interval);
+            popup?.close();
+            
+						//console.log("2fa required " + response.data.user.id);
+						router.push({ path: "/login_2fa" });
+					}
+          else if (response.status === 200) {
             // clear the interval and close the popup
             clearInterval(interval);
             popup?.close();

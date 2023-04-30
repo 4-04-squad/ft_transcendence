@@ -50,6 +50,9 @@
             <option value="admin">ADMIN</option>
           </select>
         </div>
+        <RouterLink :to="{ name: '2fa' }" class="link">
+          <button class="btn">2FA</button>
+        </RouterLink>
         <div class="form-fields form-fields--btns">
           <button class="btn btn--delete" @click.prevent="deleteUser" v-if="isAllowed">
             Supprimer le compte
@@ -63,7 +66,7 @@
 
 <script lang="ts">
 import { useUserStore } from "@/stores/user";
-import { useRoute } from "vue-router";
+import { useRoute, RouterLink } from "vue-router";
 import axios from "axios";
 import { defineComponent, ref } from "vue";
 import { EditIcon } from "@/components/icons";
@@ -72,6 +75,7 @@ export default defineComponent({
   name: "UsersEditView",
   components: {
     EditIcon,
+    RouterLink
   },
   data() {
   return {

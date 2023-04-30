@@ -13,20 +13,41 @@ export class AuthMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: RequestWithUser, res: Response, next: NextFunction) {
-    const token = req.cookies[process.env.JWT_NAME];
-    if (!token) {
+    const jwtName = process.env.JWT_NAME;
+    const jwtTmpName = process.env.JWT_TMP_NAME;
+    const token = req.cookies[jwtName];
+    const tmpToken = req.cookies[jwtTmpName];
+  
+    if (!token && !tmpToken) {
       return res.status(401).send({ message: 'Unauthorized, no token found.' });
     }
+  
+    let decodedToken;
+    let isTmpToken = false;
+  
     try {
-      const decodedToken = this.authService.verifyToken(token.access_token);
+      if (token) {
+        decodedToken = this.authService.verifyToken(token.access_token, false);
+      } else {
+        decodedToken = this.authService.verifyToken(tmpToken.access_token, true);
+        isTmpToken = true;
+      }
+  
       const user = await this.userService.findUserById(decodedToken.sub);
+  
       if (user) {
         req.user = user;
       }
+  
       next();
     } catch (error) {
-      res.clearCookie(process.env.JWT_NAME);
-      return res.status(401).send({ message: 'Unauthorized, invalid token.'	 });
+      if (isTmpToken) {
+        res.clearCookie(jwtTmpName);
+      } else {
+        res.clearCookie(jwtName);
+      }
+  
+      return res.status(401).send({ message: 'Unauthorized, invalid token.' });
     }
   }
 }

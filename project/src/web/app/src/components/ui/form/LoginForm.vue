@@ -35,13 +35,22 @@ export default defineComponent({
 				},
 				{
 					withCredentials: true,
+					headers: {
+						"Content-Type": "application/json",
+					},
 				}
 			)
 				.then((res) => {
-					this.userStore.setUser(res.data.user as UserInterface);
-					if (this.userStore.user) {
-						console.log("User is logged in " + this.userStore.user.pseudo);
-						router.push({ path: "/" });
+					console.log(res)
+					if (res.status === 206) {
+						console.log("2fa required " + res.data.user.id);
+						router.push({ path: "/login_2fa" });
+					} else {
+						this.userStore.setUser(res.data.user as UserInterface);
+						if (this.userStore.user) {
+							console.log("User is logged in " + this.userStore.user.pseudo);
+							router.push({ path: "/" });
+						}
 					}
 				})
 				.catch((err) => {
