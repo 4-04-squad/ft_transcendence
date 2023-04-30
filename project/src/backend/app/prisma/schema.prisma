@@ -21,6 +21,7 @@ model User {
   email      String     @unique
   password   String?
   twofasecret  String?
+  twofaenabled Boolean  @default(false)
   firstName  String?
   lastName   String?
   avatar     String?

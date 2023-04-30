@@ -160,4 +160,7 @@ export class UpdateUserDto {
 
   @ApiProperty()
   twofasecret?: string;
+
+  @ApiProperty()
+  twofaenabled?: boolean;
 }  

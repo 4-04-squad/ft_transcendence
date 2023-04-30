@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, ForbiddenException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
@@ -102,23 +102,32 @@ export class AuthService {
     return res.status(200).send('Sign out succes!');
   }
 
-  verifyToken(token: string) {
-    if (!token) {
-      throw new BadRequestException('Token not found.');
-    }
-    return this.jwtService.verify(token, {
-      secret: process.env.JWT_SECRET,
-    });
-  }
+  verifyToken(token: string, tmp: boolean) {
+    const secret = tmp ? process.env.JWT_TMP_SECRET : process.env.JWT_SECRET;
+    return this.jwtService.verify(token, { secret });
+  }  
   
-  createToken(user: any) {
-    const payload = { email: user.email, sub: user.id};
+  createToken(user: any, tfa = false) {
+    const payload = { email: user.email, sub: user.id, tfa};
     return {
       access_token: this.jwtService.sign(
         payload, 
         {
           secret: process.env.JWT_SECRET,
           expiresIn: '1d',
+        }
+      ),
+    }
+  }
+
+  createTempToken(user: any, tfa = true) {
+    const payload = { email: user.email, sub: user.id, tfa};
+    return {
+      access_token: this.jwtService.sign(
+        payload, 
+        {
+          secret: process.env.JWT_TMP_SECRET,
+          expiresIn: '10m',
         }
       ),
     }

@@ -44,7 +44,13 @@ export class UsersController {
     if (!user) {
       res.status(401).send({ message: 'Unauthorized.' });
     } else {
+      if (user.twofaenabled) {
+        //console.log("isTwoFactorEnabled: ", user.twofaenabled);
+        res.status(206).send({ user });
+        return;
+      }
       this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
+      console.log(user);
       res.send({ user });
     }
   }
