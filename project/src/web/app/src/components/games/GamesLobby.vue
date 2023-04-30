@@ -2,10 +2,10 @@
     <div class="head">
         <h1 class="title title--search">
             <span> Rechercher une game</span>
-            <div class="search search--icon">
-                <SearchIcon />
-                <input type="text" v-model="searchValue" placeholder="Rechercher" />
-            </div>
+                <div class="search search--icon">
+                    <SearchIcon />
+                    <input type="text" v-model="searchValue" placeholder="Rechercher" />
+                </div>
             <ul class="games-filters">
                 <li>
                     <button class="btn btn--normal btn-game-filter only-waiting" @click="filterGames('MINE')">
@@ -33,6 +33,9 @@
                     </button>
                 </li>
             </ul>
+            <button class="btn btn--submit create-game" @click="toggleCreateGameModal">
+                <p>Créer une game</p>
+            </button>
         </h1>
     </div>
     <EasyDataTable
@@ -75,6 +78,7 @@
             </ul>
         </template>
     </EasyDataTable>
+    <GameSettingsModal v-if="showCreateGameModal" @onClose="toggleCreateGameModal" @onCreate="onSettingReceived"/>
 </template>
   
 <script lang="ts">
@@ -84,9 +88,11 @@ import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
 import EasyDataTable from "vue3-easy-data-table";
 import { SearchIcon, AirplayIcon } from "@/components/icons";
-import type { GameInterface } from "@/interfaces/game.interface";
+import type { GameInterface, IGameSettings } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
-import { joinGame, getGames } from "@/services/gameServices";
+import { joinGame, getGames, createGame } from "@/services/gameServices";
+import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
+import { useGamesSettingsStore } from "@/stores/gamesSettingsStore";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -94,11 +100,14 @@ export default defineComponent({
         EasyDataTable,
         SearchIcon,
         AirplayIcon,
+        GameSettingsModal,
     },
     setup() {
         const searchValue = ref("");
         const userStore = useUserStore();
+        const gamesettingsStore = useGamesSettingsStore();
         const games = ref([] as GameInterface[]);
+        const showCreateGameModal = ref(false);
         const headers = [
             { text: "ID", value: "id", sortable: true },
             { text: "USERS", value: "players" },
@@ -112,6 +121,10 @@ export default defineComponent({
             document.querySelectorAll(".btn-game-filter").forEach((element) => {
                 element.classList.remove("active");
             });
+        };
+
+        const toggleCreateGameModal = () => {
+            showCreateGameModal.value = !showCreateGameModal.value;
         };
 
         watch(searchValue, () => {
@@ -177,12 +190,39 @@ export default defineComponent({
             }
         });
 
+        const onSettingReceived = (newSetting: IGameSettings) => {
+            toggleCreateGameModal();
+            createGameAndNavigate(newSetting);
+        };
+
+        const createGameAndNavigate = (gameSettings: IGameSettings) => {
+            // create game add the settings to the store and navigate to the game
+            createGame().then((response) => {
+                gamesettingsStore.addGameSettings({
+                    ...gameSettings,
+                    gameId: response.data.games.id,
+                });
+                router.push({ name: "game", params: { id: response.data.games.id } });
+            })
+            .catch((error) => {
+                console.log(error);
+                if (axios.isAxiosError(error)) {
+                    console.log(error.response?.data);
+                    if (error.response?.status == 401) {
+                        router.push({ path: "/" });
+                    }
+                }
+            });
+        };
+
         const joinAndNavigate = (gameId: number) => {
             const game = games.value.find((game) => game.id == gameId);
+            // if user is already in the game, just navigate to it
             if (game?.users.some((user) => user.id == userStore.user.id)){
                 router.push({ name: "game", params: { id: gameId } });
                 return;
             }
+            // else join the game and navigate to it
             joinGame(gameId).then((response) => {
                 router.push({ name: "game", params: { id: gameId } });
             })
@@ -201,9 +241,12 @@ export default defineComponent({
             searchValue,
             headers,
             items,
+            showCreateGameModal,
+            toggleCreateGameModal,
             filterGames,
             joinGame,
             joinAndNavigate,
+            onSettingReceived,
         };
     },
 });
@@ -263,5 +306,8 @@ export default defineComponent({
     margin-right: 5px;
 }
 
+.create-game{
+    margin-top: 20px;
+}
 
 </style>
