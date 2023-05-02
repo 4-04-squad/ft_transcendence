@@ -8,7 +8,6 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-//import { oneKeyStroke } from "@vueuse/core";
 
 export default defineComponent({
 	name: "FieldView",
@@ -30,9 +29,10 @@ export default defineComponent({
 			x: 0,
 			y: 0,
 			width: 20,
-			velocity: 3,
+			velocityx: 1,
+			velocityy: 1,
 			rebound: 0,
-			rol: 1
+			speed: 3
 		}
 		let score = {
 			p1: 0,
@@ -116,7 +116,8 @@ export default defineComponent({
 		//set spawn point for ball
 		this.ball.x = this.ball.xb;
 		this.ball.y = this.ball.yb;
-		this.ball.rol = Math.floor(Math.random() * 2);
+		this.ball.rx = Math.floor(Math.random() * 2);
+		this.ball.ry = Math.floor(Math.random() * 2);
 
 		// Initialize player movement
 		this.moveplayer(this.player1);
@@ -180,6 +181,18 @@ export default defineComponent({
 			},
 			);
 		},
+
+		respawnball() {
+			this.ball.x = this.ball.xb;
+			this.ball.y = this.ball.yb;
+			this.ball.speed = 2;
+			this.player1.speed = 10;
+			this.player2.speed = 10;
+			this.ball.velocityx = 1;
+			this.ball.velocityy = 1;
+			this.score.p1++;
+		},
+
 		updatecsore() {
 			// Putting the middle line
 			this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
@@ -192,45 +205,50 @@ export default defineComponent({
 
 		updateball() {
 			// calcul where the ball is and if she touch something
-			if (this.ball.rol == 1 && this.ball.x + this.ball.velocity + this.ball.width >= this.context.canvas.width) {
-				this.ball.rol = 0;
-				this.ball.x = this.ball.xb;
-				this.ball.y = this.ball.yb;
-				this.ball.velocity = 3;
-				this.score.p1++;
+			if (this.ball.x + this.ball.velocityx + this.ball.width >= this.context.canvas.width) {
+				this.respawnball();
 			}
-			else if (this.ball.rol == 0 && this.ball.x - this.ball.velocity <= 0) {
-				this.ball.rol = 1;
-				this.ball.x = this.ball.xb;
-				this.ball.y = this.ball.yb;
-				this.ball.velocity = 3;
-				this.score.p2++;
+			else if (this.ball.x - this.ball.velocityx <= 0) {
+				this.respawnball();
 			}
-			else if (this.ball.rol == 1 && this.ball.x + this.ball.velocity + this.ball.width >= this.player2.x) {
+			else if (this.ball.x + this.ball.velocityx + this.ball.width >= this.player2.x) {
 				if ((this.ball.y >= this.player2.y && this.ball.y <= this.player2.paddley)
 					|| (this.ball.y + this.ball.width >= this.player2.y && this.ball.y + this.ball.width <= this.player2.paddley)) {
-					if (++this.ball.rebound % 5 == 0)
-						this.ball.velocity++;
-					this.ball.rol = 0;
+					if (++this.ball.rebound % 3 == 0)
+					{
+						this.player1.speed++;
+						this.ball.speed++;
+					}
+					this.ball.velocityx = -1;
 				}
 			}
-			else if (this.ball.rol == 0 && (this.ball.x - this.player1.tilewidth) - this.ball.velocity <= this.player1.x) {
+			else if ((this.ball.x - this.player1.tilewidth) - this.ball.velocityx <= this.player1.x) {
 				if ((this.ball.y >= this.player1.y && this.ball.y <= this.player1.paddley)
 					|| (this.ball.y + this.ball.width >= this.player1.y && this.ball.y + this.ball.width <= this.player1.paddley)) {
-					if (++this.ball.rebound % 5 == 0)
-						this.ball.velocity++;
-					this.ball.rol = 1;
+					if (++this.ball.rebound % 3 == 0)
+					{
+						this.player1.speed++;
+						this.ball.speed++;
+					}
+					this.ball.velocityx = 1;
 				}
 			}
 			else
 				;
-			
-			// draw the ball
-			if (this.ball.rol == 0)
-				this.ball.x -= this.ball.velocity;
+			// check the collision on the Y axe
+			if (this.ball.y + this.ball.velocityy + this.ball.width >= this.context.canvas.height)
+			{
+				this.ball.velocityy = -1;
+			}
+			else if (this.ball.y - this.ball.velocityy <= 0)
+			{
+				this.ball.velocityy = 1;
+			}
 			else
-				this.ball.x += this.ball.velocity;
-
+				;
+			// draw the ball
+			this.ball.x += this.ball.velocityx * this.ball.speed;
+			this.ball.y += this.ball.velocityy * this.ball.speed;
 			// socket to send the ball position to the other player
 			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
 
