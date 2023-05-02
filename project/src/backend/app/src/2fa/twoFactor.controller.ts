@@ -58,7 +58,8 @@ export class TwoFactorAuthenticationController {
     	);
 		console.log(isCodeValid);
 		if (!isCodeValid) {
-			throw new UnauthorizedException('Wrong authentication code');
+			res.status(206).send({ user });
+			return;
 		}
 		await this.usersService.turnOnTwoFactorAuthentication(user.id);
 

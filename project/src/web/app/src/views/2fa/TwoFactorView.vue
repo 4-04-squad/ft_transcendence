@@ -43,6 +43,8 @@ import { defineComponent  } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
+import { useAlertStore } from "@/stores/alert";
+import type { AlertInterface } from "@/interfaces/alert.interface";
 
 export default defineComponent({
   name: "TwoFactorView",
@@ -51,15 +53,17 @@ export default defineComponent({
   },
   setup() {
     const userStore = useUserStore();
-
+    const alertStore = useAlertStore();
+      
     return {
-      userStore
+      userStore,
+      alertStore
     };
   },
   data() {
     return {
       qrCode: null,
-			confirmationCode: Array(6).fill(""),
+			confirmationCode: Array(6).fill("")
     };
   },
   methods: {
@@ -87,8 +91,19 @@ export default defineComponent({
         }
       ).then((response) => {
         console.log(response);
-        this.userStore.setUser(response.data.user as UserInterface);
-        this.qrCode = null;
+        
+        if (response.status === 206) {
+          const alert = {
+            status: 300,
+            message: 'Code 2FA incorrect.',
+          } as AlertInterface;
+
+          this.alertStore.setAlert(alert);
+          console.log(alert);
+        } else {
+          this.userStore.setUser(response.data.user as UserInterface);
+          this.qrCode = null;
+        }
       }).catch((error) => {
         console.log(error);
       });
