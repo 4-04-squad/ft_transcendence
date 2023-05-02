@@ -51,12 +51,10 @@ export class TwoFactorAuthenticationController {
 	) {
 		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
 		const user = request.user;
-		console.log(body.tfa_code)
 
     	const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
       		body.tfa_code, user
     	);
-		console.log(isCodeValid);
 		if (!isCodeValid) {
 			res.status(206).send({ user });
 			return;
@@ -89,8 +87,7 @@ export class TwoFactorAuthenticationController {
 		@Body() body: { tfa_code: string }
 	) {
 		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
-		
-		console.log('AUTHENTICATE');
+
 		if (!request.cookies[process.env.JWT_TMP_NAME])
 			return
 
@@ -110,8 +107,6 @@ export class TwoFactorAuthenticationController {
 		if (!token) {
 		throw new ForbiddenException('Forbidden, token is missing.');
 		}
-
-		console.log('JWT real cookie:', token);
 		
 		res.clearCookie(process.env.JWT_TMP_NAME);
 		

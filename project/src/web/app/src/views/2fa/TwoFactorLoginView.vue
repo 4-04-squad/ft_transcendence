@@ -65,7 +65,6 @@ export default defineComponent({
 
 		async confirm() {
 			const input = this.confirmationCode.join("")
-			console.log("Input Content:", input);
 			axios.post(`${import.meta.env.VITE_APP_API_URL}/2fa/authenticate`,
 				{ tfa_code: input },
 				{
@@ -74,10 +73,8 @@ export default defineComponent({
 						"Content-Type": "application/json",
 					},
 				}).then((response) => {
-					console.log(response);
 					this.userStore.setUser(response.data.user as UserInterface);
 					if (this.userStore.user) {
-						console.log("User is logged in " + this.userStore.user.pseudo);
 						router.push({ path: "/" });
 					}
 				}).catch((error) => {
@@ -87,8 +84,6 @@ export default defineComponent({
 					} as AlertInterface;
 
 					this.alertStore.setAlert(alert);
-					console.log(alert);
-					
 				});
 
 		},
