@@ -39,6 +39,8 @@ import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
 import router from "@/router";
+import { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
 	name: "TwoFactorLoginView",
@@ -47,9 +49,11 @@ export default defineComponent({
 	},
 	setup() {
 		const userStore = useUserStore();
+		const alertStore = useAlertStore();
 
 		return {
-			userStore
+			userStore,
+			alertStore
 		};
 	},
 	data() {
@@ -77,7 +81,14 @@ export default defineComponent({
 						router.push({ path: "/" });
 					}
 				}).catch((error) => {
-					console.log(error);
+					const alert = {
+						status: 401,
+						message: 'Code 2FA incorrect.',
+					} as AlertInterface;
+
+					this.alertStore.setAlert(alert);
+					console.log(alert);
+					
 				});
 
 		},

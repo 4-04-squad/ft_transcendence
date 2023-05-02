@@ -94,7 +94,7 @@ export default defineComponent({
         
         if (response.status === 206) {
           const alert = {
-            status: 300,
+            status: 401,
             message: 'Code 2FA incorrect.',
           } as AlertInterface;
 
