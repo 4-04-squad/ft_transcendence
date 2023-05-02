@@ -5,11 +5,10 @@ import type { AlertInterface } from "@/interfaces/alert.interface";
 
 export const useAlertStore = defineStore("alert", {
     state: () => ({
-        alert: {} as AlertInterface | undefined,
+        alert: undefined as AlertInterface | undefined,
     }),
     actions: {
         setAlert(alert: AlertInterface | undefined) {
-            const banner = document.getElementById("alert-banner");
             this.alert = alert as AlertInterface | undefined;
             
             // set type
@@ -24,13 +23,9 @@ export const useAlertStore = defineStore("alert", {
                     this.alert.type = "info";
                 }
             }
-
-            banner && banner.classList.add("active");
-            alert && setTimeout(() => this.clearAlert(), 5000);
         },
         clearAlert() {
-            const banner = document.getElementById("alert-banner");
-            banner && banner.classList.remove("active");
+            // clear alert
             this.alert = undefined;
         },
     },
@@ -38,8 +33,5 @@ export const useAlertStore = defineStore("alert", {
         isAlert(): boolean {
             return !!this.alert && !!this.alert.status;
         },
-    },
-    persist: {
-        enabled: true,
     },
 });
