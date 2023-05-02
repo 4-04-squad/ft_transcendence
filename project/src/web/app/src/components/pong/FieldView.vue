@@ -116,8 +116,14 @@ export default defineComponent({
 		//set spawn point for ball
 		this.ball.x = this.ball.xb;
 		this.ball.y = this.ball.yb;
-		this.ball.rx = Math.floor(Math.random() * 2);
-		this.ball.ry = Math.floor(Math.random() * 2);
+		if (Math.floor(Math.random() * 2) == 1)
+			this.ball.velocityx = -1;
+		else
+			this.ball.velocityx = 1;
+		if (Math.floor(Math.random() * 2) == 1)
+			this.ball.velocityy = -1;
+		else
+			this.ball.velocityy = 1;
 
 		// Initialize player movement
 		this.moveplayer(this.player1);
@@ -298,6 +304,14 @@ export default defineComponent({
 
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
+			if (Math.floor(Math.random() * 2) == 1)
+				this.ball.velocityx = -1;
+			else
+				this.ball.velocityx = 1;
+			if (Math.floor(Math.random() * 2) == 1)
+				this.ball.velocityy = -1;
+			else
+				this.ball.velocityy = 1;
 			this.redrawPlayers();
 		},
 	},
