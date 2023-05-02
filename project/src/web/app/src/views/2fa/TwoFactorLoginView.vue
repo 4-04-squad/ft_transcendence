@@ -39,6 +39,8 @@ import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
 import router from "@/router";
+import { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
 	name: "TwoFactorLoginView",
@@ -47,9 +49,11 @@ export default defineComponent({
 	},
 	setup() {
 		const userStore = useUserStore();
+		const alertStore = useAlertStore();
 
 		return {
-			userStore
+			userStore,
+			alertStore
 		};
 	},
 	data() {
@@ -61,7 +65,6 @@ export default defineComponent({
 
 		async confirm() {
 			const input = this.confirmationCode.join("")
-			console.log("Input Content:", input);
 			axios.post(`${import.meta.env.VITE_APP_API_URL}/2fa/authenticate`,
 				{ tfa_code: input },
 				{
@@ -70,14 +73,17 @@ export default defineComponent({
 						"Content-Type": "application/json",
 					},
 				}).then((response) => {
-					console.log(response);
 					this.userStore.setUser(response.data.user as UserInterface);
 					if (this.userStore.user) {
-						console.log("User is logged in " + this.userStore.user.pseudo);
 						router.push({ path: "/" });
 					}
 				}).catch((error) => {
-					console.log(error);
+					const alert = {
+						status: 401,
+						message: 'Code 2FA incorrect.',
+					} as AlertInterface;
+
+					this.alertStore.setAlert(alert);
 				});
 
 		},
