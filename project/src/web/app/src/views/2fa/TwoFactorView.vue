@@ -57,7 +57,7 @@ export default defineComponent({
 	setup() {
 		const userStore = useUserStore();
 		const alertStore = useAlertStore();
-		
+    
 		return {
 			userStore,
 			alertStore
