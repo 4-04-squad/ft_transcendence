@@ -1,9 +1,12 @@
-import { UserChatPermission, UserChatStatus } from "@prisma/client";
+import { ChatType, UserChatPermission, UserChatStatus } from "@prisma/client";
 import { IsString } from "class-validator";
 
 export class CreateChannelDto {
     @IsString()
-    userId: string;
+    name?: string;
+    type: ChatType;
+    @IsString()
+    password?: string;
 }
 
 export class JoinChannelDto {
