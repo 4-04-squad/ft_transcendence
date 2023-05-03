@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
-import { memberStatusDto } from './dto/channels.dto';
+import { CreateChannelDto, memberStatusDto } from './dto/channels.dto';
 
 @Injectable()
 export class ChannelsService {
@@ -92,21 +92,21 @@ export class ChannelsService {
         return result
     }
 
-    async createChannel(CreateChannelDto): Promise<Chat | null> {
-        const userId = CreateChannelDto.userId;
+    async createChannel(userId: string, settings: CreateChannelDto): Promise<Chat | null> {
         if (!userId) {
             console.log("error: userIds incorect");
             return null;
         }
         let channel = await this.prisma.chat.create({
                 data: {
-                    type: ChatType.PUBLIC
+                    name: settings.name,
+                    type: settings.type,
+                    passwd: settings.password,
                 },
             }).catch((err) => {
                 console.log(err);
                 return null;
             });
-
             await this.prisma.userChat.create({ 
                 data: {
                     userId: userId,
@@ -131,13 +131,14 @@ export class ChannelsService {
         if (channel.type != ChatType.PUBLIC)
             throw new BadRequestException("User can't join this channel");
         
-        await this.prisma.userChat.create({
+        const log = await this.prisma.userChat.create({
             data: {
                 userId: userId,
                 chatId: chatId,
                 status: UserChatStatus.MEMBER,
             }
         })
+        console.log(log);
         return channel;
     }
 
