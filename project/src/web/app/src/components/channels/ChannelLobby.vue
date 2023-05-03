@@ -6,7 +6,7 @@
                 <SearchIcon />
                 <input type="text" v-model="searchValue" placeholder="Rechercher" />
             </div>
-            <button class="btn btn--submit" @click="createChannel()" >
+            <button class="btn btn--submit" @click="toggleCreateChannelModal()" >
                 Create
             </button>
         </h1>
@@ -28,6 +28,7 @@
             </ul>
         </template>
     </EasyDataTable>
+    <ChannelSettingsModal v-if="showCreateChannelModal" @onClose="toggleCreateChannelModal" @onCreate="onSettingReceived"/>
 </template>
   
 <script lang="ts">
@@ -37,18 +38,20 @@ import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
 import EasyDataTable from "vue3-easy-data-table";
 import { SearchIcon, MessageIcon } from "@/components/icons";
-import type { ChatInterface } from "@/interfaces/chat.interface";
+import type { ChatInterface, IChannelSettings } from "@/interfaces/chat.interface";
+import ChannelSettingsModal from "./ChannelSettingsModal.vue";
 
 export default defineComponent({
     name: "ChatLobby",
     components: {
-        EasyDataTable,
-        SearchIcon,
-        MessageIcon,
-    },
+    EasyDataTable,
+    SearchIcon,
+    MessageIcon,
+    ChannelSettingsModal
+},
     setup() {
         const searchValue = ref("");
-
+        const showCreateChannelModal = ref(false);
         const channels = ref([] as ChatInterface[]);
         const headers = [
             { text: "NAME", value: "name" },
@@ -82,28 +85,63 @@ export default defineComponent({
                 }
             });
 
-        return {
-            searchValue,
-            headers,
-            items,
+        const toggleCreateChannelModal = () => {
+            showCreateChannelModal.value = !showCreateChannelModal.value;
         };
-    },
-    methods: {
-        async createChannel() {
+
+        const createChannel = (channelSettings: IChannelSettings) => {
             try {
-                const response = await axios
-                    .post(
-                        `${import.meta.env.VITE_APP_API_URL}/channels/create`
-                    ).then((res) => {
-                        console.log(res);
-                        router.push({name: "channel", params: {id: res.data.channel.id}})
-                    }).catch((err) => {
-                        console.log(err);
-                    })
+                axios.post(
+                    `${import.meta.env.VITE_APP_API_URL}/channels/create`,
+                    {
+                        name: channelSettings.name,
+                        type: channelSettings.type,
+                        password: channelSettings.password
+                    },
+                    {
+                        withCredentials: true,
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                ).then((response) => {
+                    console.log(response);
+                    router.push({
+                        name: "channel",
+                        params: {
+                            id: response.data.channel.id,
+                        },
+                    });
+                }).catch((error) => {
+                    console.log(error);
+                    if (axios.isAxiosError(error)) {
+                        console.log(error.response?.data);
+                        if (error.response?.status == 401) {
+                            router.push({ path: "/" });
+                        }
+                    }
+                });
             } catch (error: any) {
                 console.log(error);
             }
-        },
+        };
+
+        const onSettingReceived = (newSetting: IChannelSettings) => {
+            console.log(newSetting);
+            toggleCreateChannelModal();
+            createChannel(newSetting);
+        };
+        return {
+            searchValue,
+            showCreateChannelModal,
+            headers,
+            items,
+            toggleCreateChannelModal,
+            createChannel,
+            onSettingReceived,
+        };
+    },
+    methods: {
         async joinChannel(id: string) {
         try {
             const response = await axios

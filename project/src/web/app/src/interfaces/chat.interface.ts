@@ -11,6 +11,12 @@ export interface ChatInterface {
   messages: MessageInterface[];
 }
 
+export interface IChannelSettings {
+  name?: string;
+  type: ChatType;
+  password?: string;
+}
+
 export const enum ChatType {
   DIRECT = "DIRECT",
   PRIVATE = "PRIVATE",
