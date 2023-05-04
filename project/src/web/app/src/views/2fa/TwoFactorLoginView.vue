@@ -17,6 +17,7 @@
               :maxlength="1"
               ref="codeRef(index)"
               required
+							@input="next"
             />
           </div>
           <button
@@ -62,7 +63,6 @@ export default defineComponent({
 		};
 	},
 	methods: {
-
 		async confirm() {
 			const input = this.confirmationCode.join("")
 			axios.post(`${import.meta.env.VITE_APP_API_URL}/2fa/authenticate`,
@@ -90,6 +90,9 @@ export default defineComponent({
 		codeRef(index) {
 			return `code${index + 1}`;
 		},
+		next(e) {
+      e.target?.nextElementSibling?.focus();
+    },
 	}
 
 });
