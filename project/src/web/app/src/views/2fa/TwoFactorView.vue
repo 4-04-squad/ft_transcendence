@@ -25,6 +25,7 @@
               :maxlength="1"
               ref="codeRef(index)"
               required
+              @input="next"
             />
           </div>
 					<button
@@ -56,7 +57,7 @@ export default defineComponent({
 	setup() {
 		const userStore = useUserStore();
 		const alertStore = useAlertStore();
-
+    
 		return {
 			userStore,
 			alertStore
@@ -102,6 +103,9 @@ export default defineComponent({
 		codeRef(index) {
 			return `code${index + 1}`;
 		},
+    next(e) {
+      e.target?.nextElementSibling?.focus();
+    },
 		async removeTfa() {
 			axios.post(`${import.meta.env.VITE_APP_API_URL}/2fa/turn-off`,
 				{
