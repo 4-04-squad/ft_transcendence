@@ -115,6 +115,11 @@ export default defineComponent({
 			ball.x = data.x;
     		ball.y = data.y;
 		});
+		props.socket.on("getBall", (data) => {
+			console.log("Ball moved:", data);
+			ball.x = data.x;
+    		ball.y = data.y;
+		});
 		return {
 			player1,
 			player2,
@@ -337,6 +342,7 @@ export default defineComponent({
 			this.ball.y += this.ball.velocityy * this.ball.speed;
 			// socket to send the ball position to the other player
 			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
+			this.socket.emit("getBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
 			// Cette fonction doit être appelé à chaque fois que la position de la balle change	mais pas dans cette fonction
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
@@ -346,7 +352,9 @@ export default defineComponent({
 		},
 
 		updateplayeroneandball() {
-			this.socket.emit("moveBall", {gameId: this.gameData.gameId, x: this.p2ball.x, y: this.p2ball.y});
+			this.socket.emit("getBall", {gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y});
+			console.log(this.ball.x);
+			console.log(this.ball.y);
 			// Cette fonction doit être appelé à chaque fois que la position de la balle change	mais pas dans cette fonction
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
