@@ -89,7 +89,11 @@ export default defineComponent({
 			paddley: 0,
 			ply: 2
 		}
-		// Socket event listeners
+		let p2ball = {
+			x: 0,
+			y: 0
+		}
+		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data) => {
 			console.log("User joined game:", data);
 		});
@@ -119,7 +123,8 @@ export default defineComponent({
 			context,
 			gameData: props.gameData,
 			socket: props.socket,
-			cpu
+			cpu,
+			p2ball
 		}
 	},
 	beforeUnmount() {
@@ -341,7 +346,9 @@ export default defineComponent({
 		},
 
 		updateplayeroneandball() {
-
+			this.socket.emit("moveBall", {gameId: this.gameData.gameId, x: this.p2ball.x, y: this.p2ball.y});
+			// Cette fonction doit être appelé à chaque fois que la position de la balle change	mais pas dans cette fonction
+			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
 
 		update() {
