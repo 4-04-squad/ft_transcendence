@@ -25,3 +25,15 @@ export interface IGameSettings {
   ballColor: string;
   scoreLimit: number;
 }
+
+export interface IUserStats {
+  userGamesStatistics: GameStatistics;
+  allGamesStatistics: GameStatistics;
+}
+
+interface GameStatistics {
+  totalGames: number;
+  totalWins: number;
+  totalLosses: number;
+  averageScore: number;
+}

@@ -132,13 +132,33 @@ export class GamesService {
       .catch((err) => {
         throw new BadRequestException(err);
       });
-    const gamesStatistics = {
+    const userGamesStatistics = {
       totalGames: games.length,
       totalWins: userGames.filter((userGame) => userGame.status == 'WINNER')
         .length,
       totalLoses: userGames.filter((userGame) => userGame.status == 'LOSER')
         .length,
       averageScore: userGames.reduce((a, b) => a + b.score, 0) / games.length,
+    };
+    // Now that we have the stats of the user, we need the average stats of all the users
+    const allUserGames = await this.prisma.userGame.findMany().catch((err) => {
+      throw new BadRequestException(err);
+    });
+    const allGames = await this.prisma.game.findMany().catch((err) => {
+      throw new BadRequestException(err);
+    });
+    const allGamesStatistics = {
+      totalGames: allGames.length,
+      totalWins: allUserGames.filter((userGame) => userGame.status == 'WINNER')
+        .length,
+      totalLoses: allUserGames.filter((userGame) => userGame.status == 'LOSER')
+        .length,
+      averageScore:
+        allUserGames.reduce((a, b) => a + b.score, 0) / allGames.length,
+    };
+    const gamesStatistics = {
+      userGamesStatistics: userGamesStatistics,
+      allGamesStatistics: allGamesStatistics,
     };
     return gamesStatistics;
   }
