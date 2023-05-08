@@ -58,7 +58,7 @@ export default defineComponent({
 			velocityy: 1,
 			rebound: 0,
 			rebonetime: 2,
-			speed: 3
+			speed: 1,
 		}
 		let cpu = {
 			enable: 0,
@@ -67,7 +67,7 @@ export default defineComponent({
 		let score = {
 			p1: 0,
 			p2: 0,
-			max_score: 9
+			max_score: 9,
 		}
 		let player1 = {
 			me: 0,
@@ -77,7 +77,7 @@ export default defineComponent({
 			x: 0,
 			y: 0,
 			paddley: 0,
-			ply: 1
+			ply: 1,
 		}
 		let player2 = {
 			me: 0,
@@ -87,28 +87,25 @@ export default defineComponent({
 			x: 0,
 			y: 0,
 			paddley: 0,
-			ply: 2
-		}
-		let p2ball = {
-			x: 0,
-			y: 0
+			ply: 2,
 		}
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data) => {
 			console.log("User joined game:", data);
 		});
+
 		props.socket.on("leaveGame", (data) => {
 			console.log("User left game:", data);
 		});
+
 		props.socket.on("movePlayer", (data) => {
 			console.log("Player moved:", data);
-			if (data.userId === player1Id) {
-				player1.y = data.position.y;
-				player1.paddley = player1.y + player1.tile;
-			} else if (data.userId === player2Id) {
-				player2.y = data.position.y;
-				player2.paddley = player2.y + player2.tile;
-			}
+			player1.y = data.position.y;
+		});
+
+		props.socket.on("movePlayerTwo", (data) => {
+			console.log("Player Two moved:", data);
+			player2.y = data.position.y;
 		});
 
 		props.socket.on("moveBall", (data) => {
@@ -144,7 +141,6 @@ export default defineComponent({
 			gameData: props.gameData,
 			socket: props.socket,
 			cpu,
-			p2ball,
 		}
 	},
 	beforeUnmount() {
@@ -254,6 +250,10 @@ export default defineComponent({
 							player.y += player.speed;
 							player.paddley = player.y + player.tile;
 						}
+						if (player.ply == 1)
+							this.socket.emit("movePlayer", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
+						else
+							this.socket.emit("movePlayerTwo", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
 						break;
 					case up:
 						this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
@@ -265,61 +265,62 @@ export default defineComponent({
 							player.y -= player.speed;
 							player.paddley = player.y + player.tile;
 						}
+						if (player.ply == 1)
+							this.socket.emit("movePlayer", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
+						else
+							this.socket.emit("movePlayerTwo", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
 						break;
 					default:
 						return;
 				}
 				event.preventDefault();
-				// Send player movement to server
-				this.socket.emit("movePlayer", {
-					userId: this.gameData.userId,
-					position: {
-						x: player.x,
-						y: player.y,
-					},
-				});
 				// cette ligne permet de dessiner le joueur a sa nouvelle position mais pas dans cette fonction
 				this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			},
 			);
 		},
+
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
-			this.ball.speed = 3;
+			this.ball.speed = 1;
 			this.ball.rebound = 0;
 			this.ball.rebonetime = 2;
 			this.player1.speed = 10;
 			this.player2.speed = 10;
 		},
+
 		updatecsore() {
 			// Putting the middle line
 			this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
 			// Draw score & update
 			this.context.font = '48px arial';
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
-			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);
+			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);	
 		},
+
 		updateball() {
 			// calcul where the ball is and if she touch something
 			if (this.ball.x + this.ball.velocityx + this.ball.width >= this.context.canvas.width) {
 				this.respawnball();
 				this.score.p1++;
+				this.socket.emit("updateScore", { gameId: this.gameData.gameId, score: this.score });
 			}
 			else if (this.ball.x - this.ball.velocityx <= 0) {
 				this.respawnball();
 				this.score.p2++;
+				this.socket.emit("updateScore", { gameId: this.gameData.gameId, score: this.score });
 			}
 			else if (this.ball.x + this.ball.velocityx + this.ball.width >= this.player2.x) {
 				if ((this.ball.y >= this.player2.y && this.ball.y <= this.player2.paddley)
 					|| (this.ball.y + this.ball.width >= this.player2.y && this.ball.y + this.ball.width <= this.player2.paddley)) {
 					if (this.ball.rebonetime == 0 || this.ball.rebonetime == 2)
 					{
-						if (++this.ball.rebound % 3 == 0)
+						/*if (++this.ball.rebound % 3 == 0)
 						{
 							this.player1.speed++;
 							this.ball.speed++;
-						}
+						}*/
 						this.ball.rebonetime = 1;
 					}
 						this.ball.velocityx = -1;
@@ -330,11 +331,11 @@ export default defineComponent({
 					|| (this.ball.y + this.ball.width >= this.player1.y && this.ball.y + this.ball.width <= this.player1.paddley)) {
 					if (this.ball.rebonetime == 1 || this.ball.rebonetime == 2)
 					{
-						if (++this.ball.rebound % 3 == 0)
+						/*if (++this.ball.rebound % 3 == 0)
 						{
 							this.player1.speed++;
 							this.ball.speed++;
-						}
+						}*/
 						this.ball.rebonetime = 0;
 					}
 					this.ball.velocityx = 1;
@@ -355,19 +356,17 @@ export default defineComponent({
 				;
 			this.ball.x += this.ball.velocityx * this.ball.speed;
 			this.ball.y += this.ball.velocityy * this.ball.speed;
-			// socket to send the ball position to the other player
-			console.log(this.gameData.gameId);
 			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
-			this.socket.emit("updateScore", { gameId: this.gameData.gameId, score: this.score });
 			// Cette fonction doit être appelé à chaque fois que la position de la balle change	mais pas dans cette fonction
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
 
 		updateplayertwo() {
-
+			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
 		},
 
 		updateplayeroneandball() {
+			this.context.fillRect(this.player1.x, this.player1.y, this.player1.tilewidth, this.player1.tile);
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
 

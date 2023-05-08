@@ -130,10 +130,16 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.server.to(roomName).emit('movePlayer', { gameId: data.gameId, userId: data.userId, position: data.position });
   }
 
+  @SubscribeMessage('movePlayerTwo')
+  onMovePlayerTwo(client: Socket, data: { gameId: string, userId: string, position: any }) {
+    const roomName = `${data.gameId}`;
+    // emit in room
+    this.server.to(roomName).emit('movePlayerTwo', { gameId: data.gameId, userId: data.userId, position: data.position });
+  }
+
   @SubscribeMessage('moveBall')
   onMoveBall(client: Socket, data: { gameId: string, x: number, y: number}) {
     const roomName = `${data.gameId}`;
-
     // emit in room
     this.server.to(roomName).emit('moveBall', { gameId: data.gameId, x: data.x, y: data.y });
   }
@@ -141,7 +147,6 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   @SubscribeMessage('updateScore')
   onUpdateScore(client: Socket, data: { gameId: string, score: any }) {
     const roomName = `${data.gameId}`;
-
     // emit in room
     this.server.to(roomName).emit('updateScore', { gameId: data.gameId, score: data.score });
   }
