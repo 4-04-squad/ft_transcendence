@@ -13,6 +13,9 @@
 			<div style="position:absolute; left: 45%; top: 50%;">
 				<button v-if="btn4" @click="secondplayer" class="btn">joueur droite</button>
 			</div>
+			<div style="position:absolute; left: 45%; top: 50%;">
+				<button v-if="btn5" @click="replay" class="btn">refaire une partie</button>
+			</div>
 			<canvas id="Field" ref="Field">
 			</canvas>
 		</div>
@@ -39,11 +42,13 @@ export default defineComponent({
 		let btn2 = true
 		let btn3 = false
 		let btn4 = false
+		let btn5 = false
 		return {
 			btn1,
 			btn2,
 			btn3,
 			btn4,
+			btn5,
 		}
 	},
 	setup(props) {
@@ -58,7 +63,7 @@ export default defineComponent({
 			velocityy: 1,
 			rebound: 0,
 			rebonetime: 2,
-			speed: 1,
+			speed: 3,
 		}
 		let cpu = {
 			enable: 0,
@@ -67,7 +72,7 @@ export default defineComponent({
 		let score = {
 			p1: 0,
 			p2: 0,
-			max_score: 9,
+			max_score: 2,
 		}
 		let player1 = {
 			me: 0,
@@ -101,17 +106,19 @@ export default defineComponent({
 		props.socket.on("movePlayer", (data) => {
 			console.log("Player moved:", data);
 			player1.y = data.position.y;
+			player1.paddley = data.position.y + player1.tile;
 		});
 
 		props.socket.on("movePlayerTwo", (data) => {
 			console.log("Player Two moved:", data);
 			player2.y = data.position.y;
+			player2.paddley = data.position.y + player2.tile;
 		});
 
 		props.socket.on("moveBall", (data) => {
-				console.log("Ball moved:", data);
-				ball.x = data.x;
-				ball.y = data.y;
+			console.log("Ball moved:", data);
+			ball.x = data.x;
+			ball.y = data.y;
 		});
 
 		props.socket.on("updateScore", (data) => {
@@ -195,6 +202,31 @@ export default defineComponent({
 			this.btn4 = false;
 			this.player2.me = 1;
 		},
+		replay() {
+			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+			this.btn1 = true;
+			this.btn2 = true;
+			this.btn3 = false;
+			this.btn4 = false;
+			this.btn5 = false;
+		},
+		menuOfEnd() {
+			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+			this.updatecsore();
+			this.context.font = '25px arial';
+			if (this.score.p1 == this.score.max_score && this.player1.me == 1)
+				this.context.fillText("Bravo vous avez gagner", 20, 75);
+			else if (this.score.p2 == this.score.max_score && this.player2.me == 1)
+				this.context.fillText("Bravo vous avez gagner", 20, 75);
+			else
+				this.context.fillText("Vous avez perdu", 20, 75);
+			this.player1.me = 0;
+			this.player2.me = 0;
+			this.cpu.enable = 0;
+			this.score.p1 = 0;
+			this.score.p2 = 0;
+			this.btn5 = true;
+		},
 
 		movecpu(player: Object) {
 			player.speed = this.cpu.difficulty;
@@ -223,7 +255,6 @@ export default defineComponent({
 					player.paddley = player.y + player.tile;
 				}
 			}
- 			// cette ligne permet de dessiner le joueur a sa nouvelle position mais pas dans cette fonction
 			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 		},
 
@@ -274,7 +305,6 @@ export default defineComponent({
 						return;
 				}
 				event.preventDefault();
-				// cette ligne permet de dessiner le joueur a sa nouvelle position mais pas dans cette fonction
 				this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			},
 			);
@@ -283,7 +313,7 @@ export default defineComponent({
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
-			this.ball.speed = 1;
+			this.ball.speed = 3;
 			this.ball.rebound = 0;
 			this.ball.rebonetime = 2;
 			this.player1.speed = 10;
@@ -314,7 +344,7 @@ export default defineComponent({
 			else if (this.ball.x + this.ball.velocityx + this.ball.width >= this.player2.x) {
 				if ((this.ball.y >= this.player2.y && this.ball.y <= this.player2.paddley)
 					|| (this.ball.y + this.ball.width >= this.player2.y && this.ball.y + this.ball.width <= this.player2.paddley)) {
-					if (this.ball.rebonetime == 0 || this.ball.rebonetime == 2)
+						if (this.ball.rebonetime == 0 || this.ball.rebonetime == 2)
 					{
 						/*if (++this.ball.rebound % 3 == 0)
 						{
@@ -357,7 +387,6 @@ export default defineComponent({
 			this.ball.x += this.ball.velocityx * this.ball.speed;
 			this.ball.y += this.ball.velocityy * this.ball.speed;
 			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
-			// Cette fonction doit être appelé à chaque fois que la position de la balle change	mais pas dans cette fonction
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
 
@@ -371,7 +400,9 @@ export default defineComponent({
 		},
 
 		update() {
-			if (this.cpu.enable == 1 || this.player1.me == 1 || this.player2.me == 1)
+			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
+					this.menuOfEnd();
+			else if (this.player1.me == 1 || this.player2.me == 1)
 			{
 				this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 				this.updatecsore();
