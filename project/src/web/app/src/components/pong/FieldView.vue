@@ -23,6 +23,7 @@
 </template>
 
 <script lang="ts">
+import type { IGameSettings } from "@/interfaces/game.interface";
 import { defineComponent, ref, watch } from "vue";
 
 export default defineComponent({
@@ -30,6 +31,10 @@ export default defineComponent({
 	props: {
 		gameData: {
 			type: Object,
+			required: true,
+		},
+		settings: {
+			type: Object as () => IGameSettings | undefined,
 			required: true,
 		},
 		socket: {
@@ -94,6 +99,7 @@ export default defineComponent({
 			paddley: 0,
 			ply: 2,
 		}
+		console.log("settings:", props.settings);
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data) => {
 			console.log("User joined game:", data);
@@ -147,6 +153,7 @@ export default defineComponent({
 			context,
 			gameData: props.gameData,
 			socket: props.socket,
+			settings: props.settings,
 			cpu,
 		}
 	},
@@ -227,7 +234,6 @@ export default defineComponent({
 			this.score.p2 = 0;
 			this.btn5 = true;
 		},
-
 		movecpu(player: Object) {
 			player.speed = this.cpu.difficulty;
 			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
@@ -257,7 +263,6 @@ export default defineComponent({
 			}
 			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 		},
-
 		moveplayer(player: Object) {
 			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			let up = "w";
@@ -309,7 +314,6 @@ export default defineComponent({
 			},
 			);
 		},
-
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
@@ -319,7 +323,6 @@ export default defineComponent({
 			this.player1.speed = 10;
 			this.player2.speed = 10;
 		},
-
 		updatecsore() {
 			// Putting the middle line
 			this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
@@ -328,7 +331,6 @@ export default defineComponent({
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
 			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);	
 		},
-
 		updateball() {
 			// calcul where the ball is and if she touch something
 			if (this.ball.x + this.ball.velocityx + this.ball.width >= this.context.canvas.width) {
@@ -389,16 +391,13 @@ export default defineComponent({
 			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
-
 		updateplayertwo() {
 			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
 		},
-
 		updateplayeroneandball() {
 			this.context.fillRect(this.player1.x, this.player1.y, this.player1.tilewidth, this.player1.tile);
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
-
 		update() {
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 					this.menuOfEnd();

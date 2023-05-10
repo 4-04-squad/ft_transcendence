@@ -9,7 +9,7 @@
     </div>
 
     <!-- GAME VIEW -->
-    <FieldView v-if="gameData" :gameData="gameData" :socket="socket" />
+    <FieldView v-if="gameData" :gameData="gameData" :settings="settings" :socket="socket" />
   </div>
 </template>
 
@@ -33,7 +33,7 @@ export default defineComponent({
     const route = useRoute();
     const gameData = ref<GameInterface | null>(null);
     const users = ref<UserInterface[] | null>(null);
-    const settings = ref<IGameSettings | null>(null);
+    const settings = ref<IGameSettings | undefined>(undefined);
     const gamesettingsStore = useGamesSettingsStore();
     const userStore = useUserStore();
     const socket = inject('socket') as Socket;
@@ -49,8 +49,10 @@ export default defineComponent({
         console.log("response", response);
         users.value = response.data.games.users;
         gameData.value = response.data.games;
-        settings.value = await gamesettingsStore.getGameSettings(gameData.value.id);
-        socket.emit("joinGame", { gameId: gameId, userId: userStore.user.pseudo });
+        if (gameData.value) {
+          settings.value = gamesettingsStore.getGameSettings(gameData.value.id);
+          socket.emit("joinGame", { gameId: gameId, userId: userStore.user.pseudo });
+        }
       } catch (err) {
         console.error(err);
       }
