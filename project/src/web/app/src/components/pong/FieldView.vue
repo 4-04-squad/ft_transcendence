@@ -4,16 +4,16 @@
 			<div style="position:absolute; left: 45%; top: 40%;">
 				<button v-if="btn1" @click="oneplayer" class="btn">partie solo</button>
 			</div>
-			<div style="position:absolute; left: 45%; top: 50%;">
+			<div style="position:absolute; left: 44%; top: 50%;">
 				<button v-if="btn2" @click="multiplayer" class="btn">partie multijoueur</button>
 			</div>
-			<div style="position:absolute; left: 45%; top: 40%;">
+			<div style="position:absolute; left: 35%; top: 45%;">
 				<button v-if="btn3" @click="firstplayer" class="btn">joueur gauche</button>
 			</div>
-			<div style="position:absolute; left: 45%; top: 50%;">
+			<div style="position:absolute; left: 55%; top: 45%;">
 				<button v-if="btn4" @click="secondplayer" class="btn">joueur droite</button>
 			</div>
-			<div style="position:absolute; left: 45%; top: 50%;">
+			<div style="position:absolute; left: 41%; top: 50%;">
 				<button v-if="btn5" @click="replay" class="btn">refaire une partie</button>
 			</div>
 			<canvas id="Field" ref="Field">
@@ -77,7 +77,8 @@ export default defineComponent({
 		let score = {
 			p1: 0,
 			p2: 0,
-			max_score: 2,
+			color: 'white',
+			max_score: 5,
 		}
 		let player1 = {
 			me: 0,
@@ -99,7 +100,6 @@ export default defineComponent({
 			paddley: 0,
 			ply: 2,
 		}
-		console.log("settings:", props.settings);
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data) => {
 			console.log("User joined game:", data);
@@ -234,12 +234,22 @@ export default defineComponent({
 			this.score.p2 = 0;
 			this.btn5 = true;
 		},
+
+		setvar() {
+			this.score.max_score = this.settings.scoreLimit;
+			this.ball.width = this.settings.ballSize;
+			this.ball.speed = this.settings.ballSpeed;
+			this.cpu.difficulty = this.settings.paddleSpeed;
+			this.player2.tile = this.settings.paddleSize;
+			this.player2.speed = this.settings.paddleSpeed;
+			this.player1.tile = this.settings.paddleSize;
+			this.player1.speed = this.settings.paddleSpeed;
+		},
+
 		movecpu(player: Object) {
 			player.speed = this.cpu.difficulty;
-			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			if (player.y < this.ball.y && player.paddley < this.ball.y)
 			{
-				this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
 				if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25))) {
 					player.y = this.context.canvas.height - player.tile;
 					player.paddley = player.y + player.tile;
@@ -251,7 +261,6 @@ export default defineComponent({
 			}
 			else if (player.y > this.ball.y && player.paddley > this.ball.y)
 			{
-				this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
 				if ((player.y - player.speed) <= 0) {
 					player.y = 0;
 					player.paddley = player.y + player.tile;
@@ -261,10 +270,9 @@ export default defineComponent({
 					player.paddley = player.y + player.tile;
 				}
 			}
-			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 		},
+
 		moveplayer(player: Object) {
-			this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			let up = "w";
 			let down = "s";
 			if (player.ply == 2) {
@@ -277,7 +285,6 @@ export default defineComponent({
 				}
 				switch (event.key) {
 					case down:
-						this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
 						if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25))) {
 							player.y = this.context.canvas.height - player.tile;
 							player.paddley = player.y + player.tile;
@@ -292,7 +299,6 @@ export default defineComponent({
 							this.socket.emit("movePlayerTwo", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
 						break;
 					case up:
-						this.context.clearRect(player.x, 0, 10, this.context.canvas.height);
 						if ((player.y - player.speed) <= 0) {
 							player.y = 0;
 							player.paddley = player.y + player.tile;
@@ -310,10 +316,10 @@ export default defineComponent({
 						return;
 				}
 				event.preventDefault();
-				this.context.fillRect(player.x, player.y, player.tilewidth, player.tile);
 			},
 			);
 		},
+
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
@@ -323,14 +329,21 @@ export default defineComponent({
 			this.player1.speed = 10;
 			this.player2.speed = 10;
 		},
+
 		updatecsore() {
+			// color the background
+			this.context.fillStyle = this.settings.backgroundColor;
+			this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			// Putting the middle line
+			this.themecolor();
+			this.context.fillStyle = this.score.color;
 			this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
 			// Draw score & update
 			this.context.font = '48px arial';
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
 			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);	
 		},
+
 		updateball() {
 			// calcul where the ball is and if she touch something
 			if (this.ball.x + this.ball.velocityx + this.ball.width >= this.context.canvas.width) {
@@ -389,15 +402,16 @@ export default defineComponent({
 			this.ball.x += this.ball.velocityx * this.ball.speed;
 			this.ball.y += this.ball.velocityy * this.ball.speed;
 			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
-			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
-		updateplayertwo() {
-			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
-		},
-		updateplayeroneandball() {
+
+		redrawall() {
+			this.context.fillStyle = this.settings.paddleColor;
 			this.context.fillRect(this.player1.x, this.player1.y, this.player1.tilewidth, this.player1.tile);
+			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
+			this.context.fillStyle = this.settings.ballColor;
 			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
 		},
+
 		update() {
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 					this.menuOfEnd();
@@ -408,38 +422,41 @@ export default defineComponent({
 				if (this.player1.me == 1)
 				{
 					this.moveplayer(this.player1);
-					if (this.cpu.enable == 0)
-						this.updateplayertwo();
 					this.updateball();
 				}
 				if (this.player2.me == 1)
-				{
 					this.moveplayer(this.player2);
-					this.updateplayeroneandball();
-				}
 				if (this.cpu.enable == 1)
 					this.movecpu(this.player2);
+				this.redrawall();
 			}
 			window.requestAnimationFrame(this.update);
 		},
+
+		themecolor() {
+			// choose the color by the theme
+			let body = document.getElementsByTagName('body')[0];
+			if (body.classList.contains("dark"))
+				this.score.color = 'white';
+			else
+				this.score.color = 'black';
+		},
+
 		createbackground() {
 			// link the canvas to context
 			this.context = <HTMLCanvasElement>this.$refs.Field.getContext("2d");
 			this.context.canvas.width = window.innerWidth - 260;
 			this.context.canvas.height = window.innerHeight - 145;
-			// choose the color by the theme
-			let body = document.getElementsByTagName('body')[0];
-			if (body.classList.contains("dark"))
-				this.context.fillStyle = 'white';
-			else
-				this.context.fillStyle = 'black';
+			this.themecolor();
 		},
+
 		redrawPlayers() {
 			this.context.clearRect(this.player1.x, 0, this.player1.tilewidth, this.context.canvas.height);
 			this.context.clearRect(this.player2.x, 0, this.player2.tilewidth, this.context.canvas.height);
 			this.context.fillRect(this.player1.x, this.player1.y, this.player1.tilewidth, this.player1.tile);
 			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
 		},
+
 		handleWindowResize() {
 			this.createbackground();
 			this.player1.y = this.context.canvas.height / 2 - 25;
@@ -447,16 +464,6 @@ export default defineComponent({
 			this.player2.x = this.context.canvas.width - 20; // Update the x position of player2
 			this.player2.y = this.context.canvas.height / 2 - 25;
 			this.player2.paddley = this.player2.y + this.player2.tile;
-			this.ball.x = this.ball.xb;
-			this.ball.y = this.ball.yb;
-			if (Math.floor(Math.random() * 2) == 1)
-				this.ball.velocityx = -1;
-			else
-				this.ball.velocityx = 1;
-			if (Math.floor(Math.random() * 2) == 1)
-				this.ball.velocityy = -1;
-			else
-				this.ball.velocityy = 1;
 			this.redrawPlayers();
 		},
 	},
