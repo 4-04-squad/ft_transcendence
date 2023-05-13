@@ -25,6 +25,9 @@
                         <MessageIcon /> 
                     </button>
                 </li>
+								<button class="btn btn--icon x--icon">
+									<XIcon />
+								</button>
             </ul>
         </template>
     </EasyDataTable>
@@ -37,18 +40,19 @@ import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
 import EasyDataTable from "vue3-easy-data-table";
-import { SearchIcon, MessageIcon } from "@/components/icons";
+import { SearchIcon, MessageIcon, XIcon } from "@/components/icons";
 import type { ChatInterface, IChannelSettings } from "@/interfaces/chat.interface";
 import ChannelSettingsModal from "./ChannelSettingsModal.vue";
 
 export default defineComponent({
     name: "ChatLobby",
     components: {
-    EasyDataTable,
-    SearchIcon,
-    MessageIcon,
-    ChannelSettingsModal
-},
+			EasyDataTable,
+			SearchIcon,
+			MessageIcon,
+			ChannelSettingsModal,
+			XIcon
+		},
     setup() {
         const searchValue = ref("");
         const showCreateChannelModal = ref(false);

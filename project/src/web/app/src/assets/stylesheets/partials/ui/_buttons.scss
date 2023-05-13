@@ -46,6 +46,18 @@
         }
       }
 
+			&.x--icon {
+				background-color: transparent;
+			
+				svg {
+					stroke: red;
+			
+					&:hover {
+						opacity: 0.6;
+					}
+				}
+			}
+
       &.no-bg {
         color: var(--text-color);
         background-color: transparent;
