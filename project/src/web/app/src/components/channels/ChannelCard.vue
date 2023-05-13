@@ -5,7 +5,10 @@
         <p class="channel-card__acronyme" v-else>#</p>
       </div>
       <div class="column channel-card__details">
-        <h3 class="name">#{{ channel.name ? channel.name : channel.id }}</h3>
+				<h3 class="name">#{{ channel.name ? channel.name : channel.id }}</h3>
+				<button class="btn btn--icon x--icon">
+          <XIcon />
+        </button>
       </div>
     </button>
 </template>
@@ -14,12 +17,16 @@
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
 import type { ChatInterface } from "@/interfaces/chat.interface";
+import { XIcon } from "@/components/icons";
 
 type Size = "medium" | "small" | "large";
 type CardSize = "full" | "half";
 
 export default defineComponent({
   name: "ChannelCard",
+	components: {
+		XIcon
+	},
   props: {
     channel: {
       type: Object as () => ChatInterface,
@@ -140,6 +147,7 @@ export default defineComponent({
       font-size: 1rem;
       text-align: left;
       margin: 0;
+			display: inline-block;
     }
   }
 }
