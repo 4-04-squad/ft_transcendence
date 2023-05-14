@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Game, GameStatus, UserGame } from '@prisma/client';
 import { GameWithUsers } from './gamesExtraInterfaces';
+import { UserGameDto } from './dto/game.dto';
 
 @Injectable()
 export class GamesService {
@@ -209,6 +210,43 @@ export class GamesService {
         console.log(err);
         throw new BadRequestException(err);
       });
+  }
+
+  async endGame(
+    gameId: string,
+    userGames: UserGameDto[],
+  ): Promise<Game | void> {
+    if (userGames.length != 2)
+      throw new BadRequestException('Invalid number of players');
+    const game = await this.prisma.game
+      .update({
+        where: { id: gameId },
+        data: { status: GameStatus.FINISHED },
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new BadRequestException(err);
+      });
+    await this.prisma.userGame
+      .update({
+        where: { id: userGames[0].id },
+        data: { status: userGames[0].status, score: userGames[0].score },
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new BadRequestException(err);
+      });
+    await this.prisma.userGame
+      .update({
+        where: { id: userGames[0].id },
+        data: { status: userGames[1].status, score: userGames[1].score },
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new BadRequestException(err);
+      });
+    // TODO Yacine: this should update the user's elo as well
+    return game;
   }
 
   async createUserGame(

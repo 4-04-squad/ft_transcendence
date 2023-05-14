@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Patch,
   Req,
   Res,
   UsePipes,
@@ -16,7 +17,7 @@ import { AuthMiddleware } from 'src/users/users.middleware';
 import { Response } from 'express';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags, ApiBody, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
-import { GameDto } from './dto/game.dto';
+import { GameDto, UserGameDto } from './dto/game.dto';
 
 @Controller('games')
 @ApiTags('Games')
@@ -130,7 +131,7 @@ export class GamesController {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
       const games = await this.gamesService.create(user.id);
-      res.send({ games });
+      res.send({ games, message: 'Game created' });
     }
   }
 
@@ -148,7 +149,26 @@ export class GamesController {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
       const games = await this.gamesService.joinGame(data.gameId, user.id);
-      res.send({ games });
+      res.send({ games, message: 'Game joined' });
+    }
+  }
+
+  @Patch(':gameId/end')
+  @UsePipes(ValidationPipe)
+  @ApiOkResponse({ description: 'Returns a game', type: GameDto })
+  async endGame(
+    @Req() req: RequestWithUser,
+    @Body() data: UserGameDto[],
+    @Res() res: Response,
+    @Param('gameId') gameId: string,
+  ) {
+    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
+    const user = req.user;
+    if (!user) {
+      res.status(401).send({ message: 'Unauthorized' });
+    } else {
+      const game = await this.gamesService.endGame(gameId, data);
+      res.send({ game, message: 'Game ended' });
     }
   }
 
