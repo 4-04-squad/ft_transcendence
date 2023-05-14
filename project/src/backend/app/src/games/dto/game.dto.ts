@@ -30,3 +30,18 @@ enum UserGameStatusDto {
   LOSER = 'LOSER',
   DRAW = 'DRAW',
 }
+
+export class GamesStatisticsDto {
+  @ApiProperty()
+  userGamesStatistics: GameStatistics;
+  @ApiProperty()
+  allGamesStatistics: GameStatistics;
+}
+
+interface GameStatistics {
+  totalGames: number;
+  totalWins: number;
+  totalLoses: number;
+  averageScore: number;
+  elo: number;
+}

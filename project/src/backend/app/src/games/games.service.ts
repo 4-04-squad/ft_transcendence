@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Game, GameStatus, UserGame } from '@prisma/client';
 import { GameWithUsers } from './gamesExtraInterfaces';
-import { UserGameDto } from './dto/game.dto';
+import { GamesStatisticsDto, UserGameDto } from './dto/game.dto';
 
 @Injectable()
 export class GamesService {
@@ -120,7 +120,15 @@ export class GamesService {
     return gamesWithUsers;
   }
 
-  async getGamesStatistics(userId: string): Promise<any> {
+  async getGamesStatistics(userId: string): Promise<GamesStatisticsDto> {
+    const user = await this.prisma.user
+      .findUnique({ where: { id: userId } })
+      .catch((err) => {
+        throw new BadRequestException(err);
+      });
+    const allUser = await this.prisma.user.findMany().catch((err) => {
+      throw new BadRequestException(err);
+    });
     const userGames = await this.prisma.userGame
       .findMany({ where: { userId: userId } })
       .catch((err) => {
@@ -140,8 +148,8 @@ export class GamesService {
       totalLoses: userGames.filter((userGame) => userGame.status == 'LOSER')
         .length,
       averageScore: userGames.reduce((a, b) => a + b.score, 0) / games.length,
+      elo: user.experience,
     };
-    // Now that we have the stats of the user, we need the average stats of all the users
     const allUserGames = await this.prisma.userGame.findMany().catch((err) => {
       throw new BadRequestException(err);
     });
@@ -156,6 +164,7 @@ export class GamesService {
         .length,
       averageScore:
         allUserGames.reduce((a, b) => a + b.score, 0) / allGames.length,
+      elo: allUser.reduce((a, b) => a + b.experience, 0) / allUser.length,
     };
     const gamesStatistics = {
       userGamesStatistics: userGamesStatistics,
@@ -185,7 +194,6 @@ export class GamesService {
   // new user join a game
   async joinGame(gameId: string, userId: string): Promise<Game | void> {
     const game = await this.prisma.game.findUnique({ where: { id: gameId } });
-
     // check if that the user is not already in the game
     const userGame = await this.prisma.userGame.findMany({
       where: { gameId: gameId, userId: userId },

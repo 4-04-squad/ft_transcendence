@@ -26,19 +26,26 @@
           title="Win / Lose games"
           :labels="['win', 'lose']"
           :gamesData="[
-            userStats?.userGamesStatistics.totalWins + 1,
-            userStats?.userGamesStatistics.totalLoses + 1,
+            userStats?.userGamesStatistics.totalWins,
+            userStats?.userGamesStatistics.totalLoses,
           ]"
         />
         <BarChartCard
           title="Average Score"
           :labels="['Player Average Score', 'Average Score']"
           :gamesData="[
-            userStats?.userGamesStatistics.averageScore + 1,
-            userStats?.allGamesStatistics.averageScore + 1,
+            userStats?.userGamesStatistics.averageScore,
+            userStats?.allGamesStatistics.averageScore,
           ]"
         />
-        <LineChartCard title="Average winrate" />
+        <BarChartCard
+          title="Average Elo"
+          :labels="['Your elo', 'Average elo']"
+          :gamesData="[
+            userStats?.userGamesStatistics.averageScore,
+            userStats?.allGamesStatistics.averageScore,
+          ]"
+        />
       </div>
     </div>
   </div>
