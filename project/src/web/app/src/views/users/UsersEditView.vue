@@ -22,26 +22,26 @@
         <div class="form-fields">
           <div class="form-field">
             <label for="pseudo">Pseudo</label>
-            <input type="text" id="pseudo" name="pseudo" v-model="user.pseudo" />
+            <input type="text" id="pseudo" name="pseudo" ref="pseudo" :value="user.pseudo" />
           </div>
           <div class="form-field">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" v-model="user.email" />
+            <input type="email" id="email" name="email" ref="email" :value="user.email" />
           </div>
         </div>
         <div class="form-fields">
           <div class="form-field">
             <label for="firstname">Nom</label>
-            <input type="text" id="firstname" name="firstname" v-model="user.firstName" />
+            <input type="text" id="firstname" name="firstname" ref="firstName" :value="user.firstName" />
           </div>
           <div class="form-field">
             <label for="lastname">Prénom</label>
-            <input type="text" id="lastname" name="lastname" v-model="user.lastName" />
+            <input type="text" id="lastname" name="lastname" ref="lastName" :value="user.lastName" />
           </div>
         </div>
         <div class="form-field">
           <label for="about">Bio</label>
-          <textarea name="about" id="about" cols="30" rows="4" v-model="user.about"></textarea>
+          <textarea name="about" id="about" cols="30" rows="4" ref="about" :value="user.about"></textarea>
         </div>
         <div class="form-field" v-if="user?.role === 'ADMIN'">
           <label for="role">Role</label>
@@ -70,6 +70,8 @@ import { useRoute, RouterLink } from "vue-router";
 import axios from "axios";
 import { defineComponent, ref } from "vue";
 import { EditIcon } from "@/components/icons";
+import { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "UsersEditView",
@@ -87,6 +89,7 @@ export default defineComponent({
     const route = useRoute();
     const avatarRef = ref();
     const selectedFile = ref(null);
+	const alertStore = useAlertStore();
 
     // Get the user from the store
     const user = userStore.user;
@@ -103,6 +106,7 @@ export default defineComponent({
       userStore,
       isAllowed,
       selectedFile,
+	  	alertStore,
     };
   },
   methods: {
@@ -144,11 +148,11 @@ export default defineComponent({
 
       // Get the form Object
       const formObject = {
-        pseudo: this.user.pseudo,
-        email: this.user.email,
-        firstName: this.user.firstName,
-        lastName: this.user.lastName,
-        about: this.user.about,
+        pseudo: this.$refs.pseudo.value,
+        email: this.$refs.email.value,
+        firstName: this.$refs.firstName.value,
+        lastName: this.$refs.lastName.value,
+        about: this.$refs.about.value,
         role: this.user.role || "USER",
       };
 
@@ -166,11 +170,17 @@ export default defineComponent({
         )
           .then((res) => {
             // Update the user in the store
-            this.userStore.setUser(this.user);
+            this.userStore.setUser(res.data.user);
             this.$router.push({ path: "/profile" });
           })
       } catch (error) {
-        console.log(error);
+        const alert = {
+					status: 400,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				this.alertStore.setAlert(alert);
+				this.$router.push({ path: `/users/${this.user?.id}/edit` });
       }
     },
 

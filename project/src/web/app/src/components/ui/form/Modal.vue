@@ -19,10 +19,12 @@
 	name: "Modal",
 	props: {
 		title: String,
-	  onCreate: Function,
+		onCreate: {
+			type: Function,
+			required: true,
+		}
 	},
 	setup(props, { emit }) {
-  
 		const closeModal = () => {
 			console.log('closeModal here');
 			emit("onClose", false);
@@ -33,8 +35,8 @@
 		};
 
 		return {
-      closeModal,
-      createButtonHandler,
+			closeModal,
+			createButtonHandler,
 			title: () => props.title,
     };
 
