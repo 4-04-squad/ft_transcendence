@@ -76,6 +76,7 @@ export class TwoFactorAuthenticationController {
 		await this.usersService.turnOffTwoFactorAuthentication(user.id);
 
 		user.twofaenabled = false;
+		user.twofasecret = null;
 
 		res.status(200).send({ user });
 	}

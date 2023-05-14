@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, Injectable, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -65,18 +66,26 @@ export class AuthService {
     });
 
     if (findUser) {
-      return findUser;
+      if (bcrypt.compareSync(password, findUser.password)) {
+        return findUser;
+      }
+      else {
+        throw new UnauthorizedException('Incorrect password.');
+      }
     }
+    else {
+      const hash = bcrypt.hashSync(password, 10);
 
-    const userEmail = pseudo + "@testing.ch";
-    return await this.prisma.user.create({
-      data: {
-        email: userEmail,
-        password,
-        pseudo,
-        avatar: "/img/marvin.png"
-      },
-    });
+      const userEmail = pseudo + "@testing.ch";
+      return await this.prisma.user.create({
+        data: {
+          email: userEmail,
+          password: hash,
+          pseudo,
+          avatar: "/img/marvin.png"
+        },
+      });
+    }
   }
 
   async logout(req: Request, res: Response, id: string) {
