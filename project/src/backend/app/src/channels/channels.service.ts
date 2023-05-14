@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
-import { CreateChannelDto, memberStatusDto } from './dto/channels.dto';
+import { CreateChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
 
 @Injectable()
 export class ChannelsService {
@@ -120,21 +120,28 @@ export class ChannelsService {
         return channel;      
     }
 
-    async joinChannel(chatId: string, userId: string): Promise<Chat | void> {
-        const channel = await this.prisma.chat.findUnique({ where: { id: chatId } });
-        const userChannel = await this.prisma.userChat.findMany({ where: { chatId: chatId, userId: userId } });
-        
+    async joinChannel(data: JoinChannelDto, userId: string): Promise<Chat | void> {
+        const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
+        const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
+        console.log('ici');
         if (userChannel.length > 0)
             return channel;
-            //throw new BadRequestException("User are Already in the channel");
-        
-        if (channel.type != ChatType.PUBLIC)
-            throw new BadRequestException("User can't join this channel");
-        
+            console.log('ici');
+
+        if (channel.type == ChatType.RESTRICTED) {
+            if (channel.passwd != data.passwd)
+                throw new BadRequestException("Wrong password");
+        }
+        console.log('ici');
+
+        if (channel.type == ChatType.PRIVATE)
+            throw new BadRequestException("Private channel can't be joined");
+            console.log(channel.type);
+
         const log = await this.prisma.userChat.create({
             data: {
                 userId: userId,
-                chatId: chatId,
+                chatId: data.chatId,
                 status: UserChatStatus.MEMBER,
             }
         })
