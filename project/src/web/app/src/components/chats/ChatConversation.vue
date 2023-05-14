@@ -95,7 +95,7 @@ export default defineComponent({
 .chat-view {
   display: grid;
   grid-template-rows: 10fr 1fr;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr auto;
   grid-template-areas:
     "message"
     "submit";
@@ -115,7 +115,6 @@ export default defineComponent({
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing);
 
-
     &__messages {
       display: flex;
       flex-direction: column;
@@ -125,13 +124,16 @@ export default defineComponent({
 
   &__submit {
     grid-area: submit;
-    position: relative;
+    display: flex;
+    align-items: center;
     height: 50px;
 
     .input {
+      flex: 1;
       background-color: var(--border-color);
       border: none;
-      border-radius: var(--radius-md);
+      border-top-left-radius: var(--radius-md);
+      border-bottom-left-radius: var(--radius-md);
       color: var(--text-color);
       font-size: var(--font-size-md);
       font-family: var(--font-family);
@@ -145,14 +147,11 @@ export default defineComponent({
     .send {
       background-color: var(--primary-color);
       text-transform: uppercase;
-      position: absolute;
-      right: 0;
       padding: 0 1rem;
-      top: 50%;
-      transform: translateY(-50%);
       height: 100%;
       border-top-right-radius: var(--radius-md);
       border-bottom-right-radius: var(--radius-md);
+      margin-top: auto;
     }
   }
 }
