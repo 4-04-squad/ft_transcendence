@@ -49,6 +49,15 @@
       <AddFriendIcon /><span class="status">Ajouter</span>
     </span>
   </button>
+  <button
+      @click="blockUnblock"
+      :class="class"
+    >
+      <span class="btn--friend btn--friend--block">
+        <span class="status" v-if="isBlocked">Unblock</span>
+        <span class="status" v-else>Block</span>
+      </span>
+    </button>
   </div>
 </template>
 
@@ -89,9 +98,10 @@ export default defineComponent({
     let requester = ref("" as string);
     let receiver = ref("" as string);
     let friendshipId = ref("" as string);
-
+    let isBlocked = ref(false as boolean);
+    
     watch(
-      () => props.friendId,
+      () => props.friendId || isFriend.value || isFriend.value,
       async () => {
         const response = await axios
           .get(`${import.meta.env.VITE_APP_API_URL}/friends/${props.friendId}`, {
@@ -101,6 +111,7 @@ export default defineComponent({
             requester.value = response.data.friendship.userId;
             receiver.value = response.data.friendship.friendId;
             friendshipId.value = response.data.friendship.id;
+            isBlocked.value = response.data.isBlocked;
 
             if (response.data.friendship.accepted == true)
               isFriend.value = FriendsRequestStatus.TRUE;
@@ -118,49 +129,30 @@ export default defineComponent({
       { immediate: true } // Call the function immediately when the component is created
     );
 
-    // watch isFriend to update the button
-    watch(
-      () => isFriend.value,
-      async () => {
-        const response = await axios
-            .get(
-              `${import.meta.env.VITE_APP_API_URL}/friends/${props.friendId}`,
-              {
-                withCredentials: true,
-              }
-            )
-            .then((response) => {
-              requester.value = response.data.friendship.userId;
-              receiver.value = response.data.friendship.friendId;
-              friendshipId.value = response.data.friendship.id;
-
-              if (!response.data.friendship)
-                isFriend.value = FriendsRequestStatus.FALSE;
-              else if (response.data.friendship.accepted == true)
-                isFriend.value = FriendsRequestStatus.TRUE;
-              else if (response.data.friendship.accepted == false)
-                isFriend.value = FriendsRequestStatus.PENDING;
-              else 
-                isFriend.value = FriendsRequestStatus.FALSE;
-            })
-            .catch((error) => {
-              if (error.response?.status == 400) {
-                isFriend.value = FriendsRequestStatus.PENDING;
-              }
-            });
-      },
-      { immediate: true } // Call the function immediately when the component is created
-    );
-
     return {
       userStore,
       isFriend,
       requester,
       receiver,
       friendshipId,
+      isBlocked,
+      friendId: props.friendId,
     };
   },
   methods: {
+    async blockUnblock() {
+      const endpoint = this.isBlocked ? `/users/${this.friendId}/unblock` : `/users/${this.friendId}/block`;
+  
+      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}${endpoint}`, null, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        this.isBlocked = response.data.isBlocked;
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    },
     async add() {
       const response = await axios
         .post(

@@ -6,6 +6,7 @@ import { NextFunction, Response } from 'express';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { FriendRequestDto, FriendUpdateDto } from './dto/friendship.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import {BlockUserService} from "../users/block-user.service";
 
 @Controller('friends')
 @ApiTags('Friendship')
@@ -14,6 +15,7 @@ export class FriendsController {
     constructor(
         private friendsService: FriendsService,
         private authMiddleware: AuthMiddleware,
+        private blockUserService: BlockUserService,
     ) { }
 
     @Get()
@@ -75,7 +77,11 @@ export class FriendsController {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
             let friendship = await this.friendsService.getFriendship(req.user.id, userId);
-            res.send({ friendship });
+
+            // is this user blocked?
+            let isBlocked = await this.blockUserService.isBlocked(req.user.id, userId);
+
+            res.send({ friendship, isBlocked });
         }
     }
 
