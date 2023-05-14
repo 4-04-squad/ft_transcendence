@@ -34,6 +34,6 @@ export interface IUserStats {
 interface GameStatistics {
   totalGames: number;
   totalWins: number;
-  totalLosses: number;
+  totalLoses: number;
   averageScore: number;
 }

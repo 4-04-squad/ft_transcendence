@@ -17,6 +17,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
+import type { PropType } from "vue";
 
 ChartJS.register(
   Title,
@@ -40,17 +41,22 @@ export default {
     title: {
       type: String,
     },
+    labels: {
+      type: Array as PropType<string[]>,
+      default: () => [],
+    },
   },
   data() {
     const primaryColor = "#5061f9";
     const successColor = "#11bdb3";
+    console.log(this.gamesData);
 
     return {
       chartData: {
-        labels: ["Wins", "Losses"],
+        labels: this.labels,
         datasets: [
           {
-            data: [20, 15], // Replace with fake data
+            data: this.gamesData,
             backgroundColor: [primaryColor, successColor],
             borderWidth: 0,
           },

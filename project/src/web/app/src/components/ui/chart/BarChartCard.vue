@@ -16,6 +16,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
+import type { PropType } from "vue";
 
 ChartJS.register(
   Title,
@@ -38,6 +39,10 @@ export default {
     title: {
       type: String,
     },
+    labels: {
+      type: Array as PropType<string[]>,
+      default: () => [],
+    },
   },
   data() {
     const primaryColor = "#5061f9";
@@ -45,10 +50,10 @@ export default {
 
     return {
       chartData: {
-        labels: ["Average Total Games", "Player Total Games"],
+        labels: this.labels,
         datasets: [
           {
-            data: !this.gamesData.length ? [45, 35] : this.gamesData, // Replace with actual data
+            data: this.gamesData,
             backgroundColor: [primaryColor, successColor],
             borderWidth: 0,
           },

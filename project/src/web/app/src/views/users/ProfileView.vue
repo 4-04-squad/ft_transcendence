@@ -21,9 +21,23 @@
       </div>
     </div>
     <div class="content-wrapper content-wrapper--user">
-      <div class="user-stats-container">
-        <DoughutChartCard title="Win / Lose games"/>
-        <BarChartCard title="Average number of games" />
+      <div v-if="userStats?.userGamesStatistics" class="user-stats-container">
+        <DoughutChartCard
+          title="Win / Lose games"
+          :labels="['win', 'lose']"
+          :gamesData="[
+            userStats?.userGamesStatistics.totalWins + 1,
+            userStats?.userGamesStatistics.totalLoses + 1,
+          ]"
+        />
+        <BarChartCard
+          title="Average Score"
+          :labels="['Player Average Score', 'Average Score']"
+          :gamesData="[
+            userStats?.userGamesStatistics.averageScore + 1,
+            userStats?.allGamesStatistics.averageScore + 1,
+          ]"
+        />
         <LineChartCard title="Average winrate" />
       </div>
     </div>
@@ -61,17 +75,8 @@ export default defineComponent({
     const route = useRoute();
     const user = ref<UserInterface | undefined>(undefined);
     const userStats = ref<IUserStats | undefined>(undefined);
-    // Watch for changes to route params and fetch user data again
-    const chartData = {
-      labels: ["Loosing", "Winning"],
-      datasets: [
-        {
-          backgroundColor: ["#FF6384", "#36A2EB"],
-          data: [20, 80],
-        },
-      ],
-    };
 
+    // Watch for changes to route params and fetch user data again
     watch(
       () => route.params,
       async () => {
@@ -108,7 +113,6 @@ export default defineComponent({
         const data = await getStatsByUser(newVal.id);
         userStats.value = data.data.statistics;
         console.log(
-          "userStats",
           userStats.value?.allGamesStatistics,
           userStats.value?.userGamesStatistics
         );
@@ -119,7 +123,7 @@ export default defineComponent({
     return {
       userStore,
       user,
-      chartData,
+      userStats,
     };
   },
 });
