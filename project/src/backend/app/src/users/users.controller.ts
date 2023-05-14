@@ -1,13 +1,13 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res, Next, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res, Next, UploadedFile, UseInterceptors, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User, UserStatus } from '@prisma/client';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
-import { AuthMiddleware } from './users.middleware';
 import { NextFunction, Response } from 'express';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { UserDto } from './dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('users')
 @ApiTags('Users')
@@ -15,15 +15,14 @@ import { diskStorage } from 'multer';
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private authMiddleware: AuthMiddleware,
   ) { }
 
   @Get()
+  @UseGuards(AuthGuard)
   async getAllUsers(
     @Req() req: RequestWithUser,
     @Res() res: Response,
     @Next() next: NextFunction) {
-    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
@@ -33,13 +32,13 @@ export class UsersController {
   }
 
   @Get('@me')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ type: UserDto })
   async loginUser(
     @Req() req: RequestWithUser,
     @Res() res: Response,
     @Next() next: NextFunction
   ) {
-    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized.' });
@@ -56,6 +55,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ type: UserDto })
   async getUserById(
     @Param('id') userId: string,
@@ -63,7 +63,6 @@ export class UsersController {
     @Res() res: Response,
     @Next() next: NextFunction
   ) {
-    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
@@ -73,6 +72,7 @@ export class UsersController {
   }
 
   @Get(':status/:limit')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ type: UserDto })
   async getUserByStatus(
     @Param('status') status: string,
@@ -81,7 +81,6 @@ export class UsersController {
     @Res() res: Response,
     @Next() next: NextFunction
   ) {
-    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
@@ -96,6 +95,7 @@ export class UsersController {
   }
 
   @Patch(':id/edit')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ type: UserDto })
   async updateUser(
     @Param('id', ParseUUIDPipe) userId: string,
@@ -104,7 +104,6 @@ export class UsersController {
     @Res() res: Response,
     @Next() next: NextFunction
   ) {
-    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
@@ -118,6 +117,7 @@ export class UsersController {
   }
 
   @Patch(':id/avatar')
+  @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('avatar', {
     storage: diskStorage({
       destination: './uploads/avatars',
@@ -136,7 +136,6 @@ export class UsersController {
     @Res() res: Response,
     @Next() next: NextFunction
   ) {
-    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
@@ -150,6 +149,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ type: UserDto })
   async remove(
     @Param('id', ParseUUIDPipe) userId: string,
@@ -157,7 +157,6 @@ export class UsersController {
     @Res({ passthrough: true }) res: Response,
     @Next() next: NextFunction
   ) {
-    await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
     if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {

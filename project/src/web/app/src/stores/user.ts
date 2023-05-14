@@ -49,9 +49,6 @@ export const useUserStore = defineStore("user", {
       return !!this.user && !!this.user.id;
     },
   },
-  persist: {
-    enabled: true,
-  },
 });
 
 axios.interceptors.response.use(

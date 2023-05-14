@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Param, Post, Patch, Req, Res, Next, Get } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, Patch, Req, Res, Next, Get, UseGuards } from '@nestjs/common';
 import { FriendsService } from './friends.service';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { AuthMiddleware } from '../users/users.middleware';
 import { NextFunction, Response } from 'express';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { FriendRequestDto, FriendUpdateDto } from './dto/friendship.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('friends')
 @ApiTags('Friendship')
@@ -16,12 +17,12 @@ export class FriendsController {
     ) { }
 
     @Get()
+    @UseGuards(AuthGuard)
     async getAllFriends(
         @Req() req: RequestWithUser,
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
@@ -32,12 +33,12 @@ export class FriendsController {
 
 
     @Get('requests')
+    @UseGuards(AuthGuard)
     async getAllFriendRequests(
         @Req() req: RequestWithUser,
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
@@ -47,12 +48,12 @@ export class FriendsController {
     }
 
     @Get('incoming')
+    @UseGuards(AuthGuard)
     async getAllIncomingFriendRequests(
         @Req() req: RequestWithUser,
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
@@ -63,13 +64,13 @@ export class FriendsController {
 
     // Are we friends?
     @Get(':id')
+    @UseGuards(AuthGuard)
     async getFriendship(
         @Param('id') userId: string,
         @Req() req: RequestWithUser,
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
@@ -79,6 +80,7 @@ export class FriendsController {
     }
 
     @Post('add')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: FriendRequestDto })
     async sendFriendRequest(
         @Body() friendRequestDto: FriendRequestDto,
@@ -86,7 +88,6 @@ export class FriendsController {
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
@@ -100,6 +101,7 @@ export class FriendsController {
     }
 
     @Patch('accept')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: FriendUpdateDto })
     async acceptFriendRequest(
         @Body() friendUpdateDto: FriendUpdateDto,
@@ -107,7 +109,6 @@ export class FriendsController {
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
@@ -121,6 +122,7 @@ export class FriendsController {
     }
 
     @Delete(':id/cancel')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: FriendRequestDto })
     async cancelFriendRequestUser(
         @Param('id') userId: string,
@@ -128,7 +130,6 @@ export class FriendsController {
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
@@ -142,6 +143,7 @@ export class FriendsController {
     }
 
     @Delete(':id/unfriend')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: FriendRequestDto })
     async unfriendUser(
         @Param('id') userId: string,
@@ -149,7 +151,6 @@ export class FriendsController {
         @Res({ passthrough: true }) res: Response,
         @Next() next: NextFunction
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
