@@ -28,7 +28,7 @@ export class FriendsController {
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
-            let friends = await this.friendsService.getAllFriendships(req.user.id);
+            const friends = await this.friendsService.getAllFriendships(req.user.id);
             res.send({ friends });
         }
     }
@@ -44,7 +44,7 @@ export class FriendsController {
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
-            let friendRequests = await this.friendsService.getFriendRequests(req.user.id);
+            const friendRequests = await this.friendsService.getFriendRequests(req.user.id);
             res.send({ friendRequests });
         }
     }
@@ -59,7 +59,7 @@ export class FriendsController {
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
-            let friendRequests = await this.friendsService.getIncomingFriendRequests(req.user.id);
+            const friendRequests = await this.friendsService.getIncomingFriendRequests(req.user.id);
             res.send({ friendRequests });
         }
     }
@@ -76,10 +76,10 @@ export class FriendsController {
         if (!req.user) {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
-            let friendship = await this.friendsService.getFriendship(req.user.id, userId);
+            const friendship = await this.friendsService.getFriendship(req.user.id, userId);
 
             // is this user blocked?
-            let isBlocked = await this.blockUserService.isBlocked(req.user.id, userId);
+            const isBlocked = await this.blockUserService.isBlocked(req.user.id, userId);
 
             res.send({ friendship, isBlocked });
         }
@@ -98,7 +98,7 @@ export class FriendsController {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
             if (friendRequestDto.friendId !== req.user.id) {
-                let friendship = await this.friendsService.sendFriendRequest(friendRequestDto.userId, friendRequestDto.friendId);
+                const friendship = await this.friendsService.sendFriendRequest(friendRequestDto.userId, friendRequestDto.friendId);
                 res.send({ friendship, message: 'Sent friend request successfully' });
             } else {
                 res.status(401).send({ message: 'Unauthorize to send friend request to yourself' });
@@ -119,7 +119,7 @@ export class FriendsController {
             res.status(401).send({ message: 'Unauthorized' });
         } else {
             if (friendUpdateDto.friendId !== req.user.id) {
-                let friendship = await this.friendsService.acceptFriendRequest(friendUpdateDto.userId, friendUpdateDto.friendId);
+                const friendship = await this.friendsService.acceptFriendRequest(friendUpdateDto.userId, friendUpdateDto.friendId);
                 res.send({ friendship, message: 'Accepted friend request successfully' });
             } else {
                 res.status(401).send({ message: 'Unauthorize to accept friend request from yourself' });

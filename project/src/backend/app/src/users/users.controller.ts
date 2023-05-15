@@ -177,62 +177,72 @@ export class UsersController {
   async isBlocked(
     @Param('id') userId: string,
     @Req() req: RequestWithUser,
-    @Res({ passthrough: true }) res: Response) {
-
-      if (!req.user) {
-        res.status(401).send({ message: 'Unauthorized' });
-      } else {
-        const isBlocked = await this.blockUserService.isBlocked(req.user.id, userId);
-
-        res.send({ isBlocked });
-      }
-  }
-
-  @Get('blocked')
-  @UseGuards(AuthGuard)
-  async getBlocked(
-    @Req() req: RequestWithUser,
-    @Res({ passthrough: true }) res: Response)
-    {
-
+    @Res({ passthrough: true }) res: Response
+  ) {
     if (!req.user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
-      const blockedUsers = await this.blockUserService.getBlockedUsers(req.user.id);
-
-      res.send({ blockedUsers });
-    }
-  }
-
-  @Post(':id/block')
-  @UseGuards(AuthGuard)
-  async blockUser(
-    @Req() req: RequestWithUser,
-    @Param('id') userId: string,
-    @Res({ passthrough: true }) res: Response) {
-      if (!req.user) {
-        res.status(401).send({ message: 'Unauthorized' });
-    } else {
-     const isBlocked = await this.blockUserService.blockUser(req.user.id, userId);
-
-     
-
+      const isBlocked = await this.blockUserService.isBlocked(req.user.id, userId);
       res.send({ isBlocked });
     }
   }
 
-  @Post(':id/unblock')
+  @Get('@me/:id/blocked')
   @UseGuards(AuthGuard)
-  async unblockUser(
-    @Req() req: RequestWithUser,
+  async hasBlocked(
     @Param('id') userId: string,
-    @Res({ passthrough: true }) res: Response) {
-      if (!req.user) {
-        res.status(401).send({ message: 'Unauthorized' });
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    if (!req.user) {
+      res.status(401).send({ message: 'Unauthorized' });
     } else {
-      const isBlocked = await this.blockUserService.unblockUser(req.user.id, userId);
-
+      const isBlocked = await this.blockUserService.isBlocked(userId, req.user.id);
       res.send({ isBlocked });
     }
   }
+
+
+@Get('blocked')
+@UseGuards(AuthGuard)
+async getBlocked(
+  @Req() req: RequestWithUser,
+  @Res({ passthrough: true }) res: Response)
+{
+  if (!req.user) {
+    res.status(401).send({ message: 'Unauthorized' });
+  } else {
+    const blockedUsers = await this.blockUserService.getBlockedUsers(req.user.id);
+    res.send({ blockedUsers });
+  }
+}
+
+@Post(':id/block')
+@UseGuards(AuthGuard)
+async blockUser(
+  @Req() req: RequestWithUser,
+  @Param('id') userId: string,
+  @Res({ passthrough: true }) res: Response) {
+  if (!req.user) {
+    res.status(401).send({ message: 'Unauthorized' });
+  } else {
+    await this.blockUserService.blockUser(userId, req.user.id);
+    res.send({ message: 'User blocked successfully' });
+  }
+}
+
+@Post(':id/unblock')
+@UseGuards(AuthGuard)
+async unblockUser(
+  @Req() req: RequestWithUser,
+  @Param('id') userId: string,
+  @Res({ passthrough: true }) res: Response) {
+  if (!req.user) {
+    res.status(401).send({ message: 'Unauthorized' });
+  } else {
+    await this.blockUserService.unblockUser(userId, req.user.id);
+    res.send({ message: 'User unblocked successfully' });
+  }
+}
+
 }
