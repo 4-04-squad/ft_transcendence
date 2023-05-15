@@ -24,12 +24,18 @@ export class ChannelsService {
         return chat;       
     }
 
-    async getChannelById(chatId: string): Promise<User[] | null> {
+    async getChannelById(chatId: string, userId: string): Promise<User[] | null> {
         let chatUser = await this.prisma.userChat.findMany({
             where: {
                 chatId: chatId
             }
         })
+
+        const flag = chatUser.some((userChat) => userChat.userId === userId);
+        if (flag === false) {
+            throw new BadRequestException("You are not a member of this channel");
+        }
+
         const users = await this.prisma.user.findMany({
             where: {
                 id: { in: chatUser.map((userChat) => userChat.userId)}
@@ -123,16 +129,13 @@ export class ChannelsService {
     async joinChannel(data: JoinChannelDto, userId: string): Promise<Chat | void> {
         const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
-        console.log('ici');
         if (userChannel.length > 0)
             return channel;
-            console.log('ici');
 
         if (channel.type == ChatType.RESTRICTED) {
             if (channel.passwd != data.passwd)
                 throw new BadRequestException("Wrong password");
         }
-        console.log('ici');
 
         if (channel.type == ChatType.PRIVATE)
             throw new BadRequestException("Private channel can't be joined");
@@ -169,7 +172,6 @@ export class ChannelsService {
                 return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { status: data.status, permission: data.permission } }));
             }
         }
-        console.log("ICI");
         if (userChannel.status == UserChatStatus.ADMIN && memberChannel.status == UserChatStatus.MEMBER) {
             return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { permission: data.permission } }));
         }

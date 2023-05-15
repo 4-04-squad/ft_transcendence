@@ -50,7 +50,7 @@ export class ChannelsController {
         if (!user)
             res.status(401).send({ message: 'unauthorized' });
         else {
-            const users = await this.channelsService.getChannelById(channelId);
+            const users = await this.channelsService.getChannelById(channelId, user.id);
             res.send({ users });
         }
     }
