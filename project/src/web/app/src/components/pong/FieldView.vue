@@ -80,6 +80,7 @@ export default defineComponent({
 			color: 'white',
 			max_score: 5,
 		}
+		
 		let player1 = {
 			me: 0,
 			speed: 10,
@@ -102,33 +103,33 @@ export default defineComponent({
 		}
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data) => {
-			console.log("User joined game:", data);
+			//console.log("User joined game:", data);
 		});
 
 		props.socket.on("leaveGame", (data) => {
-			console.log("User left game:", data);
+			//console.log("User left game:", data);
 		});
 
 		props.socket.on("movePlayer", (data) => {
-			console.log("Player moved:", data);
+			//console.log("Player moved:", data);
 			player1.y = data.position.y;
 			player1.paddley = data.position.y + player1.tile;
 		});
 
 		props.socket.on("movePlayerTwo", (data) => {
-			console.log("Player Two moved:", data);
+			//console.log("Player Two moved:", data);
 			player2.y = data.position.y;
 			player2.paddley = data.position.y + player2.tile;
 		});
 
 		props.socket.on("moveBall", (data) => {
-			console.log("Ball moved:", data);
+			//console.log("Ball moved:", data);
 			ball.x = data.x;
 			ball.y = data.y;
 		});
 
 		props.socket.on("updateScore", (data) => {
-			console.log("Score updated:", data);
+			//console.log("Score updated:", data);
 			score.p1 = data.score.p1;
 			score.p2 = data.score.p2;
 		});
@@ -183,6 +184,7 @@ export default defineComponent({
 		else
 			this.ball.velocityy = 1;
 
+		//this.setvar();
 		window.requestAnimationFrame(this.update);
 		window.addEventListener("resize", this.handleWindowResize);
 	},
@@ -193,22 +195,26 @@ export default defineComponent({
 			this.player1.me = 1;
 			this.cpu.enable = 1;
     	},
+
 		multiplayer() {
 			this.btn1 = false;
       		this.btn2 = false;
 			this.btn3 = true;
 			this.btn4 = true;
     	},
+
 		firstplayer() {
 			this.btn3 = false;
 			this.btn4 = false;
 			this.player1.me = 1;
 		},
+
 		secondplayer() {
 			this.btn3 = false;
 			this.btn4 = false;
 			this.player2.me = 1;
 		},
+
 		replay() {
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			this.btn1 = true;
@@ -217,6 +223,7 @@ export default defineComponent({
 			this.btn4 = false;
 			this.btn5 = false;
 		},
+
 		menuOfEnd() {
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			this.updatecsore();
@@ -285,12 +292,12 @@ export default defineComponent({
 				}
 				switch (event.key) {
 					case down:
-						if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25))) {
+						if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile))) {
 							player.y = this.context.canvas.height - player.tile;
 							player.paddley = player.y + player.tile;
 						}
 						else {
-							player.y += player.speed;
+							player.y = player.y + player.speed;
 							player.paddley = player.y + player.tile;
 						}
 						if (player.ply == 1)
@@ -304,7 +311,7 @@ export default defineComponent({
 							player.paddley = player.y + player.tile;
 						}
 						else {
-							player.y -= player.speed;
+							player.y = player.y - player.speed;
 							player.paddley = player.y + player.tile;
 						}
 						if (player.ply == 1)
@@ -323,11 +330,8 @@ export default defineComponent({
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
-			this.ball.speed = 3;
 			this.ball.rebound = 0;
 			this.ball.rebonetime = 2;
-			this.player1.speed = 10;
-			this.player2.speed = 10;
 		},
 
 		updatecsore() {
@@ -413,6 +417,8 @@ export default defineComponent({
 		},
 
 		update() {
+			//this.setvar();
+			console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 					this.menuOfEnd();
 			else if (this.player1.me == 1 || this.player2.me == 1)
