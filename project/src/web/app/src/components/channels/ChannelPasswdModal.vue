@@ -1,7 +1,9 @@
 <template>
-    <Modal :onCreate="createButtonHandler" :title="'Mot de passe'">
+    <Modal :onCreate="createButtonHandler" :title="'Mot de passe'" :buttonText="'Valider'">
+      <div class="form-group">
         <label for="password">Mot de passe :</label>
         <input type="password" id="password" v-model="password">
+      </div>
     </Modal>
 </template>
 
@@ -50,6 +52,7 @@ export default defineComponent({
 	  width: 100%;
 	  box-sizing: border-box;
 	  padding: 5px 10px;
+    color: black;
 	}
 
 	input[type="color"] {
