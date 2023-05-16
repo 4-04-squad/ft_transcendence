@@ -20,6 +20,7 @@ import { useUserStore } from "@/stores/user";
 import { defineComponent, ref, watch } from "vue";
 import Message from "./Message.vue";
 import { useRoute } from "vue-router";
+import { useMessageStore } from "@/stores/messages";
 
 export default defineComponent({
   name: "ChatConversation",
@@ -40,6 +41,7 @@ export default defineComponent({
     const messages = ref([] as MessageInterface[]);
     const newMessage = ref("");
     const userStore = useUserStore();
+		const messageStore = useMessageStore();
     const route = useRoute();
 
     const sendMessage = () => {
@@ -61,13 +63,14 @@ export default defineComponent({
 
     props.socket.on("newMessage", (message: MessageInterface) => {
       messages.value.push(message);
+			messageStore.addMessage(message);
     });
 
     // Reset messages array when chat changes
     watch(
       () => props.chat,
       () => {
-        messages.value = [];
+        messages.value = messageStore.getMessages(props.chat.id || route.params.id);
       }
     );
 
