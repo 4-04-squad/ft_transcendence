@@ -110,6 +110,10 @@ export default defineComponent({
 		padding: 0;
 	}
 
+    input[type="text"] {
+        color: black;
+    }
+
     .wrapper{
         display: inline-flex;
         align-items: center;
