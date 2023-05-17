@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Patch, Req, Res, UseGuards } from '@nestjs/common';
 import { ChatsService } from './chats.service';
 import { Chat } from '@prisma/client';
 import { AuthMiddleware } from 'src/users/users.middleware';
@@ -7,6 +7,7 @@ import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
 import { CreateChatDto } from './dto/chats.dto';
 import { SocketsGateway } from 'src/socket/socket.gateway';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('chats')
 @ApiTags('Chats')
@@ -18,8 +19,8 @@ export class ChatsController {
     ) { }
 
     @Get()
+    @UseGuards(AuthGuard)
     async getAllChats(@Req() req: RequestWithUser, @Res() res: Response) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -30,8 +31,8 @@ export class ChatsController {
     }
 
     @Get('@me')
+    @UseGuards(AuthGuard)
     async getMyAllChats(@Req() req: RequestWithUser, @Res() res: Response) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -42,12 +43,12 @@ export class ChatsController {
     }
 
     @Get(':id')
+    @UseGuards(AuthGuard)
     async getChatsById(
         @Param('id', ParseUUIDPipe) chatId: string,
         @Req() req: RequestWithUser,
         @Res() res: Response,
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -74,13 +75,13 @@ export class ChatsController {
 
 
     @Post('create')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: CreateChatDto })
     async create(
         @Body() data: { userId: string },
         @Req() req: RequestWithUser,
         @Res() res: Response
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -105,12 +106,12 @@ export class ChatsController {
     }
 
     @Delete(':id')
+    @UseGuards(AuthGuard)
     async delete(
         @Param('id', ParseUUIDPipe) chatId: string,
         @Req() req: RequestWithUser,
         @Res() res: Response
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'Unauthorized' });

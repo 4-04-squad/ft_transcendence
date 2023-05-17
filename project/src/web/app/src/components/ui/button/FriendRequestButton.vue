@@ -91,7 +91,7 @@ export default defineComponent({
     let friendshipId = ref("" as string);
 
     watch(
-      () => props.friendId,
+      () => isFriend.value,
       async () => {
         const response = await axios
           .get(`${import.meta.env.VITE_APP_API_URL}/friends/${props.friendId}`, {
@@ -118,39 +118,6 @@ export default defineComponent({
       { immediate: true } // Call the function immediately when the component is created
     );
 
-    // watch isFriend to update the button
-    watch(
-      () => isFriend.value,
-      async () => {
-        const response = await axios
-            .get(
-              `${import.meta.env.VITE_APP_API_URL}/friends/${props.friendId}`,
-              {
-                withCredentials: true,
-              }
-            )
-            .then((response) => {
-              requester.value = response.data.friendship.userId;
-              receiver.value = response.data.friendship.friendId;
-              friendshipId.value = response.data.friendship.id;
-
-              if (!response.data.friendship)
-                isFriend.value = FriendsRequestStatus.FALSE;
-              else if (response.data.friendship.accepted == true)
-                isFriend.value = FriendsRequestStatus.TRUE;
-              else if (response.data.friendship.accepted == false)
-                isFriend.value = FriendsRequestStatus.PENDING;
-              else 
-                isFriend.value = FriendsRequestStatus.FALSE;
-            })
-            .catch((error) => {
-              if (error.response?.status == 400) {
-                isFriend.value = FriendsRequestStatus.PENDING;
-              }
-            });
-      },
-      { immediate: true } // Call the function immediately when the component is created
-    );
 
     return {
       userStore,
@@ -158,6 +125,7 @@ export default defineComponent({
       requester,
       receiver,
       friendshipId,
+      friendId: props.friendId,
     };
   },
   methods: {

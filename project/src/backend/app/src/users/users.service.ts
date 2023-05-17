@@ -120,7 +120,7 @@ export class UsersService {
         status: statusEnum,
         id: { not: currentUserId },
       },
-      take: limit ? parseInt(limit.toString()) : undefined,
+      take: parseInt(limit) ? parseInt(limit.toString()) : undefined,
     });
 
     return users;

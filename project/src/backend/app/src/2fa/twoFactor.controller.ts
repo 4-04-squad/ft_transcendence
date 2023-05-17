@@ -17,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { UserStatus } from '@prisma/client';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('2fa')
 @ApiTags('2fa')
@@ -29,8 +30,8 @@ export class TwoFactorAuthenticationController {
 	) { }
 
 	@Post('generate')
+	@UseGuards(AuthGuard)
 	async register(@Res() res: Response, @Req() request: RequestWithUser) {
-		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
 		const user = request.user;
 		if (!user) {
 			res.status(401).send({ message: 'Unauthorized' });
@@ -44,12 +45,12 @@ export class TwoFactorAuthenticationController {
 	}
 
 	@Post('turn-on')
+	@UseGuards(AuthGuard)
 	async turnOnTwoFactorAuthentication(
 		@Req() request: RequestWithUser,
 		@Res() res: Response,
 		@Body() body: { tfa_code: string }
 	) {
-		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
 		const user = request.user;
 
     	const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
@@ -67,11 +68,11 @@ export class TwoFactorAuthenticationController {
 	}
 
 	@Post('turn-off')
+	@UseGuards(AuthGuard)
 	async turnOffTwoFactorAuthentication(
 		@Req() request: RequestWithUser,
 		@Res() res: Response
 	) {
-		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
 		const user = request.user;
 		await this.usersService.turnOffTwoFactorAuthentication(user.id);
 
@@ -82,12 +83,12 @@ export class TwoFactorAuthenticationController {
 	}
 
 	@Post('authenticate')
+	@UseGuards(AuthGuard)
 	async authenticate(
 		@Req() request: RequestWithUser,
 		@Res() res: Response,
 		@Body() body: { tfa_code: string }
 	) {
-		await new Promise(resolve => this.authMiddleware.use(request, res, resolve));
 
 		if (!request.cookies[process.env.JWT_TMP_NAME])
 			return

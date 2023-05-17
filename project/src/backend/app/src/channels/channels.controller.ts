@@ -7,6 +7,7 @@ import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { resolve } from 'path';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { CreateChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
+import { AuthGuard } from '../auth/auth.guard';
 import { get } from 'http';
 
 @Controller('channels')
@@ -18,8 +19,8 @@ export class ChannelsController {
         ) {}
 
     @Get()
+    @UseGuards(AuthGuard)
     async getAllChannels(@Req() req: RequestWithUser, @Res() res: Response) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -30,8 +31,8 @@ export class ChannelsController {
     }
 
     @Get('@me')
+    @UseGuards(AuthGuard)
     async getMyAllChannels(@Req() req: RequestWithUser, @Res() res: Response) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -42,11 +43,11 @@ export class ChannelsController {
     }
 
     @Get(':id')
+    @UseGuards(AuthGuard)
     async getChannelsById(
         @Param('id', ParseUUIDPipe) channelId: string,
         @Req() req: RequestWithUser, @Res() res: Response
         ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user)
             res.status(401).send({ message: 'unauthorized' });
@@ -57,6 +58,7 @@ export class ChannelsController {
     }
 
     @Post('create')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: CreateChannelDto })
     async create(
         @Body() data: CreateChannelDto, 
@@ -64,7 +66,6 @@ export class ChannelsController {
         @Res() res: Response
         ) {
             console.log('log channel: ', data);
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -75,13 +76,13 @@ export class ChannelsController {
     }
 
     @Post('join')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: JoinChannelDto })
     async join(
         @Body() data: JoinChannelDto, 
         @Req() req: RequestWithUser, 
         @Res() res: Response
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -92,12 +93,12 @@ export class ChannelsController {
     }
 
     @Get(':id/leave')
+    @UseGuards(AuthGuard)
     async leave(
         @Param('id', ParseUUIDPipe) channelId: string, 
         @Req() req: RequestWithUser, 
         @Res() res: Response
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -108,13 +109,13 @@ export class ChannelsController {
     }
 
     @Patch('memberStatus')
+    @UseGuards(AuthGuard)
     @ApiOkResponse({ type: memberStatusDto })
     async memberStatus(
         @Body() data: memberStatusDto, 
         @Req() req: RequestWithUser, 
         @Res() res: Response
     ) {
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -135,11 +136,11 @@ export class ChannelsController {
     }
 
     @Delete(':id')
+    @UseGuards(AuthGuard)
     async delete(
         @Param('id', ParseUUIDPipe) chatId: string, 
         @Req() req: RequestWithUser, 
-        @Res() res: Response) {      
-        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
+        @Res() res: Response) {
         const user = req.user;
         if (!user) {
           res.status(401).send({ message: 'Unauthorized' });
