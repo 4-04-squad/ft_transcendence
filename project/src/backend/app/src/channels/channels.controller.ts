@@ -7,6 +7,7 @@ import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { resolve } from 'path';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { CreateChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
+import { get } from 'http';
 
 @Controller('channels')
 @ApiTags('Channels')
@@ -90,6 +91,22 @@ export class ChannelsController {
         }
     }
 
+    @Get(':id/leave')
+    async leave(
+        @Param('id', ParseUUIDPipe) channelId: string, 
+        @Req() req: RequestWithUser, 
+        @Res() res: Response
+    ) {
+        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
+        const user = req.user;
+        if (!user) {
+            res.status(401).send({ message: 'unauthorized' });
+        } else {
+            const channel = await this.channelsService.leaveChannel(channelId, user.id);
+            res.send({ channel });
+        }
+    }
+
     @Patch('memberStatus')
     @ApiOkResponse({ type: memberStatusDto })
     async memberStatus(
@@ -127,7 +144,7 @@ export class ChannelsController {
         if (!user) {
           res.status(401).send({ message: 'Unauthorized' });
         } else {
-          const chats =  await this.channelsService.deletechanel(chatId, user.id);
+          const chats =  await this.channelsService.deletechannel(chatId, user.id);
           res.send({ chats });
         }
     }

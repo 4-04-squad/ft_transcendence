@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { CreateChannelDto, memberStatusDto } from './dto/channels.dto';
+import { channel } from 'diagnostics_channel';
 
 @Injectable()
 export class ChannelsService {
@@ -138,10 +139,34 @@ export class ChannelsService {
                 status: UserChatStatus.MEMBER,
             }
         })
-        console.log(log);
         return channel;
     }
 
+    async leaveChannel(chatId: string, userId: string): Promise<Chat | void> {
+        const userChannel = await this.prisma.userChat.findFirst({ where: { chatId: chatId, userId: userId } });
+        if (!userChannel)
+            throw new BadRequestException("User are not in the channel");
+        
+        if (userChannel.status == UserChatStatus.OWNER){
+            const userAdmin = await this.prisma.userChat.findFirst({ where: { chatId: chatId, status: UserChatStatus.ADMIN } });
+            if (userAdmin)
+                await this.prisma.userChat.update({ where: { id: userAdmin.id }, data: { status: UserChatStatus.OWNER } });
+            else {
+                const userMember = await this.prisma.userChat.findFirst({ where: { chatId: chatId, status: UserChatStatus.MEMBER } });
+                if (userMember)
+                    await this.prisma.userChat.update({ where: { id: userMember.id }, data: { status: UserChatStatus.OWNER } });
+                else
+                    await this.deletechannel(chatId, userId);
+            }
+        }
+        await this.prisma.userChat.deleteMany({ where: { id: userChannel.id } });
+        const channelUser = await this.prisma.userChat.findMany({ where: { userId: userId } });
+        if (channelUser.length == 0)
+            return null;
+        const channel = await this.prisma.chat.findUnique({ where: { id: channelUser[0].chatId } });    
+        return (channel);
+    }
+        
     async isPermission(permission: string): Promise <boolean> {
         if (permission == UserChatPermission.MUTED || permission == UserChatPermission.BANNED || permission == UserChatPermission.COMPLIANT || permission == UserChatPermission.KICKED)
             return true;
@@ -162,7 +187,6 @@ export class ChannelsService {
                 return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { status: data.status, permission: data.permission } }));
             }
         }
-        console.log("ICI");
         if (userChannel.status == UserChatStatus.ADMIN && memberChannel.status == UserChatStatus.MEMBER) {
             return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { permission: data.permission } }));
         }
@@ -173,7 +197,7 @@ export class ChannelsService {
     }
 
     
-    async deletechanel(chatId: string, userId: string): Promise<Chat | null> {
+    async deletechannel(chatId: string, userId: string): Promise<Chat | null> {
         // Check if channel exist
         const channel = await this.prisma.chat.findUnique({ where: { id: chatId } });
         if (!channel) {
