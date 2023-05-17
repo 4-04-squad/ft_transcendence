@@ -21,6 +21,7 @@ import FriendIcon from "./svg/FriendIcon.vue";
 import AirplayIcon from "./svg/AirplayIcon.vue";
 import LockIcon from "./svg/LockIcon.vue";
 import UnlockIcon from "./svg/UnlockIcon.vue";
+import XIcon from "./svg/XIcon.vue";
 
 export {
   HomeIcon,
@@ -46,4 +47,5 @@ export {
   AirplayIcon,
   LockIcon,
   UnlockIcon,
+  XIcon,
 };
