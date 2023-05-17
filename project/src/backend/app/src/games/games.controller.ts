@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Res,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { Response } from 'express';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags, ApiBody, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { GameDto } from './dto/game.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('games')
 @ApiTags('Games')
@@ -28,13 +30,13 @@ export class GamesController {
   ) {}
 
   @Get()
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
     description: 'Returns an Array of games',
     type: GameDto,
     isArray: true,
   })
   async getAllGames(@Req() req: RequestWithUser, @Res() res: Response) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
@@ -45,13 +47,13 @@ export class GamesController {
   }
 
   @Get(':userId/user')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ description: 'Returns a game', type: GameDto })
   async getGamesByUser(
     @Param('userId') userId: string,
     @Req() req: RequestWithUser,
     @Res() res: Response,
   ) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
@@ -62,6 +64,7 @@ export class GamesController {
   }
 
   @Get(':status/status')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
     description: 'Returns an Array of games matching status',
     type: GameDto,
@@ -72,7 +75,6 @@ export class GamesController {
     @Res() res: Response,
     @Param('status') status: string,
   ) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
@@ -83,6 +85,7 @@ export class GamesController {
   }
 
   @Get(':gameId')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
     description: 'Returns a game matching gameID',
     type: GameDto,
@@ -92,7 +95,6 @@ export class GamesController {
     @Res() res: Response,
     @Param('gameId') gameId: string,
   ) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
@@ -103,6 +105,7 @@ export class GamesController {
   }
 
   @Get(':userId/statistics')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
     description: 'Returns a game matching gameID',
   })
@@ -111,7 +114,6 @@ export class GamesController {
     @Res() res: Response,
     @Param('userId') userId: string,
   ) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
@@ -122,9 +124,9 @@ export class GamesController {
   }
 
   @Post('/create')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ description: 'Returns a game', type: GameDto })
   async createGame(@Req() req: RequestWithUser, @Res() res: Response) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
@@ -135,6 +137,7 @@ export class GamesController {
   }
 
   @Post('join')
+  @UseGuards(AuthGuard)
   @UsePipes(ValidationPipe)
   @ApiResponse({ status: 400, description: 'User already in the game' })
   async joinGame(
@@ -142,7 +145,6 @@ export class GamesController {
     @Body() data: JoinGameDto,
     @Res() res: Response,
   ) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
@@ -153,12 +155,12 @@ export class GamesController {
   }
 
   @Delete(':gameId')
+  @UseGuards(AuthGuard)
   async deleteGame(
     @Req() req: RequestWithUser,
     @Res() res: Response,
     @Param('gameId') gameId: string,
   ) {
-    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });

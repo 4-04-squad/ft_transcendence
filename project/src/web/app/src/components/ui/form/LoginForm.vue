@@ -16,14 +16,19 @@ import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
 import router from "@/router";
+import { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
+
 export default defineComponent({
 	name: "LoginForm",
 	setup() {
 		const inputClass = "rounded-md p-2 mb-3 text-white shadow-lg focus:outline-none bg-gradient-to-br from-[#36373a] to-[#3d3f42]"
 		const userStore = useUserStore();
+		const alertStore = useAlertStore();
 		return {
 			inputClass,
-			userStore
+			userStore,
+			alertStore
 		};
 	},
 	methods: {
@@ -39,24 +44,25 @@ export default defineComponent({
 						"Content-Type": "application/json",
 					},
 				}
-			)
-				.then((res) => {
-					console.log(res)
-					if (res.status === 206) {
-						console.log("2fa required " + res.data.user.id);
-						router.push({ path: "/login_2fa" });
-					} else {
-						this.userStore.setUser(res.data.user as UserInterface);
-						if (this.userStore.user) {
-							console.log("User is logged in " + this.userStore.user.pseudo);
-							router.push({ path: "/" });
-						}
+			).then((res) => {
+				console.log(res)
+				if (res.status === 206) {
+					router.push({ path: "/login_2fa" });
+				} else {
+					this.userStore.setUser(res.data.user as UserInterface);
+					if (this.userStore.user) {
+						router.push({ path: "/" });
 					}
-				})
-				.catch((err) => {
-					console.log(err);
-				})
+				}
+			})
+			.catch((err) => {
+				const alert = {
+						status: 401,
+						message: 'Mot de passe incorrect.',
+					} as AlertInterface;
 
+					this.alertStore.setAlert(alert);
+			})
 		}
 	}
 });

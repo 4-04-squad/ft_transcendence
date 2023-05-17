@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { User, UserStatus } from '@prisma/client';
+import { User, UserStatus, Prisma } from '@prisma/client';
 import { CreateUserDto, GetUserByIdDto, UpdateUserDto, UserInputDto } from './dto/user.dto';
 
 @Injectable()
@@ -120,7 +120,7 @@ export class UsersService {
         status: statusEnum,
         id: { not: currentUserId },
       },
-      take: limit ? parseInt(limit.toString()) : undefined,
+      take: parseInt(limit) ? parseInt(limit.toString()) : undefined,
     });
 
     return users;
@@ -160,13 +160,22 @@ export class UsersService {
   }
 
   async updateUser(userId: string, data: UpdateUserDto): Promise<User> {
-    return await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...data,
-        updatedAt: new Date(),
-      },
-    });
+		try {
+			return await this.prisma.user.update({
+				where: { id: userId },
+				data: {
+					...data,
+					updatedAt: new Date(),
+				},
+			});
+		} catch (e) {
+			if (e instanceof Prisma.PrismaClientKnownRequestError) {
+				if (e.code === 'P2002') {
+					throw new BadRequestException('Pseudo already in use.');
+				}
+			}
+			throw e;
+		}
   }
 
   async deleteUser(userId: string): Promise<User> {

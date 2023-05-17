@@ -20,6 +20,7 @@ import { useUserStore } from "@/stores/user";
 import { defineComponent, ref, watch } from "vue";
 import Message from "./Message.vue";
 import { useRoute } from "vue-router";
+import { useMessageStore } from "@/stores/messages";
 
 export default defineComponent({
   name: "ChatConversation",
@@ -40,6 +41,7 @@ export default defineComponent({
     const messages = ref([] as MessageInterface[]);
     const newMessage = ref("");
     const userStore = useUserStore();
+		const messageStore = useMessageStore();
     const route = useRoute();
 
     const sendMessage = () => {
@@ -61,13 +63,14 @@ export default defineComponent({
 
     props.socket.on("newMessage", (message: MessageInterface) => {
       messages.value.push(message);
+			messageStore.addMessage(message);
     });
 
     // Reset messages array when chat changes
     watch(
       () => props.chat,
       () => {
-        messages.value = [];
+        messages.value = messageStore.getMessages(props.chat.id || route.params.id);
       }
     );
 
@@ -95,7 +98,7 @@ export default defineComponent({
 .chat-view {
   display: grid;
   grid-template-rows: 10fr 1fr;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr auto;
   grid-template-areas:
     "message"
     "submit";
@@ -115,7 +118,6 @@ export default defineComponent({
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing);
 
-
     &__messages {
       display: flex;
       flex-direction: column;
@@ -125,13 +127,16 @@ export default defineComponent({
 
   &__submit {
     grid-area: submit;
-    position: relative;
+    display: flex;
+    align-items: center;
     height: 50px;
 
     .input {
+      flex: 1;
       background-color: var(--border-color);
       border: none;
-      border-radius: var(--radius-md);
+      border-top-left-radius: var(--radius-md);
+      border-bottom-left-radius: var(--radius-md);
       color: var(--text-color);
       font-size: var(--font-size-md);
       font-family: var(--font-family);
@@ -145,14 +150,11 @@ export default defineComponent({
     .send {
       background-color: var(--primary-color);
       text-transform: uppercase;
-      position: absolute;
-      right: 0;
       padding: 0 1rem;
-      top: 50%;
-      transform: translateY(-50%);
       height: 100%;
       border-top-right-radius: var(--radius-md);
       border-bottom-right-radius: var(--radius-md);
+      margin-top: auto;
     }
   }
 }

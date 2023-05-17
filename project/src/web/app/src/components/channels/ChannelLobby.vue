@@ -25,6 +25,9 @@
                         <MessageIcon /> 
                     </button>
                 </li>
+                <button @click="leaveChannel(channel)" class="btn btn--icon x--icon">
+                    <XIcon />
+                </button>
             </ul>
         </template>
     </EasyDataTable>
@@ -38,12 +41,11 @@ import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
 import EasyDataTable from "vue3-easy-data-table";
-import { SearchIcon, MessageIcon } from "@/components/icons";
+import { SearchIcon, MessageIcon, XIcon } from "@/components/icons";
 import type { ChatInterface, IChannelSettings } from "@/interfaces/chat.interface";
 import ChannelSettingsModal from "@/components/channels/ChannelSettingsModal.vue";
 import ChannelPasswdModal from "@/components/channels/ChannelPasswdModal.vue";
 import { channel } from "diagnostics_channel";
-
 
 export default defineComponent({
     name: "ChatLobby",
@@ -140,9 +142,45 @@ export default defineComponent({
             }
         };
 
-        const joinChannel = (id: string, passwd?: string) => {
+        const onSettingReceived = (newSetting: IChannelSettings) => {
+            console.log(newSetting);
+            toggleCreateChannelModal();
+            createChannel(newSetting);
+        };
+        return {
+            searchValue,
+            showCreateChannelModal,
+            headers,
+            items,
+            toggleCreateChannelModal,
+            createChannel,
+            onSettingReceived,
+        };
+    },
+    methods: {
+        async leaveChannel(id: string) {
             try {
-            const response = axios
+                const response = await axios
+                .get(
+                    `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
+                    {
+                    withCredentials: true,
+                    headers: {"Content-Type": "application/json",
+                    },
+                    }
+                ).then((res) => {
+                })
+                    .catch((err) => {
+                    console.log(err);
+                    });
+                } catch (error: any) {
+                console.log(error);
+                }
+        },
+
+        async joinChannel(id: string) {
+        try {
+            const response = await axios
             .post(
                 `${import.meta.env.VITE_APP_API_URL}/channels/join`,
                 {
