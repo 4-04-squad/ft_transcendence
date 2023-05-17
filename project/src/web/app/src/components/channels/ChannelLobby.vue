@@ -142,45 +142,9 @@ export default defineComponent({
             }
         };
 
-        const onSettingReceived = (newSetting: IChannelSettings) => {
-            console.log(newSetting);
-            toggleCreateChannelModal();
-            createChannel(newSetting);
-        };
-        return {
-            searchValue,
-            showCreateChannelModal,
-            headers,
-            items,
-            toggleCreateChannelModal,
-            createChannel,
-            onSettingReceived,
-        };
-    },
-    methods: {
-        async leaveChannel(id: string) {
+        const joinChannel = (id: string, passwd?: string) => {
             try {
-                const response = await axios
-                .get(
-                    `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
-                    {
-                    withCredentials: true,
-                    headers: {"Content-Type": "application/json",
-                    },
-                    }
-                ).then((res) => {
-                })
-                    .catch((err) => {
-                    console.log(err);
-                    });
-                } catch (error: any) {
-                console.log(error);
-                }
-        },
-
-        async joinChannel(id: string) {
-        try {
-            const response = await axios
+            const response = axios
             .post(
                 `${import.meta.env.VITE_APP_API_URL}/channels/join`,
                 {
@@ -231,6 +195,28 @@ export default defineComponent({
             onSettingReceived,
             onPasswdReceived,
         };
+
+    },
+    methods: {
+        async leaveChannel(id: string) {
+            try {
+                const response = await axios
+                .get(
+                    `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
+                    {
+                    withCredentials: true,
+                    headers: {"Content-Type": "application/json",
+                    },
+                    }
+                ).then((res) => {
+                })
+                    .catch((err) => {
+                    console.log(err);
+                    });
+                } catch (error: any) {
+                console.log(error);
+                }
+        },
     },
 });
 </script>
