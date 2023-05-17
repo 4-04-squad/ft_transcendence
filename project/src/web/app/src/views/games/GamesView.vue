@@ -1,25 +1,28 @@
 <template>
-  <div id="page-games"></div>
-  <div v-if="gameData">
-    <p>Game status: {{ gameData.status }}</p>
-    <p>Game ID: {{ gameData.id }}</p>
-    <p v-if="users && users.length > 0">User name: {{ users[0].pseudo }}</p>
-    <p v-if="users && users.length > 1">User name: {{ users[1].pseudo }}</p>
-    <p v-if="settings"> {{ settings }}</p>
-  </div>
+  <div id="page-games">
+    <div v-if="gameData">
+      <p>Game status: {{ gameData.status }}</p>
+      <p>Game ID: {{ gameData.id }}</p>
+      <p v-if="users && users.length > 0">User name: {{ users[0].pseudo }}</p>
+      <p v-if="users && users.length > 1">User name: {{ users[1].pseudo }}</p>
+      <p v-if="settings"> {{ settings }}</p>
+    </div>
 
-  <!-- GAME VIEW -->
-  <FieldView />
+    <!-- GAME VIEW -->
+    <FieldView v-if="gameData" :gameData="gameData" :settings="settings" :socket="socket" />
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+import { defineComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import type { GameInterface, IGameSettings } from "@/interfaces/game.interface";
 import type { UserInterface } from "@/interfaces/user.interface";
 import FieldView from "@/components/pong/FieldView.vue";
 import { useGamesSettingsStore } from "@/stores/gamesSettingsStore";
 import axios from "axios";
+import type { Socket } from "socket.io-client";
+import { useUserStore } from "@/stores/user";
 
 export default defineComponent({
   name: "GamesView",
@@ -30,8 +33,31 @@ export default defineComponent({
     const route = useRoute();
     const gameData = ref<GameInterface | null>(null);
     const users = ref<UserInterface[] | null>(null);
-    const settings = ref<IGameSettings | null>(null);
+    const settings = ref<IGameSettings | undefined>(undefined);
     const gamesettingsStore = useGamesSettingsStore();
+    const userStore = useUserStore();
+    const socket = inject('socket') as Socket;
+
+    const fetchChatDataAndJoinGame = async (gameId: string) => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_APP_API_URL}/games/${gameId}`,
+          {
+            withCredentials: true,
+          }
+        );
+        console.log("response", response);
+        users.value = response.data.games.users;
+        gameData.value = response.data.games;
+        if (gameData.value) {
+          settings.value = gamesettingsStore.getGameSettings(gameData.value.id);
+          socket.emit("joinGame", { gameId: gameId, userId: userStore.user.pseudo });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
 
     // TODO: when the game is finish delete the settings from the store
 
@@ -41,26 +67,32 @@ export default defineComponent({
       async (newVal, oldVal) => {
         try {
           if (!newVal) return;
-          const response = await axios.get(
-            `${import.meta.env.VITE_APP_API_URL}/games/${newVal}`,
-            {
-              withCredentials: true,
-            }
-          );
-          console.log("response", response);
-          users.value = response.data.games.users;
-          gameData.value = response.data.games;
-          settings.value = await gamesettingsStore.getGameSettings(gameData.value.id);
+          if (oldVal) {
+            socket.emit("leaveGame", { gameId: oldVal, userId: userStore.user.pseudo });
+          }
+          await fetchChatDataAndJoinGame(newVal);
         } catch (err) {
           console.error(err);
         }
       },
       { immediate: true } // Call the function immediately when the component is created
     );
+
+    onUnmounted(() => {
+      socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.pseudo });
+    });
+
+    onMounted(() => {
+      // Call the function when the page is reloaded
+      socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.pseudo });
+      fetchChatDataAndJoinGame(route.params.id);
+    });
+
     return {
       gameData: gameData,
       users: users,
       settings: settings,
+      socket: socket,
     };
   },
 });

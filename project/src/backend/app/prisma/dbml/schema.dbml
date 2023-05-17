@@ -9,6 +9,7 @@ Table User {
   email String [unique, not null]
   password String
   twofasecret String
+  twofaenabled Boolean [not null, default: false]
   firstName String
   lastName String
   avatar String
