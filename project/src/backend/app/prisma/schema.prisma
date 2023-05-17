@@ -35,8 +35,8 @@ model User {
   games   UserGame[]
   friendRequest Friendship[]  @relation(name:"requester")
   friends Friendship[]  @relation(name: "receiver")
-  blockers   User[]      @relation(name: "blocked")
-  blocked  User[]       @relation(name: "blocked")
+  blockers   User[]      @relation(name: "blocked") // represents the users who have blocked the current user
+  blocked  User[]       @relation(name: "blocked") // represents the users who have been blocked by the current user
   messages      Message[]
 }
 

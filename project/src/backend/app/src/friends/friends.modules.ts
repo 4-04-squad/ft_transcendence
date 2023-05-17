@@ -7,10 +7,11 @@ import { AuthService } from 'src/auth/auth.service';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { BlockUserService } from '../users/block-user.service';
 
 @Module({
   imports: [UsersModule],
   controllers: [FriendsController],
-  providers: [FriendsService, PrismaService, AuthMiddleware, AuthService, UsersService, JwtService]
+  providers: [FriendsService, PrismaService, AuthMiddleware, AuthService, UsersService, JwtService, BlockUserService]
 })
 export class FriendsModule {}

@@ -7,6 +7,7 @@ import { AuthMiddleware } from './users.middleware';
 import { AuthService } from '../auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from '../auth/auth.module';
+import { BlockUserService } from './block-user.service';
 
 @Module({
   imports: [
@@ -17,6 +18,6 @@ import { AuthModule } from '../auth/auth.module';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, PrismaService, JwtStrategy, AuthMiddleware, AuthService],
+  providers: [UsersService, PrismaService, JwtStrategy, AuthMiddleware, AuthService, BlockUserService],
 })
 export class UsersModule {}

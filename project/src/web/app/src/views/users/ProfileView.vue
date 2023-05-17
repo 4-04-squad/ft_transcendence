@@ -6,6 +6,10 @@
           :class="'btn btn--icon no-bg'"
           :friendId="user?.id"
         />
+        <BlockUserButton
+          :friendId="user?.id"
+          :class="'btn btn--icon no-bg'"
+      />
       </div>
       <UserCard :user="user" :full="'full'" :size="'large'" />
       <div class="shortcut" v-if="user?.id === userStore.user?.id">
@@ -35,6 +39,7 @@ import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue"
 import {
   EditIcon,
 } from "@/components/icons";
+import BlockUserButton from "@/components/ui/button/BlockUserButton.vue";
 
 export default defineComponent({
   name: "ProfileView",
@@ -42,6 +47,7 @@ export default defineComponent({
     UserCard,
     EditIcon,
     FriendRequestButton,
+    BlockUserButton,
   },
   setup() {
     const userStore = useUserStore();
