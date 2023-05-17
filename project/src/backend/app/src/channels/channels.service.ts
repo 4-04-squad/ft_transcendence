@@ -129,17 +129,15 @@ export class ChannelsService {
     async joinChannel(data: JoinChannelDto, userId: string): Promise<Chat | void> {
         const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
+        if (channel.type == ChatType.RESTRICTED) {
+            if (channel.passwd != data.passwd || !data.passwd)
+                throw new BadRequestException("Wrong password");
+        }
         if (userChannel.length > 0)
             return channel;
 
-        if (channel.type == ChatType.RESTRICTED) {
-            if (channel.passwd != data.passwd)
-                throw new BadRequestException("Wrong password");
-        }
-
         if (channel.type == ChatType.PRIVATE)
             throw new BadRequestException("Private channel can't be joined");
-            console.log(channel.type);
 
         const log = await this.prisma.userChat.create({
             data: {
@@ -148,7 +146,6 @@ export class ChannelsService {
                 status: UserChatStatus.MEMBER,
             }
         })
-        console.log(log);
         return channel;
     }
 

@@ -127,6 +127,7 @@ export default defineComponent({
                         },
                     });
                 }).catch((error) => {
+                    console.log('ici ',error);
                     if (axios.isAxiosError(error)) {
                         console.log(error.response?.data);
                         if (error.response?.status == 401) {
@@ -164,7 +165,7 @@ export default defineComponent({
                 console.log(err);
             });
             } catch (error: any) {
-            console.log(error);
+                console.log(error);
             }
         };
 

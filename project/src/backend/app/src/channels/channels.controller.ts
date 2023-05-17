@@ -62,7 +62,6 @@ export class ChannelsController {
         @Req() req: RequestWithUser, 
         @Res() res: Response
         ) {
-            console.log('log channel: ', data);
         await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
@@ -80,8 +79,8 @@ export class ChannelsController {
         @Req() req: RequestWithUser, 
         @Res() res: Response
     ) {
-        console.log('log channel: ', data);
         await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
+
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
