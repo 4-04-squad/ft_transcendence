@@ -11,6 +11,8 @@ export class CreateChannelDto {
 
 export class JoinChannelDto {
     @IsString()
+    passwd?: string;
+    @IsString()
     chatId: string;
 }
 

@@ -52,7 +52,7 @@ export class ChannelsController {
         if (!user)
             res.status(401).send({ message: 'unauthorized' });
         else {
-            const users = await this.channelsService.getChannelById(channelId);
+            const users = await this.channelsService.getChannelById(channelId, user.id);
             res.send({ users });
         }
     }
@@ -65,7 +65,7 @@ export class ChannelsController {
         @Req() req: RequestWithUser, 
         @Res() res: Response
         ) {
-            console.log('log channel: ', data);
+        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
@@ -83,11 +83,12 @@ export class ChannelsController {
         @Req() req: RequestWithUser, 
         @Res() res: Response
     ) {
+        await new Promise(resolve => this.authMiddleware.use(req, res, resolve));
         const user = req.user;
         if (!user) {
             res.status(401).send({ message: 'unauthorized' });
         } else {
-            const channel = await this.channelsService.joinChannel(data.chatId, user.id);
+            const channel = await this.channelsService.joinChannel(data, user.id);
             res.send({ channel });
         }
     }
