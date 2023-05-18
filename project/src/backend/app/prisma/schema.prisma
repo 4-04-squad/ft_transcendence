@@ -27,6 +27,7 @@ model User {
   avatar     String?
   about      String?
   experience Int        @default(0)
+  elo        Int        @default(1500)
   status     UserStatus @default(OFFLINE)
   role       UserRole   @default(USER)
   createdAt  DateTime   @default(now())
@@ -102,6 +103,15 @@ model Game {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   users     UserGame[]
+  ballSize  Int @default(20)
+  ballSpeed Int @default(3)
+  paddleSize Int @default(75)
+  paddleSpeed Int @default(15)
+  paddleColor String @default("#FFFFFF")
+  backgroundColor String @default("#bababa")
+  ballColor String @default("#FFFFFF")
+  scoreLimit Int @default(10)
+  ownerId String?
 }
 
 enum UserStatus {
