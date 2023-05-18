@@ -171,8 +171,9 @@ export class ChannelsService {
         const channelUser = await this.prisma.userChat.findMany({ where: { userId: userId } });
         if (channelUser.length == 0)
             return null;
-        const channel = await this.prisma.chat.findUnique({ where: { id: channelUser[0].chatId } });    
-        return (channel);
+        const ids = channelUser.map(obj => obj.id);
+        const channel = await this.prisma.chat.findMany({ where: { id: { in: ids }, type: { not: ChatType.DIRECT } } });    
+        return (channel[0]);
     }
         
     async isPermission(permission: string): Promise <boolean> {
