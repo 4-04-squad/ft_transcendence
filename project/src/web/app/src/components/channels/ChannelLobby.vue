@@ -14,20 +14,24 @@
     <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
         :buttons-pagination="true" empty-message="Aucun channel trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
         rows-per-page-message="Channels par page">
-        <template #item-name="{ name, channel }">
-            <span @click.stop="joinChannel(channel)" v-if="name">{{ name }}</span>
-            <span @click.stop="joinChannel(channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
+        <template #item-name="{ name, channel, type }">
+            <span @click.stop="togglePasswdModal(type, channel)" v-if="name">{{ name }}</span>
+            <span @click.stop="togglePasswdModal(type, channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
         </template>
-        <template #item-channel="{ channel }">
+        <template #item-channel="{ channel, type }">
             <ul class="btns">
                 <li>
-                    <button @click="joinChannel(channel)" class="btn btn--icon only-icon">
+                    <button @click="togglePasswdModal(type, channel)" class="btn btn--icon only-icon">
                         <MessageIcon /> 
                     </button>
                 </li>
+                <button @click="leaveChannel(channel)" class="btn btn--icon x--icon">
+                    <XIcon />
+                </button>
             </ul>
         </template>
     </EasyDataTable>
+    <ChannelPasswdModal v-if="showPasswdModal" @onClose="togglePasswdModal" @onCreate="onPasswdReceived"/>
     <ChannelSettingsModal v-if="showCreateChannelModal" @onClose="toggleCreateChannelModal" @onCreate="onSettingReceived"/>
 </template>
   
@@ -37,9 +41,11 @@ import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
 import EasyDataTable from "vue3-easy-data-table";
-import { SearchIcon, MessageIcon } from "@/components/icons";
+import { SearchIcon, MessageIcon, XIcon } from "@/components/icons";
 import type { ChatInterface, IChannelSettings } from "@/interfaces/chat.interface";
-import ChannelSettingsModal from "./ChannelSettingsModal.vue";
+import ChannelSettingsModal from "@/components/channels/ChannelSettingsModal.vue";
+import ChannelPasswdModal from "@/components/channels/ChannelPasswdModal.vue";
+import { channel } from "diagnostics_channel";
 
 export default defineComponent({
     name: "ChatLobby",
@@ -47,11 +53,13 @@ export default defineComponent({
     EasyDataTable,
     SearchIcon,
     MessageIcon,
-    ChannelSettingsModal
+    ChannelSettingsModal,
+    ChannelPasswdModal,
 },
     setup() {
         const searchValue = ref("");
         const showCreateChannelModal = ref(false);
+        const showPasswdModal = ref(false);
         const channels = ref([] as ChatInterface[]);
         const headers = [
             { text: "NAME", value: "name" },
@@ -59,7 +67,7 @@ export default defineComponent({
             { text: "", value: "channel" }, // channel id
         ] as Header[];
         const items = ref([] as Item[]);
-
+        const channelId = ref("");
         axios
             .get(`${import.meta.env.VITE_APP_API_URL}/channels`, {
                 withCredentials: true,
@@ -84,6 +92,14 @@ export default defineComponent({
                     }
                 }
             });
+
+        const togglePasswdModal = (type: string, chatId: string) => {
+            channelId.value = chatId;
+            if (type == "RESTRICTED")
+                showPasswdModal.value = !showPasswdModal.value;
+            else
+                joinChannel(chatId);
+        };
 
         const toggleCreateChannelModal = () => {
             showCreateChannelModal.value = !showCreateChannelModal.value;
@@ -113,7 +129,7 @@ export default defineComponent({
                         },
                     });
                 }).catch((error) => {
-                    console.log(error);
+                    console.log('ici ',error);
                     if (axios.isAxiosError(error)) {
                         console.log(error.response?.data);
                         if (error.response?.status == 401) {
@@ -126,29 +142,14 @@ export default defineComponent({
             }
         };
 
-        const onSettingReceived = (newSetting: IChannelSettings) => {
-            console.log(newSetting);
-            toggleCreateChannelModal();
-            createChannel(newSetting);
-        };
-        return {
-            searchValue,
-            showCreateChannelModal,
-            headers,
-            items,
-            toggleCreateChannelModal,
-            createChannel,
-            onSettingReceived,
-        };
-    },
-    methods: {
-        async joinChannel(id: string) {
-        try {
-            const response = await axios
+        const joinChannel = (id: string, passwd?: string) => {
+            try {
+            const response = axios
             .post(
                 `${import.meta.env.VITE_APP_API_URL}/channels/join`,
                 {
                 chatId: id,
+                passwd: passwd,
                 },
                 {
                 withCredentials: true,
@@ -156,20 +157,66 @@ export default defineComponent({
                 },
                 }
             ).then((res) => {
-                this.$router.push({
+                router.push({
                 name: "channel",
                 params: {
                     id: res.data.channel.id,
                 },
                 });
-            })
-                .catch((err) => {
+            }).catch((err) => {
                 console.log(err);
-                });
+            });
             } catch (error: any) {
-            console.log(error);
+                console.log(error);
             }
+        };
+
+        const onSettingReceived = (newSetting: IChannelSettings) => {
+            console.log(newSetting);
+            toggleCreateChannelModal();
+            createChannel(newSetting);
+        };
+
+        const onPasswdReceived = (passwd: string) => {
+            showPasswdModal.value = !showPasswdModal.value;
+            joinChannel(channelId.value, passwd);
+        };
+
+        return {
+            searchValue,
+            showCreateChannelModal,
+            showPasswdModal,
+            headers,
+            items,
+            toggleCreateChannelModal,
+            togglePasswdModal,
+            createChannel,
+            joinChannel,
+            onSettingReceived,
+            onPasswdReceived,
+        };
+
     },
+    methods: {
+        async leaveChannel(id: string) {
+            try {
+                const response = await axios
+                .get(
+                    `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
+                    {
+                    withCredentials: true,
+                    headers: {"Content-Type": "application/json",
+                    },
+                    }
+                ).then((res) => {
+                })
+                    .catch((err) => {
+                    console.log(err);
+                    });
+                } catch (error: any) {
+                console.log(error);
+                }
+        },
     },
 });
 </script>

@@ -6,6 +6,10 @@
           :class="'btn btn--icon no-bg'"
           :friendId="user?.id"
         />
+        <BlockUserButton
+          :friendId="user?.id"
+          :class="'btn btn--icon no-bg'"
+      />
       </div>
       <UserCard :user="user" :full="'full'" :size="'large'" />
       <div class="shortcut" v-if="user?.id === userStore.user?.id">
@@ -66,6 +70,7 @@ import LineChartCard from "@/components/ui/chart/LineChartCard.vue";
 
 import { EditIcon } from "@/components/icons";
 import { getStatsByUser } from "@/services/gameServices";
+import BlockUserButton from "@/components/ui/button/BlockUserButton.vue";
 
 export default defineComponent({
   name: "ProfileView",
@@ -76,6 +81,7 @@ export default defineComponent({
     DoughutChartCard,
     BarChartCard,
     LineChartCard,
+    BlockUserButton,
   },
   setup() {
     const userStore = useUserStore();

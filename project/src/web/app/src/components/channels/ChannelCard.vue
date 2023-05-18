@@ -5,7 +5,10 @@
         <p class="channel-card__acronyme" v-else>#</p>
       </div>
       <div class="column channel-card__details">
-        <h3 class="name">#{{ channel.name ? channel.name : channel.id }}</h3>
+				<h3 class="name">#{{ channel.name ? channel.name : channel.id }}</h3>
+				<button @click="leaveChannel(channel.id)" class="btn btn--icon x--icon">
+          <XIcon />
+        </button>
       </div>
     </button>
 </template>
@@ -14,12 +17,18 @@
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
 import type { ChatInterface } from "@/interfaces/chat.interface";
+import { XIcon } from "@/components/icons";
+import axios from "axios";
+import router from "@/router";
 
 type Size = "medium" | "small" | "large";
 type CardSize = "full" | "half";
 
 export default defineComponent({
   name: "ChannelCard",
+	components: {
+		XIcon
+	},
   props: {
     channel: {
       type: Object as () => ChatInterface,
@@ -35,6 +44,40 @@ export default defineComponent({
     },
   },
   methods: {
+    async leaveChannel(id: string) {
+            try {
+                const response = await axios
+                .get(
+                    `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
+                    {
+                    withCredentials: true,
+                    headers: {"Content-Type": "application/json",
+                    },
+                    }
+                ).then((res) => {
+                  console.log("no channel");
+                  if (res.data.channel) {
+                    router.push(
+                    {
+                      name: "channel",
+                      params: {
+                        id: res.data.channel.id,
+                      },
+                    });
+                  }
+                  else {
+                    router.push(
+                    {
+                      name: "channels",
+                    });
+                  }
+                }).catch((err) => {
+                    console.log(err);
+                    });
+                } catch (error: any) {
+                console.log(error);
+                }
+        },
     converse() {
       this.$router.push({
         name: "channel",
@@ -140,6 +183,7 @@ export default defineComponent({
       font-size: 1rem;
       text-align: left;
       margin: 0;
+			display: inline-block;
     }
   }
 }

@@ -27,6 +27,22 @@ export const useUserStore = defineStore("user", {
       this.user.status = UserStatus.ONLINE;
       localStorage.setItem("localUser", JSON.stringify(user));
     },
+    setUserStatus(user: UserInterface, status: UserStatus) {
+      this.user = user;
+      axios.patch(
+        `${import.meta.env.VITE_APP_API_URL}/users/${this.user.id}/edit`,
+        {
+          status: status
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      this.user.status = status;
+    },
     clearUser() {
       axios.patch(
         `${import.meta.env.VITE_APP_API_URL}/users/${this.user.id}/edit`,
@@ -48,9 +64,6 @@ export const useUserStore = defineStore("user", {
     isAuthenticated(): boolean {
       return !!this.user && !!this.user.id;
     },
-  },
-  persist: {
-    enabled: true,
   },
 });
 

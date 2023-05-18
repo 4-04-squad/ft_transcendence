@@ -6,7 +6,7 @@
 		<slot></slot>
 		<div class="modal-action">
 			<button class="btn btn--cancel" @click="closeModal">Annuler</button>
-			<button class="btn btn--submit" @click="createButtonHandler">Créer</button>
+			<button class="btn btn--submit" @click="createButtonHandler">{{ buttonText() }}</button>
 		</div>
 	</form>
 	</div>
@@ -19,6 +19,10 @@
 	name: "Modal",
 	props: {
 		title: String,
+		buttonText: {
+			type: String,
+			default: "Créer",
+		},
 		onCreate: {
 			type: Function,
 			required: true,
@@ -38,6 +42,7 @@
 			closeModal,
 			createButtonHandler,
 			title: () => props.title,
+			buttonText: () => props.buttonText,
     };
 
 	},
