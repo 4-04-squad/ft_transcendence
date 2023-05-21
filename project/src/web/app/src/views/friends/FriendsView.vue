@@ -6,10 +6,10 @@
         <div class="search search--icon">
           <SearchIcon />
           <input type="text" v-model="searchValue" placeholder="Rechercher" />
-          <UsersFilters />
         </div>
       </h1>
     </div>
+    <UsersFilters />
     <EasyDataTable
       :headers="headers"
       :items="items"
