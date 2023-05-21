@@ -205,8 +205,6 @@ main {
     border-top-left-radius: var(--radius);
 
     @include bp($small, max) {
-      max-height: calc((var(--vh) * 20) - (var(--spacing) * 2));
-      height: calc((var(--vh) * 20) - (var(--spacing) * 2));
       border-radius: 0;
     }
 
