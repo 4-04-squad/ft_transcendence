@@ -7,9 +7,9 @@
           <SearchIcon />
           <input type="text" v-model="searchValue" placeholder="Rechercher" />
         </div>
-        <UsersFilters />
       </h1>
     </div>
+    <UsersFilters />
     <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
       :buttons-pagination="true" empty-message="Aucun utilisateur trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
       rows-per-page-message="Utilisateurs par page">
@@ -124,7 +124,7 @@ export default defineComponent({
     margin-right: 0;
     list-style: none;
     padding: 0;
-    margin: 1.5rem auto 0;
+    margin: 1.5rem auto;
     font-size: 0.5rem;
 
     li {
