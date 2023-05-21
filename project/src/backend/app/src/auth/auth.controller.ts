@@ -135,11 +135,6 @@ export class AuthController {
         }  
       }
 
-      if (user && !user.twofaenabled) {
-        // Set user as ONLINE
-        this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
-      }
-
       const redirectUrl = `${process.env.WEB_URL}/login`
       res.status(302).redirect(redirectUrl);
     } catch (error) {
