@@ -132,6 +132,7 @@ export default defineComponent({
         font-weight: bold;
 
         .btn {
+          white-space: nowrap;
             &.active {
                 background-color: var(--primary-color);
                 color: #ffffff;

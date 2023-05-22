@@ -19,7 +19,7 @@
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.1rem;
-    font-weight: 600;
+    font-weight: bold;
     width: fit-content;
     min-width: fit-content;
     cursor: pointer;
@@ -87,10 +87,22 @@
 
     &--success {
       @include btn($color: #ffffff , $bg: var(--success-color), $border: 0, $radius: $radius-xs, $padding: 0.5rem 1rem);
+
+      &:hover {
+        background-color: transparent;
+        border: 1px solid var(--success-color);
+        color: var(--success-color);
+      }
     }
 
     &--submit {
       @include btn($color: #ffffff , $bg: var(--success-color), $border: 0, $radius: $radius-xs, $padding: 0.5rem 1rem);
+
+      &:hover {
+        background-color: transparent;
+        border: 1px solid var(--success-color);
+        color: var(--success-color);
+      }
     }
 }
 

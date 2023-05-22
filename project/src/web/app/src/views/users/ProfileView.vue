@@ -144,16 +144,18 @@ export default defineComponent({
 
 <style lang="scss">
 .user-stats-container {
-  display: flex;
+  display: grid;
   flex-direction: row;
-  gap: 2rem;
   margin-top: 3rem;
   margin-bottom: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .user-stats-container {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 }
+
 </style>
