@@ -1,19 +1,15 @@
 <template>
-	<div class="field-view-container">
+	<div class="field-view-container" ref="container">
 		<div class="field-view-container__game-zone">
-			<div style="position:absolute; left: 45%; top: 40%;">
+			<div class="game-buttons">
 				<button v-if="btn1" @click="oneplayer" class="btn">partie solo</button>
-			</div>
-			<div style="position:absolute; left: 44%; top: 50%;">
+				
 				<button v-if="btn2" @click="multiplayer" class="btn">partie multijoueur</button>
-			</div>
-			<div style="position:absolute; left: 35%; top: 45%;">
+				
 				<button v-if="btn3" @click="firstplayer" class="btn">joueur gauche</button>
-			</div>
-			<div style="position:absolute; left: 55%; top: 45%;">
+
 				<button v-if="btn4" @click="secondplayer" class="btn">joueur droite</button>
-			</div>
-			<div style="position:absolute; left: 41%; top: 50%;">
+				
 				<button v-if="btn5" @click="replay" class="btn">refaire une partie</button>
 			</div>
 			<canvas id="Field" ref="Field">
@@ -229,9 +225,9 @@ export default defineComponent({
 			this.updatecsore();
 			this.context.font = '25px arial';
 			if (this.score.p1 == this.score.max_score && this.player1.me == 1)
-				this.context.fillText("Bravo vous avez gagner", 20, 75);
+				this.context.fillText("Bravo vous avez gagné", 20, 75);
 			else if (this.score.p2 == this.score.max_score && this.player2.me == 1)
-				this.context.fillText("Bravo vous avez gagner", 20, 75);
+				this.context.fillText("Bravo vous avez gagné", 20, 75);
 			else
 				this.context.fillText("Vous avez perdu", 20, 75);
 			this.player1.me = 0;
@@ -412,13 +408,17 @@ export default defineComponent({
 			this.context.fillStyle = this.settings.paddleColor;
 			this.context.fillRect(this.player1.x, this.player1.y, this.player1.tilewidth, this.player1.tile);
 			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
+
 			this.context.fillStyle = this.settings.ballColor;
-			this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.width);
+			this.context.beginPath();
+			this.context.arc(this.ball.x + this.ball.width / 2, this.ball.y + this.ball.width / 2, this.ball.width / 2, 0, 2 * Math.PI);
+			this.context.fill();
 		},
+
 
 		update() {
 			//this.setvar();
-			console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
+			//console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 					this.menuOfEnd();
 			else if (this.player1.me == 1 || this.player2.me == 1)
@@ -449,9 +449,8 @@ export default defineComponent({
 		},
 
 		createbackground() {
-			// link the canvas to context
 			this.context = <HTMLCanvasElement>this.$refs.Field.getContext("2d");
-			this.context.canvas.width = window.innerWidth - 260;
+			this.context.canvas.width = window.innerWidth  - 145;
 			this.context.canvas.height = window.innerHeight - 145;
 			this.themecolor();
 		},
@@ -476,8 +475,33 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 #Field {
 	border: 3px solid;
+	border-radius: 10px; 
+}
+
+.field-view-container {
+	position: relative;
+
+	&__game-zone {
+		.game-buttons {
+			position: absolute;
+			height: 3rem;
+			display: flex;
+			justify-content: center;
+			margin-bottom: 1rem;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+
+			.btn {
+
+				&:not(:last-child) {
+					margin-right: 1rem;
+				}
+			}
+		}
+	}
 }
 </style>

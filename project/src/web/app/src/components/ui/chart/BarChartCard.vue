@@ -93,13 +93,12 @@ export default {
 
 <style lang="scss" scoped>
 .chart-card {
-  max-width: 38%;
+  max-width: 100%;
   max-height: 100%;
-  background-color: #ffffff;
+  color: var(--text-color);
   border-radius: 10px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
   padding: 20px;
-  background-color: var(--bg-color);
+  background-color: var(--border-color);
 }
 
 #my-chart-id {
