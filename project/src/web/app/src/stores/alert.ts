@@ -23,6 +23,8 @@ export const useAlertStore = defineStore("alert", {
                     this.alert.type = "info";
                 }
             }
+			if (this.alert && this.alert?.timeout === undefined)
+				this.alert.timeout = 5000;
         },
         clearAlert() {
             // clear alert

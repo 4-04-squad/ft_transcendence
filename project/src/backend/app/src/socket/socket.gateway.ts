@@ -1,7 +1,7 @@
 import { MessageBody, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { Body, Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
@@ -37,6 +37,16 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
       this.logger.log(`Client disconnected: ${socket.id}`);
     }
   }
+
+  /*
+  * Emit action : Notif
+  */
+  @SubscribeMessage('sendNotif')
+  onSendNotif(@Body() data: { userId: string, linkId: number }) {
+    // emit in room
+    this.server.emit('sendNotif', { userId: data.userId, linkId: data.linkId });
+  }
+
 
   /*
   * Emit action : GAME
