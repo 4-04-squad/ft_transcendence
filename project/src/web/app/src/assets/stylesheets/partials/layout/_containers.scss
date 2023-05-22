@@ -72,12 +72,15 @@ main {
   grid-template-columns: 0.1fr 2fr;
   grid-template-areas: "header main";
 
+  .main-sidebar {
+    display: none;
+  }
+
   @include bp($small, max) {
     grid-template-areas:
       "main"
       "header";
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 100px;
   }
 
   .main-page-content {
