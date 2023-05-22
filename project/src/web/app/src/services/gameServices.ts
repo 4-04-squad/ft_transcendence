@@ -35,6 +35,12 @@ export const getGameById = (gameId: number) => {
   });
 };
 
+export const getStatsByUser = (userId: string) => {
+  return axios.get(`${API_URL}/games/${userId}/statistics`, {
+    withCredentials: true,
+  });
+};
+
 /**
  * @description Join a game
  * @returns {Promise<AxiosResponse<any>>}
