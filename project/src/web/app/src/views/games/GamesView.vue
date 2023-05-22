@@ -1,6 +1,6 @@
 <template>
   <div id="page-games">
-    <div v-if="gameData">
+    <div v-if="gameData" class="game-settings">
       <p>Game status: {{ gameData.status }}</p>
       <p>Game ID: {{ gameData.id }}</p>
       <p v-if="users && users.length > 0">User name: {{ users[0].pseudo }}</p>
@@ -97,3 +97,18 @@ export default defineComponent({
   },
 });
 </script>
+
+<style lang="scss" scoped>
+#page-games {
+  position: relative;
+}
+.game-settings {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  color: white;
+  padding: 1rem;
+  border-radius: var(--radius);
+}
+</style>
