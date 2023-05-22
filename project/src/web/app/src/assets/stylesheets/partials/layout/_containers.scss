@@ -236,6 +236,7 @@ main {
           align-items: center;
           align-content: center;
           margin-bottom: 0.5rem;
+          text-transform: uppercase;
         }
       }
 
@@ -246,8 +247,8 @@ main {
   }
 
   .content-wrapper {
-    max-height: calc(var(--vh) * 60);
-    height: calc(var(--vh) * 60);
+    max-height: calc(var(--vh) * 70);
+    height: calc(var(--vh) * 70);
     overflow-y: scroll;
     padding: var(--spacing);
     border-bottom-right-radius: var(--radius);
@@ -258,8 +259,7 @@ main {
     }
 
     @include bp($small, max) {
-      max-height: calc(var(--vh) * 70);
-      height: calc(var(--vh) * 70);
+      max-height: calc(var(--vh) * 60);
     }
   }
 }

@@ -22,8 +22,13 @@
       <RouterLink :to="{ name: 'users-all' }" class="link users-all">
         <UsersIcon />
       </RouterLink>
-      <button class="link menu">
-        <MenuIcon />
+      <button class="link menu main-nav-toggle" @click="toggleMenu">
+        <span class="open">
+          <MenuIcon/>
+        </span>
+        <span class="close">
+          Fermer <XIcon/>
+        </span>
       </button>
     </nav>
     <nav class="main-nav main-nav--settings">
@@ -38,15 +43,17 @@
       <ThemeSwitcher />
     </nav>
   </header>
+  <MainNavContainer />
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, watch } from "vue";
 import { RouterLink } from "vue-router";
 import UserCard from "@/components/user/UserCard.vue";
 import ThemeSwitcher from "@/components/themes/ThemeSwitcher.vue";
 import LogoutButton from "@/components/ui/button/LogoutButton.vue";
 import LoginButton from "@/components/ui/button/LoginButton.vue";
+import MainNavContainer from "./Nav.vue";
 import {
   HomeIcon,
   InfoIcon,
@@ -57,8 +64,10 @@ import {
   GameIcon,
   UsersIcon,
   MenuIcon,
+  XIcon,
 } from "@/components/icons";
 import { useUserStore } from "@/stores/user";
+import router from "@/router";
 
 export default defineComponent({
   name: "Header",
@@ -77,13 +86,65 @@ export default defineComponent({
     LogoutButton,
     LoginButton,
     MenuIcon,
+    MainNavContainer,
+    XIcon,
   },
   setup() {
     const userStore = useUserStore();
 
+    const toggleMenu = () => {
+      const menu = document.querySelector(".main-nav-toggle");
+      const nav = document.querySelector(".main-nav-container");
+      menu?.classList.toggle("active");
+      nav?.classList.toggle("active");
+    };
+
+    // watch page change to close menu on any link click
+    watch(
+      () => router.currentRoute.value,
+      () => {
+        const menu = document.querySelector(".main-nav-toggle");
+        const nav = document.querySelector(".main-nav-container");
+        menu?.classList.remove("active");
+        nav?.classList.remove("active");
+      }
+    );
+
     return {
       userStore,
+      toggleMenu,
     };
   },
 });
 </script>
+
+<style lang="scss">
+
+.main-nav-toggle {
+  .close {
+    display: none;
+    position: absolute;
+    top: var(--spacing);
+    right: var(--spacing);
+    z-index: 101;
+    color: var(--text-color);
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .open {
+    display: block;
+  }
+
+  &.active {
+    .close {
+      display: flex;
+    }
+
+    .open {
+      display: none;
+    }
+  }
+}
+
+</style>
