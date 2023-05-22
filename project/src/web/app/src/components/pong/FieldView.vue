@@ -451,7 +451,7 @@ export default defineComponent({
 		createbackground() {
 			this.context = <HTMLCanvasElement>this.$refs.Field.getContext("2d");
 			this.context.canvas.width = window.innerWidth  - 145;
-			this.context.canvas.height = window.innerHeight - 145;
+			this.context.canvas.height = window.innerHeight - 40;
 			this.themecolor();
 		},
 
@@ -478,7 +478,12 @@ export default defineComponent({
 <style scoped lang="scss">
 #Field {
 	border: 3px solid;
-	border-radius: 10px; 
+	border-radius: 30px;
+
+	@media screen and (max-width: 768px) {
+		width: 100%;
+		max-height: calc(var(--vh) * 85);
+	}
 }
 
 .field-view-container {
