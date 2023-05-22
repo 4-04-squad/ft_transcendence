@@ -221,22 +221,26 @@ export default defineComponent({
 		},
 
 		menuOfEnd() {
-			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-			this.updatecsore();
-			this.context.font = '25px arial';
-			if (this.score.p1 == this.score.max_score && this.player1.me == 1)
-				this.context.fillText("Bravo vous avez gagné", 20, 75);
-			else if (this.score.p2 == this.score.max_score && this.player2.me == 1)
-				this.context.fillText("Bravo vous avez gagné", 20, 75);
-			else
-				this.context.fillText("Vous avez perdu", 20, 75);
-			this.player1.me = 0;
-			this.player2.me = 0;
-			this.cpu.enable = 0;
-			this.score.p1 = 0;
-			this.score.p2 = 0;
-			this.btn5 = true;
-		},
+  this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+  this.updatecsore();
+  this.context.font = '25px arial';
+  this.context.textAlign = 'center'; // Center the text horizontally
+  this.context.textBaseline = 'middle'; // Center the text vertically
+  const yOffset = 50; // Adjust the vertical offset as needed
+  const textY = this.context.canvas.height / 2 - yOffset;
+  if (this.score.p1 == this.score.max_score && this.player1.me == 1)
+    this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
+  else if (this.score.p2 == this.score.max_score && this.player2.me == 1)
+    this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
+  else
+    this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
+  this.player1.me = 0;
+  this.player2.me = 0;
+  this.cpu.enable = 0;
+  this.score.p1 = 0;
+  this.score.p2 = 0;
+  this.btn5 = true;
+},
 
 		setvar() {
 			this.score.max_score = this.settings.scoreLimit;
