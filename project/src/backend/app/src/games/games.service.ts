@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Game, GameStatus, UserGame } from '@prisma/client';
 import { GameWithUsers } from './gamesExtraInterfaces';
-import { GamesStatisticsDto, UserGameDto } from './dto/game.dto';
+import { GamesStatisticsDto, UserGameDto, gameSettingsDto } from './dto/game.dto';
 
 @Injectable()
 export class GamesService {
@@ -173,11 +173,20 @@ export class GamesService {
     return gamesStatistics;
   }
 
-  async create(userId: string): Promise<Game | void> {
+  async create(userId: string, data?: gameSettingsDto): Promise<Game | void> {
     const game = await this.prisma.game
       .create({
         data: {
           status: GameStatus.WAITING,
+          ownerId: userId,
+          ballSize: data.ballSize,
+          ballSpeed: data.ballSpeed,
+          paddleSize: data.paddleSize,
+          paddleSpeed: data.paddleSpeed,
+          paddleColor: data.paddleColor,
+          backgroundColor: data.backgroundColor,
+          ballColor: data.ballColor,
+          scoreLimit: data.scoreLimit,
         },
       })
       .then((game) => {

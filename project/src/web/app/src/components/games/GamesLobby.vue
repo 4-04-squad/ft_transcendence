@@ -197,12 +197,8 @@ export default defineComponent({
 
         const createGameAndNavigate = (gameSettings: IGameSettings) => {
             // create game add the settings to the store and navigate to the game
-            createGame().then((response) => {
-                gamesettingsStore.addGameSettings({
-                    ...gameSettings,
-                    gameId: response.data.games.id,
-                });
-                router.push({ name: "game", params: { id: response.data.games.id } });
+            createGame(gameSettings).then((response) => {
+                router.push({ name: "game", params: { id: response.data.game.id } });
             })
             .catch((error) => {
                 console.log(error);

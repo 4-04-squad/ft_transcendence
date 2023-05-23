@@ -2,19 +2,19 @@
 	<Modal :onCreate="createButtonHandler" :title="'Créer une game'">
 		<div class="form-group">
 		  <label for="ball-speed">Vitesse de la balle</label>
-		  <input type="range" id="ball-speed" v-model="ballSpeed" min="1" max="10" />
+		  <input type="range" id="ball-speed" v-model.number="ballSpeed" min="1" max="10" />
 		</div>
 		<div class="form-group">
 		  <label for="paddle-speed">Vitesse de la raquette</label>
-		  <input type="range" id="paddle-speed" v-model="paddleSpeed" min="1" max="10" />
+		  <input type="range" id="paddle-speed" v-model.number="paddleSpeed" min="1" max="10" />
 		</div>
 		<div class="form-group">
 			<label for="ball-speed">Taille de la balle</label>
-			<input type="range" id="ball-size" v-model="ballSize" min="1" max="10" />
+			<input type="range" id="ball-size" v-model.number="ballSize" min="1" max="10" />
 		  </div>
 		  <div class="form-group">
 			<label for="paddle-speed">Taille de la raquette</label>
-			<input type="range" id="paddle-size" v-model="paddleSize" min="1" max="10" />
+			<input type="range" id="paddle-size" v-model.number="paddleSize" min="1" max="10" />
 		  </div>
 		<div class="form-group color">
 		  <label for="ball-color">Couleur de la balle</label>
@@ -54,6 +54,19 @@
 	  const backgroundColor = ref("#000000");
 	  const scoreMax = ref(10);
 	  const createButtonHandler = () => {
+		console.log("createButtonHandler",
+		{
+			gameId: 0,
+			ballSpeed: ballSpeed.value,
+			paddleSpeed: paddleSpeed.value,
+			ballColor: ballColor.value,
+			backgroundColor: backgroundColor.value,
+			ballSize: ballSize.value,
+			paddleSize: paddleSize.value,
+			paddleColor: paddleColor.value,
+			scoreLimit: scoreMax.value,
+		}
+		)
 		emit("onCreate", {
 			gameId: 0,
 			ballSpeed: ballSpeed.value,
