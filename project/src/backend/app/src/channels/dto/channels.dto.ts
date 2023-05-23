@@ -16,6 +16,13 @@ export class JoinChannelDto {
     chatId: string;
 }
 
+export class EditChannelDto {
+    @IsString()
+    name?: string;
+    @IsString()
+    password?: string;
+    type?: ChatType;
+}
 
 export class memberStatusDto {
     @IsString()

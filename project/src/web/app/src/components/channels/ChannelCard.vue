@@ -55,7 +55,6 @@ export default defineComponent({
                     },
                     }
                 ).then((res) => {
-                  console.log("no channel");
                   if (res.data.channel) {
                     router.push(
                     {

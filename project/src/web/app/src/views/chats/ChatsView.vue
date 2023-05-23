@@ -26,7 +26,7 @@ export default defineComponent({
         const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/chats/${chatId}`, {
           withCredentials: true,
         });
-        chatData.value = response.data;
+        chatData.value = response.data.data;
         socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
       } catch (err) {
         console.error(err);
@@ -54,7 +54,6 @@ export default defineComponent({
       socket.emit("leaveChat", { chatId: route.params.id, userId: userStore.user.pseudo });
       fetchChatDataAndJoinChat(route.params.id);
     });
-
     return {
       socket: socket,
       chatData: chatData,
