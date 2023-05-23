@@ -25,6 +25,8 @@ import { defineComponent, ref, watch } from "vue";
 import Message from "./Message.vue";
 import { useRoute } from "vue-router";
 import { useMessageStore } from "@/stores/messages";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 import { propsToAttrMap } from "@vue/shared";
 import ChannelEditModal from "../channels/ChannelEditModal.vue";
 import { shallowEqual } from "@babel/types";
@@ -53,6 +55,7 @@ export default defineComponent({
     const userStore = useUserStore();
 		const messageStore = useMessageStore();
     const route = useRoute();
+		const alertStore = useAlertStore();
 
     const sendMessage = () => {
       if (newMessage.value.trim() !== "") {
@@ -74,6 +77,19 @@ export default defineComponent({
     props.socket.on("newMessage", (message: MessageInterface) => {
       messages.value.push(message);
 			messageStore.addMessage(message);
+    });
+
+		props.socket.on("sendNotif", (data: any) => {
+      if (data.userId == userStore.user.id) {
+				const alert = {
+					status: 200,
+					message: 'Invited to pong duel. Click to join !',
+					link: data.linkId,
+					timeout: 100000,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
+			}
     });
 
     // Reset messages array when chat changes
@@ -132,6 +148,7 @@ export default defineComponent({
       newMessage,
       showEditModal,
       sendMessage,
+			alertStore,
       toggleEditModal,
       onEdditReceived,
     };
