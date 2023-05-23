@@ -101,12 +101,10 @@ export default defineComponent({
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data) => {
 			//console.log("User joined game:", data);
-			userStore.setUserStatus(userStore.user, UserStatus.PLAYING);
 		});
 
 		props.socket.on("leaveGame", (data) => {
 			//console.log("User left game:", data);
-			userStore.setUserStatus(userStore.user, UserStatus.ONLINE);
 		});
 
 		props.socket.on("movePlayer", (data) => {

@@ -69,5 +69,9 @@ export const createGame = () => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const endGame = (gameId: number, data: []) => {
-    return axios.patch(`${API_URL}/games/${gameId}/end`, {data}, { withCredentials: true });
+    return axios.patch(
+        `${API_URL}/games/${gameId}/end`,
+        data,
+        { withCredentials: true }
+    );
 }
