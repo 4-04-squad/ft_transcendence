@@ -148,7 +148,8 @@ export class GamesService {
       totalLoses: userGames.filter((userGame) => userGame.status == 'LOSER')
         .length,
       averageScore: userGames.reduce((a, b) => a + b.score, 0) / games.length,
-      elo: user.experience,
+      experience: user.experience,
+      elo: user.elo,
     };
     const allUserGames = await this.prisma.userGame.findMany().catch((err) => {
       throw new BadRequestException(err);
@@ -164,7 +165,8 @@ export class GamesService {
         .length,
       averageScore:
         allUserGames.reduce((a, b) => a + b.score, 0) / allGames.length,
-      elo: allUser.reduce((a, b) => a + b.experience, 0) / allUser.length,
+      experience: allUser.reduce((a, b) => a + b.experience, 0) / allUser.length,
+      elo: allUser.reduce((a, b) => a + b.elo, 0) / allUser.length,
     };
     const gamesStatistics = {
       userGamesStatistics: userGamesStatistics,
@@ -229,10 +231,61 @@ export class GamesService {
       });
   }
 
-  async endGame(
-    gameId: string,
-    userGames: UserGameDto[],
-  ): Promise<Game | void> {
+  async updateUserExperience(userId: string, status: string, score: number): Promise<void> {
+    let experience;
+  
+    switch(status) {
+      case 'WINNER':
+        experience = 100 + score * 5;
+        break;
+      case 'DRAW':
+        experience = 50 + score * 5;
+        break;
+      default:
+        experience = 20;
+        break;
+    }
+    await this.prisma.user
+      .update({
+        where: { id: userId },
+        data: { experience: { increment: experience } },
+      })
+      .catch((err) => {
+        throw new BadRequestException(err);
+      });
+  }
+  
+  async updateUserElo(userId: string, status: string, currentElo: number): Promise<void> {
+    const K = 32; 
+    let expectedScore, actualScore, newElo;
+  
+    switch(status) {
+      case 'WINNER':
+        actualScore = 1;
+        break;
+      case 'DRAW':
+        actualScore = 0.5;
+        break;
+      default:
+        actualScore = 0;
+        break;
+    }
+  
+    expectedScore = 1 / (1 + Math.pow(10, ((currentElo - 1500) / 400)));
+    newElo = Math.round(currentElo + K * (actualScore - expectedScore));
+  
+    await this.prisma.user
+      .update({
+        where: { id: userId },
+        data: { elo: newElo },
+      })
+      .catch((err) => {
+        console.log(err, 'error');
+        throw new BadRequestException(err);
+      });
+  }
+  
+  async endGame(gameId: string, userGames: UserGameDto[]): Promise<Game | void> {
     if (userGames.length != 2)
       throw new BadRequestException('Invalid number of players');
     const game = await this.prisma.game
@@ -244,25 +297,24 @@ export class GamesService {
         console.log(err);
         throw new BadRequestException(err);
       });
-    await this.prisma.userGame
-      .update({
-        where: { id: userGames[0].id },
-        data: { status: userGames[0].status, score: userGames[0].score },
-      })
-      .catch((err) => {
-        console.log(err);
-        throw new BadRequestException(err);
-      });
-    await this.prisma.userGame
-      .update({
-        where: { id: userGames[0].id },
-        data: { status: userGames[1].status, score: userGames[1].score },
-      })
-      .catch((err) => {
-        console.log(err);
-        throw new BadRequestException(err);
-      });
-    // TODO Yacine: this should update the user's elo as well
+      
+      for(let i = 0; i < userGames.length; i++) {
+        const user = await this.prisma.user.findUnique({ where: { id: userGames[i].userId } }).catch((err) => {
+          throw new BadRequestException(err);
+        })
+
+        await this.prisma.userGame
+        .update({
+          where: { id: userGames[i].id },
+          data: { status: userGames[i].status, score: userGames[i].score },
+        })
+        .catch((err) => {
+          throw new BadRequestException(err);
+        });
+        await this.updateUserExperience(userGames[i].userId, userGames[i].status, userGames[i].score);
+        await this.updateUserElo(userGames[i].userId, userGames[i].status, user.elo);
+      }
+        
     return game;
   }
 

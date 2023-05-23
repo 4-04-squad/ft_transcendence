@@ -83,5 +83,6 @@ interface GameStatistics {
   totalWins: number;
   totalLoses: number;
   averageScore: number;
+  experience: number;
   elo: number;
 }
