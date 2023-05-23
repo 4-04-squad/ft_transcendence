@@ -51,6 +51,8 @@ import type { UserInterface } from "@/interfaces/user.interface";
 import { SearchIcon, MessageIcon } from "@/components/icons";
 import type { ChatInterface } from "@/interfaces/chat.interface";
 import { useUserStore } from "@/stores/user";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
     name: "ChatLobby",
@@ -62,6 +64,7 @@ export default defineComponent({
     setup() {
         const userStore = useUserStore();
         const searchValue = ref("");
+		const alertStore = useAlertStore();
 
         const users = ref([] as UserInterface[]);
         const headers = [
@@ -109,9 +112,13 @@ export default defineComponent({
 
             })
             .catch((error) => {
-                console.log(error);
+				const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
                 if (axios.isAxiosError(error)) {
-                    console.log(error.response?.data);
                     if (error.response?.status == 401) {
                         router.push({ path: "/" });
                     }
