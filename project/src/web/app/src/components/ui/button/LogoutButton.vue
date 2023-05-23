@@ -9,6 +9,8 @@ import { defineComponent } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import router from "@/router";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "LogoutButton",
@@ -20,9 +22,11 @@ export default defineComponent({
   },
   setup() {
     const userStore = useUserStore();
+	const alertStore = useAlertStore();
 
     return {
       userStore,
+	  alertStore
     };
   },
   methods: {
@@ -47,7 +51,12 @@ export default defineComponent({
               }
             })
             .catch((err) => {
-              console.log(err);
+				const alert = {
+					status: err.response.data.statusCode,
+					message: err.response.data.message,
+				} as AlertInterface;
+
+				this.alertStore.setAlert(alert);
             });
         } catch (error: any) {
           console.log(error);

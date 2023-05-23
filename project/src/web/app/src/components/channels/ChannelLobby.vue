@@ -88,9 +88,14 @@ export default defineComponent({
                 });
             })
             .catch((error) => {
-                console.log(error);
+                const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
+
                 if (axios.isAxiosError(error)) {
-                    console.log(error.response?.data);
                     if (error.response?.status == 401) {
                         router.push({ path: "/" });
                     }
@@ -110,39 +115,41 @@ export default defineComponent({
         };
 
         const createChannel = (channelSettings: IChannelSettings) => {
-            try {
-                axios.post(
-                    `${import.meta.env.VITE_APP_API_URL}/channels/create`,
-                    {
-                        name: channelSettings.name,
-                        type: channelSettings.type,
-                        password: channelSettings.password
-                    },
-                    {
-                        withCredentials: true,
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    }
-                ).then((response) => {
-                    console.log(response);
-                    router.push({
-                        name: "channel",
-                        params: {
-                            id: response.data.channel.id,
-                        },
-                    });
-                }).catch((error) => {
-                    if (axios.isAxiosError(error)) {
-                        console.log(error.response?.data);
-                        if (error.response?.status == 401) {
-                            router.push({ path: "/" });
-                        }
-                    }
-                });
-            } catch (error: any) {
-                console.log(error);
-            }
+			axios.post(
+				`${import.meta.env.VITE_APP_API_URL}/channels/create`,
+				{
+					name: channelSettings.name,
+					type: channelSettings.type,
+					password: channelSettings.password
+				},
+				{
+					withCredentials: true,
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			).then((response) => {
+				console.log(response);
+				router.push({
+					name: "channel",
+					params: {
+						id: response.data.channel.id,
+					},
+				});
+			}).catch((error) => {
+				const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
+
+				if (axios.isAxiosError(error)) {
+					if (error.response?.status == 401) {
+						router.push({ path: "/" });
+					}
+				}
+			});
         };
 
         const joinChannel = (id: string, passwd?: string) => {
