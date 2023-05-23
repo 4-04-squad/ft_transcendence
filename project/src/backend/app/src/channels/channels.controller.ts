@@ -6,7 +6,7 @@ import { NextFunction, Response } from 'express';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { resolve } from 'path';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
-import { CreateChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
+import { CreateChannelDto, EditChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { get } from 'http';
 
@@ -52,7 +52,22 @@ export class ChannelsController {
         if (!user)
             res.status(401).send({ message: 'unauthorized' });
         else {
-            const users = await this.channelsService.getChannelById(channelId, user.id);
+            const chat = await this.channelsService.getChannelById(channelId);
+            res.send({ chat });
+        }
+    }
+
+    @Get(':id/members')
+    @UseGuards(AuthGuard)
+    async getChannelsMembers(
+        @Param('id', ParseUUIDPipe) channelId: string,
+        @Req() req: RequestWithUser, @Res() res: Response
+        ) {
+        const user = req.user;
+        if (!user)
+            res.status(401).send({ message: 'unauthorized' });
+        else {
+            const users = await this.channelsService.getChannelMembers(channelId, user.id);
             res.send({ users });
         }
     }
@@ -128,12 +143,21 @@ export class ChannelsController {
 
 
     @Patch(':id')
-    @ApiOkResponse({ type: JoinChannelDto })
+    @UseGuards(AuthGuard)
+    @ApiOkResponse({ type: EditChannelDto })
     async update(
         @Param('id', ParseUUIDPipe) channelId: string,
-        @Body() data: Chat,
-    ): Promise<Chat> {
-        return await this.channelsService.updateChannel(channelId, data);
+        @Body() data: EditChannelDto, 
+        @Req() req: RequestWithUser, 
+        @Res() res: Response
+    ) {
+        const user = req.user;
+        if (!user) {
+            res.status(401).send({ message: 'unauthorized' });
+        } else {
+            const channel = await this.channelsService.editChannel(user.id, channelId, data);
+            res.send({ channel });
+        }
     }
 
     @Delete(':id')
