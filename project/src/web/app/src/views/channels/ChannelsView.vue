@@ -23,20 +23,22 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
 
     const fetchChatDataAndJoinChat = async (chatId: string) => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/${chatId}`, {
-          withCredentials: true,
-        }).catch((err) => {
+      if (chatId) {
+        try {
+          const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/${chatId}`, {
+            withCredentials: true,
+          }).catch((err) => {
+            router.push({
+              name: "channels",
+            });
+          });
+          channelData.value = response.data;
+          socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
+        } catch (err) {
           router.push({
             name: "channels",
           });
-        });
-        channelData.value = response.data;
-        socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
-      } catch (err) {
-        router.push({
-          name: "channels",
-        });
+        }
       }
     }
 
