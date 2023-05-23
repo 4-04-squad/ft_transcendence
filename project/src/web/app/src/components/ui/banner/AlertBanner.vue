@@ -1,6 +1,6 @@
 <template>
     <div id="alert-banner" v-if="alert">
-        <div class="alert" :class="`alert--${alert.type}`">
+        <div class="alert" :class="`alert--${alert.type}`" @click="handleBannerClick">
             {{ alert.message }}
         </div>
     </div>
@@ -10,6 +10,8 @@
 import { defineComponent, ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useAlertStore } from "@/stores/alert";
 import type { AlertInterface } from "@/interfaces/alert.interface";
+import router from "@/router";
+import { joinGame } from "@/services/gameServices";
 
 export default defineComponent({
     name: "AlertBanner",
@@ -63,6 +65,19 @@ export default defineComponent({
             alert,
         };
     },
+	methods: {
+		handleBannerClick() {
+			if (this.alert && this.alert.link) {
+				joinGame(this.alert.link)
+				.then((res) => {
+					router.push({ name: "game", params: { id: this.alert.link } });
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+			}
+		}
+	},
 });
 </script>
 
