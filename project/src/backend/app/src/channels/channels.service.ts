@@ -146,6 +146,8 @@ export class ChannelsService {
 
     async joinChannel(data: JoinChannelDto, userId: string): Promise<Chat | void> {
         const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
+        if (!channel)
+            throw new BadRequestException("Channel not found");
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
         if (channel.type == ChatType.RESTRICTED) {
             if (channel.passwd != data.passwd || !data.passwd)
