@@ -42,6 +42,22 @@ export class ChannelsController {
         }
     }
 
+    @Get('me/:id')
+    @UseGuards(AuthGuard)
+    async getMyChannelsById(
+        @Param('id', ParseUUIDPipe) channelId: string,
+        @Req() req: RequestWithUser, @Res() res: Response
+        ) {
+            console.log('getMyChannelsById');
+        const user = req.user;
+        if (!user)
+            res.status(401).send({ message: 'unauthorized' });
+        else {
+            const chat = await this.channelsService.getChannelme(channelId, user.id);
+            res.send({ chat });
+        }
+    }
+
     @Get(':id')
     @UseGuards(AuthGuard)
     async getChannelsById(

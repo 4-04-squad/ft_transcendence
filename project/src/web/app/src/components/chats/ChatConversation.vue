@@ -59,6 +59,31 @@ export default defineComponent({
 		const isBlocked = ref(false);
 
     const sendMessage = () => {
+      axios.get(
+        `${import.meta.env.VITE_APP_API_URL}/channels/me/${props.chat.chat.id}`,
+        {
+          withCredentials: true,
+        }
+      ).then((response) => {
+        if (response.data.chat.permission == "MUTED") {
+          const alert = {
+            status: 403,
+            message: 'You are muted in this channel',
+          } as AlertInterface;
+
+          alertStore.setAlert(alert);
+          return;
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        const alert = {
+          status: error.response.data.statusCode,
+          message: error.response.data.message,
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
+      });
       if (newMessage.value.trim() !== "") {
         const message = {
           id: new Date().getTime(), // id with timestamp
