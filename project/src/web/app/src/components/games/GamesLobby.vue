@@ -92,7 +92,6 @@ import type { GameInterface, IGameSettings } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
 import { joinGame, getGames, createGame } from "@/services/gameServices";
 import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
-import { useGamesSettingsStore } from "@/stores/gamesSettingsStore";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -105,7 +104,6 @@ export default defineComponent({
     setup() {
         const searchValue = ref("");
         const userStore = useUserStore();
-        const gamesettingsStore = useGamesSettingsStore();
         const games = ref([] as GameInterface[]);
         const showCreateGameModal = ref(false);
         const headers = [
@@ -198,10 +196,7 @@ export default defineComponent({
         const createGameAndNavigate = (gameSettings: IGameSettings) => {
             // create game add the settings to the store and navigate to the game
             createGame().then((response) => {
-                gamesettingsStore.addGameSettings({
-                    ...gameSettings,
-                    gameId: response.data.games.id,
-                });
+                console.log(response.data);
                 router.push({ name: "game", params: { id: response.data.games.id } });
             })
             .catch((error) => {

@@ -3,13 +3,12 @@
     <div v-if="gameData" class="game-settings">
       <p>Game status: {{ gameData.status }}</p>
       <p>Game ID: {{ gameData.id }}</p>
-      <p v-if="users && users.length > 0">User name: {{ users[0].pseudo }}</p>
-      <p v-if="users && users.length > 1">User name: {{ users[1].pseudo }}</p>
-      <p v-if="settings"> {{ settings }}</p>
+      <p v-if="users && users.length > 0">Player 1: {{ users[0].pseudo }}</p>
+      <p v-if="users && users.length > 1">Player 2: {{ users[1].pseudo }}</p>
     </div>
 
     <!-- GAME VIEW -->
-    <FieldView v-if="gameData" :gameData="gameData" :settings="settings" :socket="socket" />
+    <FieldView v-if="gameData" :gameData="gameData" :socket="socket" />
   </div>
 </template>
 
@@ -91,7 +90,6 @@ export default defineComponent({
     return {
       gameData: gameData,
       users: users,
-      settings: settings,
       socket: socket,
     };
   },
