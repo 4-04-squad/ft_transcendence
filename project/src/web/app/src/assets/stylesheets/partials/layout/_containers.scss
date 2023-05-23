@@ -67,6 +67,7 @@ main {
 
 .main-game-layout {
   display: grid;
+  width: 100%;
   height: calc(var(--vh) * 100);
   max-height: calc(var(--vh) * 100);
   grid-template-columns: 0.1fr 2fr;
@@ -81,6 +82,7 @@ main {
       "main"
       "header";
     grid-template-columns: 1fr;
+    grid-template-rows: 1fr 100px;
   }
 
   .main-page-content {
@@ -88,6 +90,7 @@ main {
 
     @include bp($small, max) {
       margin: 0;
+      max-width: 100vw;
     }
   }
 
