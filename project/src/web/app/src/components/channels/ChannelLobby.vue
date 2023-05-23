@@ -129,7 +129,6 @@ export default defineComponent({
                         },
                     });
                 }).catch((error) => {
-                    console.log('ici ',error);
                     if (axios.isAxiosError(error)) {
                         console.log(error.response?.data);
                         if (error.response?.status == 401) {
@@ -172,7 +171,6 @@ export default defineComponent({
         };
 
         const onSettingReceived = (newSetting: IChannelSettings) => {
-            console.log(newSetting);
             toggleCreateChannelModal();
             createChannel(newSetting);
         };

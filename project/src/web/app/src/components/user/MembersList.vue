@@ -47,7 +47,7 @@ export default defineComponent({
       async () => {
         if (route.params.id) {
           // Get user by pseudo from API if we are on another user profile
-          const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/${route.params.id}`, {
+          const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/${route.params.id}/members`, {
             withCredentials: true,
           })
           .then((response) => {

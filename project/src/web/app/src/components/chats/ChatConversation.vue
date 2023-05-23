@@ -1,4 +1,7 @@
 <template>
+  <button v-if="channel.chat.type != 'DIRECT'" class="editButton" @click="toggleEditModal">
+    edit
+  </button>
   <div v-if="chat" class="chat-view">
     <section class="chat-view__container">
       <div class="chat-view__container__messages">
@@ -12,6 +15,7 @@
       </button>
     </form>
   </div>
+  <ChannelEditModal v-if="showEditModal" @onClose="toggleEditModal" @onCreate="onEdditReceived" :channel="chat" />
 </template>
 
 <script lang="ts">
@@ -21,12 +25,17 @@ import { defineComponent, ref, watch } from "vue";
 import Message from "./Message.vue";
 import { useRoute } from "vue-router";
 import { useMessageStore } from "@/stores/messages";
+import { propsToAttrMap } from "@vue/shared";
+import ChannelEditModal from "../channels/ChannelEditModal.vue";
+import { shallowEqual } from "@babel/types";
+import axios from "axios";
 
 export default defineComponent({
   name: "ChatConversation",
   components: {
     Message,
-  },
+    ChannelEditModal
+},
   props: {
     socket: {
       type: Object,
@@ -40,6 +49,7 @@ export default defineComponent({
   setup(props) {
     const messages = ref([] as MessageInterface[]);
     const newMessage = ref("");
+    const showEditModal = ref(false);
     const userStore = useUserStore();
 		const messageStore = useMessageStore();
     const route = useRoute();
@@ -85,11 +95,51 @@ export default defineComponent({
       }
     );
 
+    const toggleEditModal = () => {
+      showEditModal.value = !showEditModal.value;
+    };
+
+    const onEdditReceived = (channel: any, id: string) => {
+      toggleEditModal();
+      editChannel(channel);
+    };
+
+    const editChannel = (channel: any) => {
+      console.log(channel);
+      axios.patch(`${import.meta.env.VITE_APP_API_URL}/channels/${route.params.id}`, {
+        name: channel.name,
+        type: channel.type,
+        password: channel.password,
+      }, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    };
+
+
+
     return {
+      channel: props.chat,
       messages,
       newMessage,
+      showEditModal,
       sendMessage,
+      toggleEditModal,
+      onEdditReceived,
     };
+  },
+  methods: {
+  logchat() {
+    console.log(this.channel.chat.type);
+  },
   },
 });
 </script>
@@ -156,6 +206,13 @@ export default defineComponent({
       border-bottom-right-radius: var(--radius-md);
       margin-top: auto;
     }
+  }
+
+  .editButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 100;
   }
 }
 </style>
