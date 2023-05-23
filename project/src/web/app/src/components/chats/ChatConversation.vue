@@ -155,7 +155,12 @@ export default defineComponent({
         console.log(response);
       })
       .catch((error) => {
-        console.log(error);
+        const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
       });
     };
 

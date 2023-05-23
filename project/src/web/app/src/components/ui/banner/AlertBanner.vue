@@ -63,6 +63,7 @@ export default defineComponent({
 
         return {
             alert,
+			alertStore
         };
     },
 	methods: {
@@ -73,7 +74,12 @@ export default defineComponent({
 					router.push({ name: "game", params: { id: this.alert.link } });
 				})
 				.catch((err) => {
-					console.log(err);
+					const alert = {
+						status: err.response.data.statusCode,
+						message: err.response.data.message,
+					} as AlertInterface;
+
+					this.alertStore.setAlert(alert);
 				});
 			}
 		}
