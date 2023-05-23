@@ -6,9 +6,14 @@
                     <SearchIcon />
                     <input type="text" v-model="searchValue" placeholder="Rechercher" />
                 </div>
-            <ul class="games-filters">
+            <button class="btn btn--success create-game" @click="toggleCreateGameModal">
+                <p>Créer une game</p>
+            </button>
+        </h1>
+    </div>
+    <ul class="games-filters">
                 <li>
-                    <button class="btn btn--normal btn-game-filter only-waiting" @click="filterGames('MINE')">
+                    <button class="btn btn--normal btn-game-filter only-mine" @click="filterGames('MINE')">
                         Mes parties
                     </button>
                 </li>
@@ -18,7 +23,7 @@
                     </button>
                 </li>
                 <li>
-                    <button class="btn btn--normal btn-game-filter only-in-progress" @click="filterGames('INPROGRESS')">
+                    <button class="btn btn--normal btn-game-filter only-inprogress" @click="filterGames('INPROGRESS')">
                         En cours
                     </button>
                 </li>
@@ -33,11 +38,6 @@
                     </button>
                 </li>
             </ul>
-            <button class="btn btn--submit create-game" @click="toggleCreateGameModal">
-                <p>Créer une game</p>
-            </button>
-        </h1>
-    </div>
     <EasyDataTable
         :headers="headers"
         :items="items"
@@ -257,18 +257,25 @@ export default defineComponent({
 .games-filters {
     display: flex;
     align-items: center;
-    margin-left: auto;
-    margin-right: 0;
     list-style: none;
     padding: 0;
-    margin: 1.5rem auto 0;
+    margin: 1.5rem auto;
     font-size: 0.5rem;
+    overflow-x: auto;
+    width: 100%;
+    justify-content: center;
+
+    @media screen and (max-width: 768px) {
+        justify-content: flex-start;
+        padding-right: 1rem !important;
+    }
 
     li {
         margin-left: 1rem;
         font-weight: bold;
 
         .btn {
+            white-space: nowrap;
             &.active {
                 background-color: var(--primary-color);
                 color: #ffffff;

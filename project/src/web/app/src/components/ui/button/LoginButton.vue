@@ -52,8 +52,7 @@ export default defineComponent({
           if (response.status === 206) {
             clearInterval(interval);
             popup?.close();
-            
-						//console.log("2fa required " + response.data.user.id);
+
 						router.push({ path: "/login_2fa" });
 					}
           else if (response.status === 200) {
@@ -78,8 +77,13 @@ export default defineComponent({
             // set the user in the store
             this.userStore.setUser(response.data.user as UserInterface);
             if (this.userStore.user) {
-              console.log("User is logged in " + this.userStore.user.pseudo);
-              router.push({ path: "/" });
+              if (this.userStore.user.createdAt === this.userStore.user.updatedAt) {
+                router.push({ path: `/users/${this.userStore.user.id}/edit`});
+              }
+              else {
+                console.log("User is logged in " + this.userStore.user.pseudo);
+                router.push({ path: "/" });
+              }
             }
           }
         } catch (error) {

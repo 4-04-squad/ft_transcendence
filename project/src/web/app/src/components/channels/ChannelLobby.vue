@@ -13,7 +13,7 @@
     </div>
     <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
         :buttons-pagination="true" empty-message="Aucun channel trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
-        rows-per-page-message="Channels par page">
+        rows-per-page-message="Channels par page" :body-row-class-name="bodyRowClassNameFunction">
         <template #item-name="{ name, channel, type }">
             <span @click.stop="togglePasswdModal(type, channel)" v-if="name">{{ name }}</span>
             <span @click.stop="togglePasswdModal(type, channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
@@ -29,7 +29,7 @@
                     <XIcon />
                 </button>
             </ul>
-        </template>
+        </template> 
     </EasyDataTable>
     <ChannelPasswdModal v-if="showPasswdModal" @onClose="togglePasswdModal" @onCreate="onPasswdReceived"/>
     <ChannelSettingsModal v-if="showCreateChannelModal" @onClose="toggleCreateChannelModal" @onCreate="onSettingReceived"/>
@@ -39,13 +39,15 @@
 import { defineComponent, ref } from "vue";
 import axios from "axios";
 import router from "@/router";
-import type { Header, Item } from "vue3-easy-data-table";
+import type { Header, Item, BodyRowClassNameFunction } from "vue3-easy-data-table";
 import EasyDataTable from "vue3-easy-data-table";
 import { SearchIcon, MessageIcon, XIcon } from "@/components/icons";
 import type { ChatInterface, IChannelSettings } from "@/interfaces/chat.interface";
 import ChannelSettingsModal from "@/components/channels/ChannelSettingsModal.vue";
 import ChannelPasswdModal from "@/components/channels/ChannelPasswdModal.vue";
 import { channel } from "diagnostics_channel";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
     name: "ChatLobby",
@@ -55,8 +57,10 @@ export default defineComponent({
     MessageIcon,
     ChannelSettingsModal,
     ChannelPasswdModal,
+    XIcon,
 },
     setup() {
+        const alertStore = useAlertStore();
         const searchValue = ref("");
         const showCreateChannelModal = ref(false);
         const showPasswdModal = ref(false);
@@ -129,7 +133,6 @@ export default defineComponent({
                         },
                     });
                 }).catch((error) => {
-                    console.log('ici ',error);
                     if (axios.isAxiosError(error)) {
                         console.log(error.response?.data);
                         if (error.response?.status == 401) {
@@ -143,7 +146,6 @@ export default defineComponent({
         };
 
         const joinChannel = (id: string, passwd?: string) => {
-            try {
             const response = axios
             .post(
                 `${import.meta.env.VITE_APP_API_URL}/channels/join`,
@@ -164,15 +166,19 @@ export default defineComponent({
                 },
                 });
             }).catch((err) => {
-                console.log(err);
+                const alert = {
+                    status: err.response.data.statusCode,
+                    message: err.response.data.message,
+                  } as AlertInterface;
+
+                  alertStore.setAlert(alert);
+                router.push({
+                    name: "channels"
+                })
             });
-            } catch (error: any) {
-                console.log(error);
-            }
         };
 
         const onSettingReceived = (newSetting: IChannelSettings) => {
-            console.log(newSetting);
             toggleCreateChannelModal();
             createChannel(newSetting);
         };
@@ -182,12 +188,17 @@ export default defineComponent({
             joinChannel(channelId.value, passwd);
         };
 
+        const bodyRowClassNameFunction: BodyRowClassNameFunction = (item: Item, rowNumber: number): string => {
+            return `channel-${ item.channel }`;
+        };
+
         return {
             searchValue,
             showCreateChannelModal,
             showPasswdModal,
             headers,
             items,
+            bodyRowClassNameFunction,
             toggleCreateChannelModal,
             togglePasswdModal,
             createChannel,
@@ -199,24 +210,23 @@ export default defineComponent({
     },
     methods: {
         async leaveChannel(id: string) {
-            try {
-                const response = await axios
-                .get(
-                    `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
-                    {
-                    withCredentials: true,
-                    headers: {"Content-Type": "application/json",
-                    },
-                    }
-                ).then((res) => {
-                })
-                    .catch((err) => {
-                    console.log(err);
-                    });
-                } catch (error: any) {
-                console.log(error);
+            const response = await axios
+            .get(
+                `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
+                {
+                withCredentials: true,
+                headers: {"Content-Type": "application/json",
+                },
                 }
-        },
+            ).then((res) => {
+                document.querySelector(`.channel-${ id }`)?.remove();
+            })
+                .catch((err) => {
+                router.push ({
+                    name: "channels"
+                })
+            });
+        }
     },
 });
 </script>

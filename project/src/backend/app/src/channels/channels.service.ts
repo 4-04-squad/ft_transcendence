@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
-import { CreateChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
+import { CreateChannelDto, EditChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
 import { channel } from 'diagnostics_channel';
 
 @Injectable()
@@ -25,7 +25,12 @@ export class ChannelsService {
         return chat;       
     }
 
-    async getChannelById(chatId: string, userId: string): Promise<User[] | null> {
+    async getChannelById(chatId: string): Promise<Chat | null> {
+        const chat = await this.prisma.chat.findUnique({where: {id: chatId}});
+        return chat;
+    }
+
+    async getChannelMembers(chatId: string, userId: string): Promise<User[] | null> {
         let chatUser = await this.prisma.userChat.findMany({
             where: {
                 chatId: chatId
@@ -171,8 +176,9 @@ export class ChannelsService {
         const channelUser = await this.prisma.userChat.findMany({ where: { userId: userId } });
         if (channelUser.length == 0)
             return null;
-        const channel = await this.prisma.chat.findUnique({ where: { id: channelUser[0].chatId } });    
-        return (channel);
+        const ids = channelUser.map(obj => obj.id);
+        const channel = await this.prisma.chat.findMany({ where: { id: { in: ids }, type: { not: ChatType.DIRECT } } });    
+        return (channel[0]);
     }
         
     async isPermission(permission: string): Promise <boolean> {
@@ -200,8 +206,32 @@ export class ChannelsService {
         }
     }
 
-    async updateChannel(chatId: string, data: Chat): Promise<Chat> {
-        return await this.prisma.chat.update({ where: { id: chatId }, data });
+    async editChannel(userId: string, chatId: string, settings: EditChannelDto): Promise<Chat | null> {
+        const channel = await this.prisma.chat.findUnique({ where: { id: chatId } });
+        if (!channel) {
+            throw new BadRequestException("Channel not found");
+        }
+        const userChannel = await this.prisma.userChat.findFirst({ where: { chatId: chatId, userId: userId } });
+        if (!userChannel || userChannel.status != UserChatStatus.OWNER) {
+            throw new BadRequestException("User is not the owner of the channel");
+        }
+        if (settings.type == ChatType.DIRECT) {
+            throw new BadRequestException("Can't change direct channel");
+        }
+        const updated = await this.prisma.chat.update({
+            where: {
+                id: chatId
+            },
+            data: {
+                name: settings.name,
+                passwd: settings.password,
+                type: settings.type
+            }
+        }).catch((err) => {
+            throw new BadRequestException(err);
+        });
+        return updated;
+        
     }
 
     

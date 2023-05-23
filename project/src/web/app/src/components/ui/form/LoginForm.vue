@@ -51,7 +51,12 @@ export default defineComponent({
 				} else {
 					this.userStore.setUser(res.data.user as UserInterface);
 					if (this.userStore.user) {
-						router.push({ path: "/" });
+						if (this.userStore.user.createdAt === this.userStore.user.updatedAt) {
+							router.push({ path: `/users/${this.userStore.user.id}/edit`});
+						}
+						else {
+							router.push({ path: "/" });
+						}
 					}
 				}
 			})

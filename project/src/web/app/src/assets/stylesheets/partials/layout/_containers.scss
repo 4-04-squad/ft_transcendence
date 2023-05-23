@@ -67,10 +67,15 @@ main {
 
 .main-game-layout {
   display: grid;
+  width: 100%;
   height: calc(var(--vh) * 100);
   max-height: calc(var(--vh) * 100);
   grid-template-columns: 0.1fr 2fr;
   grid-template-areas: "header main";
+
+  .main-sidebar {
+    display: none;
+  }
 
   @include bp($small, max) {
     grid-template-areas:
@@ -85,6 +90,7 @@ main {
 
     @include bp($small, max) {
       margin: 0;
+      max-width: 100vw;
     }
   }
 
@@ -205,8 +211,6 @@ main {
     border-top-left-radius: var(--radius);
 
     @include bp($small, max) {
-      max-height: calc((var(--vh) * 20) - (var(--spacing) * 2));
-      height: calc((var(--vh) * 20) - (var(--spacing) * 2));
       border-radius: 0;
     }
 
@@ -238,6 +242,7 @@ main {
           align-items: center;
           align-content: center;
           margin-bottom: 0.5rem;
+          text-transform: uppercase;
         }
       }
 
@@ -248,8 +253,8 @@ main {
   }
 
   .content-wrapper {
-    max-height: calc(var(--vh) * 60);
-    height: calc(var(--vh) * 60);
+    max-height: calc(var(--vh) * 70);
+    height: calc(var(--vh) * 70);
     overflow-y: scroll;
     padding: var(--spacing);
     border-bottom-right-radius: var(--radius);
@@ -260,8 +265,7 @@ main {
     }
 
     @include bp($small, max) {
-      max-height: calc(var(--vh) * 70);
-      height: calc(var(--vh) * 70);
+      max-height: calc(var(--vh) * 60);
     }
   }
 }

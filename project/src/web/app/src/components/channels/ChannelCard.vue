@@ -20,6 +20,9 @@ import type { ChatInterface } from "@/interfaces/chat.interface";
 import { XIcon } from "@/components/icons";
 import axios from "axios";
 import router from "@/router";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
+
 
 type Size = "medium" | "small" | "large";
 type CardSize = "full" | "half";
@@ -43,9 +46,15 @@ export default defineComponent({
       default: "medium",
     },
   },
+  setup() {
+		const alertStore = useAlertStore();
+
+		return {
+			alertStore
+		};
+	},
   methods: {
     async leaveChannel(id: string) {
-            try {
                 const response = await axios
                 .get(
                     `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
@@ -55,7 +64,6 @@ export default defineComponent({
                     },
                     }
                 ).then((res) => {
-                  console.log("no channel");
                   if (res.data.channel) {
                     router.push(
                     {
@@ -72,11 +80,14 @@ export default defineComponent({
                     });
                   }
                 }).catch((err) => {
-                    console.log(err);
-                    });
-                } catch (error: any) {
-                console.log(error);
-                }
+                  const alert = {
+                    status: 401,
+                    message: 'Code 2FA incorrect.',
+                  } as AlertInterface;
+
+                  this.alertStore.setAlert(alert);
+                });
+                  
         },
     converse() {
       this.$router.push({

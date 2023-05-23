@@ -9,6 +9,7 @@
         </div>
       </h1>
     </div>
+    <UsersFilters />
     <EasyDataTable
       :headers="headers"
       :items="items"
@@ -72,6 +73,7 @@ import type { UserInterface } from "@/interfaces/user.interface";
 import { SearchIcon, ExternalLinkIcon } from "@/components/icons";
 import UserCard from "@/components/user/UserCard.vue";
 import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue";
+import UsersFilters from "@/components/user/UsersFilters.vue";
 
 export default defineComponent({
   name: "FriendsRequestsSentView",
@@ -81,6 +83,7 @@ export default defineComponent({
     ExternalLinkIcon,
     FriendRequestButton,
     UserCard,
+    UsersFilters,
   },
   setup() {
     const searchValue = ref("");

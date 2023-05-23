@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Game, GameStatus, UserGame } from '@prisma/client';
 import { GameWithUsers } from './gamesExtraInterfaces';
+import { GamesStatisticsDto, UserGameDto } from './dto/game.dto';
 
 @Injectable()
 export class GamesService {
@@ -119,7 +120,15 @@ export class GamesService {
     return gamesWithUsers;
   }
 
-  async getGamesStatistics(userId: string): Promise<any> {
+  async getGamesStatistics(userId: string): Promise<GamesStatisticsDto> {
+    const user = await this.prisma.user
+      .findUnique({ where: { id: userId } })
+      .catch((err) => {
+        throw new BadRequestException(err);
+      });
+    const allUser = await this.prisma.user.findMany().catch((err) => {
+      throw new BadRequestException(err);
+    });
     const userGames = await this.prisma.userGame
       .findMany({ where: { userId: userId } })
       .catch((err) => {
@@ -132,13 +141,34 @@ export class GamesService {
       .catch((err) => {
         throw new BadRequestException(err);
       });
-    const gamesStatistics = {
+    const userGamesStatistics = {
       totalGames: games.length,
       totalWins: userGames.filter((userGame) => userGame.status == 'WINNER')
         .length,
       totalLoses: userGames.filter((userGame) => userGame.status == 'LOSER')
         .length,
       averageScore: userGames.reduce((a, b) => a + b.score, 0) / games.length,
+      elo: user.experience,
+    };
+    const allUserGames = await this.prisma.userGame.findMany().catch((err) => {
+      throw new BadRequestException(err);
+    });
+    const allGames = await this.prisma.game.findMany().catch((err) => {
+      throw new BadRequestException(err);
+    });
+    const allGamesStatistics = {
+      totalGames: allGames.length,
+      totalWins: allUserGames.filter((userGame) => userGame.status == 'WINNER')
+        .length,
+      totalLoses: allUserGames.filter((userGame) => userGame.status == 'LOSER')
+        .length,
+      averageScore:
+        allUserGames.reduce((a, b) => a + b.score, 0) / allGames.length,
+      elo: allUser.reduce((a, b) => a + b.experience, 0) / allUser.length,
+    };
+    const gamesStatistics = {
+      userGamesStatistics: userGamesStatistics,
+      allGamesStatistics: allGamesStatistics,
     };
     return gamesStatistics;
   }
@@ -164,7 +194,6 @@ export class GamesService {
   // new user join a game
   async joinGame(gameId: string, userId: string): Promise<Game | void> {
     const game = await this.prisma.game.findUnique({ where: { id: gameId } });
-
     // check if that the user is not already in the game
     const userGame = await this.prisma.userGame.findMany({
       where: { gameId: gameId, userId: userId },
@@ -189,6 +218,43 @@ export class GamesService {
         console.log(err);
         throw new BadRequestException(err);
       });
+  }
+
+  async endGame(
+    gameId: string,
+    userGames: UserGameDto[],
+  ): Promise<Game | void> {
+    if (userGames.length != 2)
+      throw new BadRequestException('Invalid number of players');
+    const game = await this.prisma.game
+      .update({
+        where: { id: gameId },
+        data: { status: GameStatus.FINISHED },
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new BadRequestException(err);
+      });
+    await this.prisma.userGame
+      .update({
+        where: { id: userGames[0].id },
+        data: { status: userGames[0].status, score: userGames[0].score },
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new BadRequestException(err);
+      });
+    await this.prisma.userGame
+      .update({
+        where: { id: userGames[0].id },
+        data: { status: userGames[1].status, score: userGames[1].score },
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new BadRequestException(err);
+      });
+    // TODO Yacine: this should update the user's elo as well
+    return game;
   }
 
   async createUserGame(

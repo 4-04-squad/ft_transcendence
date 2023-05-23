@@ -9,6 +9,7 @@
         </div>
       </h1>
     </div>
+    <UsersFilters />
     <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
       :buttons-pagination="true" empty-message="Aucun utilisateur trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
       rows-per-page-message="Utilisateurs par page">
@@ -55,6 +56,7 @@ import EasyDataTable from "vue3-easy-data-table";
 import type { UserInterface } from "@/interfaces/user.interface";
 import { SearchIcon, ExternalLinkIcon } from "@/components/icons";
 import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue";
+import UsersFilters from "@/components/user/UsersFilters.vue";
 
 export default defineComponent({
   name: "UsersView",
@@ -63,6 +65,7 @@ export default defineComponent({
     SearchIcon,
     ExternalLinkIcon,
     FriendRequestButton,
+    UsersFilters,
   },
   setup() {
     const searchValue = ref("");
@@ -76,6 +79,7 @@ export default defineComponent({
       { text: "", value: "profile" },
     ] as Header[];
     const items = ref([] as Item[]);
+
 
     axios
       .get(`${import.meta.env.VITE_APP_API_URL}/users`, {
@@ -109,3 +113,32 @@ export default defineComponent({
   },
 });
 </script>
+
+
+<style lang="scss">
+
+.users-filters {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 0;
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem auto;
+    font-size: 0.5rem;
+
+    li {
+        margin-left: 1rem;
+        font-weight: bold;
+
+        .btn {
+          white-space: nowrap;
+            &.active {
+                background-color: var(--primary-color);
+                color: #ffffff;
+            }
+        }
+    }
+}
+
+</style>
