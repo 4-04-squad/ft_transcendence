@@ -30,6 +30,7 @@ export default defineComponent({
     },
   },
   setup() {
+    const alertStore = useAlertStore();
     const userStore = useUserStore();
     const chats = ref([] as ChatInterface[]);
     const selectedChat = ref(null as ChatInterface | null);
@@ -53,16 +54,15 @@ export default defineComponent({
         withCredentials: true,
       })
       .then((response) => {
-        //console.log(response.data.chats);
         chats.value = response.data.chats;
       })
       .catch((error) => {
         const alert = {
-			status: error.response.data.statusCode,
-			message: error.response.data.message,
-		} as AlertInterface;
+          status: error.response.data.statusCode,
+          message: error.response.data.message,
+        } as AlertInterface;
 
-		alertStore.setAlert(alert);
+        alertStore.setAlert(alert);
       });
 
     return {

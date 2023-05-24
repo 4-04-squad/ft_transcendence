@@ -32,6 +32,7 @@ export default defineComponent({
 	const alertStore = useAlertStore();
     const channels = ref([] as ChatInterface[]);
     const selectedChannels = ref(null as ChatInterface | null);
+    const alertStore = useAlertStore();
 
     const handleChannelSelection = (channel: ChatInterface) => {
       selectedChannels.value = channel;
@@ -47,11 +48,11 @@ export default defineComponent({
       })
       .catch((error) => {
         const alert = {
-			status: error.response.data.statusCode,
-			message: error.response.data.message,
-		} as AlertInterface;
+          status: error.response.data.statusCode,
+          message: error.response.data.message,
+        } as AlertInterface;
 
-		alertStore.setAlert(alert);
+        alertStore.setAlert(alert);
       });
 
     return {
