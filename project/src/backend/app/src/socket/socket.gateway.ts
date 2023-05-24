@@ -276,4 +276,11 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.logger.log(`Client ${client.id} deleted chat ${chatId}`);
     this.deleteSocketRoom(chatId);
   }
+
+  @SubscribeMessage('Ban')
+  onBan(client: Socket, data: { chatId: string, userId: string }) {
+    const roomName = `${data.chatId}`;
+    this.server.to(roomName).emit('Ban', { chatId: data.chatId, userId: data.userId });
+  }
+
 }

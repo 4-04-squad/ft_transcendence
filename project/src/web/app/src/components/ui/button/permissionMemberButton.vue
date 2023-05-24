@@ -5,11 +5,12 @@
   </template>
   
   <script lang="ts">
-  import { defineComponent } from "vue";
+  import { defineComponent, inject } from "vue";
   import { useUserStore } from "@/stores/user";
   import axios from "axios";
   import router from "@/router";
   import { UserChatPermission } from "@/interfaces/user.interface"
+import type { Socket } from "socket.io-client";
   
   export default defineComponent({
     name: "permissionMemberButton",
@@ -40,9 +41,11 @@
     },
     setup(props) {
       const userStore = useUserStore();
+      const socket = inject("socket") as Socket;
   
       return {
         userStore,
+        socket,
         user: props.user,
         channel: props.channel,
         permission: props.permission,
@@ -51,7 +54,6 @@
     },
     methods: {
       async permissionMember(user: string, channel: string, permission: string, status: string) {
-        try {
           const response = await axios
             .patch(
               `${import.meta.env.VITE_APP_API_URL}/channels/memberStatus`,
@@ -68,21 +70,15 @@
               }
             )
             .then((res) => {
-              this.$router.push({
-                name: "channel",
-                params: {
-                    id: channel,
-                },
-              });
+              if (res.data.channel.permission == "BANNED") {
+                this.socket.emit("Ban", { chatId: channel, userId: user });
+              }
             })
             .catch((err) => {
               console.log(err);
             });
-        } catch (error: any) {
-          console.log(error);
-        }
+        },
       },
-    },
   });
   </script>
   

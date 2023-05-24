@@ -31,6 +31,7 @@ import { propsToAttrMap } from "@vue/shared";
 import ChannelEditModal from "../channels/ChannelEditModal.vue";
 import { is, shallowEqual } from "@babel/types";
 import axios from "axios";
+import router from "@/router";
 
 export default defineComponent({
   name: "ChatConversation",
@@ -92,7 +93,6 @@ export default defineComponent({
         }
       })
       .catch((error) => {
-        console.log(error);
         const alert = {
           status: error.response.data.statusCode,
           message: error.response.data.message,

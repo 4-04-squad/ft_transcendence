@@ -25,6 +25,20 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
     const alertStore = useAlertStore();
 
+    socket.on("Ban", (data: any) => {
+      if (data.userId == userStore.user.id) {
+        const alert = {
+          status: 403,
+          message: 'You are banned from this channel',
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
+        router.push({
+          name: "channels",
+        });
+      }
+    });
+
     const fetchChatDataAndJoinChat = async (chatId: string) => {
       if (chatId) {
         try {
