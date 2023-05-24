@@ -18,7 +18,7 @@ import { AuthMiddleware } from 'src/users/users.middleware';
 import { Response } from 'express';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags, ApiBody, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
-import { GameDto, UserGameDto } from './dto/game.dto';
+import { GameDto, UserGameDto, gameSettingsDto } from './dto/game.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('games')
@@ -127,13 +127,17 @@ export class GamesController {
   @Post('/create')
   @UseGuards(AuthGuard)
   @ApiOkResponse({ description: 'Returns a game', type: GameDto })
-  async createGame(@Req() req: RequestWithUser, @Res() res: Response) {
+  async createGame(
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+    @Body() data?: gameSettingsDto,
+  ) {
     const user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
-      const games = await this.gamesService.create(user.id);
-      res.send({ games, message: 'Game created' });
+      const game = await this.gamesService.create(user.id, data);
+      res.send({ game, message: 'Game created' });
     }
   }
 

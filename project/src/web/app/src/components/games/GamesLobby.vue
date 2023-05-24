@@ -9,6 +9,9 @@
             <button class="btn btn--success create-game" @click="toggleCreateGameModal">
                 <p>Créer une game</p>
             </button>
+            <button class="btn btn--success create-game" @click="searchAndJoinGame">
+                <p>Joindre une game</p>
+            </button>
         </h1>
     </div>
     <ul class="games-filters">
@@ -131,6 +134,25 @@ export default defineComponent({
             showCreateGameModal.value = !showCreateGameModal.value;
         };
 
+        // function to join a waiting game where the user elo is closest to the current user elo
+        const searchAndJoinGame = () => {
+            const userElo = userStore.user.elo;
+            const waitingGames = games.value.filter((game) => game.status == "WAITING");
+            // if no waiting game, create one
+            if (waitingGames.length == 0) {
+                toggleCreateGameModal();
+                return;
+            }
+            const closestGame = waitingGames.reduce((prev, curr) => {
+                const prevElo = prev.users[0].elo;
+                const currElo = curr.users[0].elo;
+                // if the current game is closer to the user elo than the previous one, return it
+                if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo)) return curr;
+                return prev;
+            });
+            joinAndNavigate(closestGame.id);
+        };
+
         watch(searchValue, () => {
             items.value = filteredItems.value;
         });
@@ -205,12 +227,8 @@ export default defineComponent({
 
         const createGameAndNavigate = (gameSettings: IGameSettings) => {
             // create game add the settings to the store and navigate to the game
-            createGame().then((response) => {
-                gamesettingsStore.addGameSettings({
-                    ...gameSettings,
-                    gameId: response.data.games.id,
-                });
-                router.push({ name: "game", params: { id: response.data.games.id } });
+            createGame(gameSettings).then((response) => {
+                router.push({ name: "game", params: { id: response.data.game.id } });
             })
             .catch((error) => {
 				const alert = {
@@ -263,6 +281,7 @@ export default defineComponent({
             joinGame,
             joinAndNavigate,
             onSettingReceived,
+            searchAndJoinGame,
         };
     },
 });

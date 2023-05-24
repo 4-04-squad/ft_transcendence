@@ -10,7 +10,47 @@ export class GameDto {
   createdAt: Date;
   @ApiProperty()
   updatedAt: Date;
+  @ApiProperty()
+  ballSize: number;
+  @ApiProperty()
+  ballSpeed: number;
+  @ApiProperty()
+  paddleSize: number;
+  @ApiProperty()
+  paddleSpeed: number;
+  @ApiProperty()
+  paddleColor: string;
+  @ApiProperty()
+  backgroundColor: string;
+  @ApiProperty()
+  ballColor: string;
+  @ApiProperty()
+  scoreLimit: number;
+  @ApiProperty()
+  ownerId: string;
 }
+
+export class gameSettingsDto {
+  @ApiProperty()
+  ballSize: number;
+  @ApiProperty()
+  ballSpeed: number;
+  @ApiProperty()
+  paddleSize: number;
+  @ApiProperty()
+  paddleSpeed: number;
+  @ApiProperty()
+  paddleColor: string;
+  @ApiProperty()
+  backgroundColor: string;
+  @ApiProperty()
+  ballColor: string;
+  @ApiProperty()
+  scoreLimit: number;
+  @ApiProperty()
+  ownerId: string;
+}
+
 
 export class UserGameDto {
   @ApiProperty()
@@ -43,5 +83,6 @@ interface GameStatistics {
   totalWins: number;
   totalLoses: number;
   averageScore: number;
+  experience: number;
   elo: number;
 }
