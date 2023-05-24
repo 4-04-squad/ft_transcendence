@@ -16,6 +16,8 @@ import type { ChatInterface } from "@/interfaces/chat.interface";
 import { defineComponent, ref } from "vue";
 import ChannelCard from "./ChannelCard.vue";
 import axios from "axios";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "ChannelsList",
@@ -27,6 +29,7 @@ export default defineComponent({
     },
   },
   setup() {
+	const alertStore = useAlertStore();
     const channels = ref([] as ChatInterface[]);
     const selectedChannels = ref(null as ChatInterface | null);
 
@@ -43,7 +46,12 @@ export default defineComponent({
         channels.value = response.data.channels;
       })
       .catch((error) => {
-        console.log(error);
+        const alert = {
+			status: error.response.data.statusCode,
+			message: error.response.data.message,
+		} as AlertInterface;
+
+		alertStore.setAlert(alert);
       });
 
     return {

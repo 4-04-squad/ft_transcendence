@@ -12,6 +12,8 @@ import { IGameSettings } from "@/interfaces/game.interface";
 import axios from "axios";
 import router from "@/router";
 import type { Socket } from "socket.io-client";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "GameProposalButton",
@@ -30,6 +32,7 @@ export default defineComponent({
     const userStore = useUserStore();
     const user = props.user;
 		const socket = inject('socket') as Socket;
+		const alertStore = useAlertStore();
     const defaultGameSettings: IGameSettings = {
       gameId: '0',
       ballSpeed: 5,
@@ -49,7 +52,12 @@ export default defineComponent({
           router.push({ name: "game", params: { id: res.data.game.id } });
         })
         .catch((err) => {
-          console.log(err);
+			const alert = {
+				status: err.response.data.statusCode,
+				message: err.response.data.message,
+			} as AlertInterface;
+
+			alertStore.setAlert(alert);
         });
     };
 
@@ -60,7 +68,12 @@ export default defineComponent({
           router.push({ name: "game", params: { id: res.data.games.id } });
         })
         .catch((err) => {
-          console.log(err);
+					const alert = {
+						status: err.response.data.statusCode,
+						message: err.response.data.message,
+					} as AlertInterface;
+
+					alertStore.setAlert(alert);
         });
     };
 
@@ -75,7 +88,12 @@ export default defineComponent({
           }
         })
         .catch((err) => {
-          console.log(err);
+					const alert = {
+						status: err.response.data.statusCode,
+						message: err.response.data.message,
+					} as AlertInterface;
+
+					alertStore.setAlert(alert);
         });
     };
  

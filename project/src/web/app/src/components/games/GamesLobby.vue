@@ -96,6 +96,8 @@ import { useUserStore } from "@/stores/user";
 import { joinGame, getGames, createGame } from "@/services/gameServices";
 import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
 import { useGamesSettingsStore } from "@/stores/gamesSettingsStore";
+import { useAlertStore } from "@/stores/alert";
+import type { AlertInterface } from "@/interfaces/alert.interface";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -111,6 +113,8 @@ export default defineComponent({
         const gamesettingsStore = useGamesSettingsStore();
         const games = ref([] as GameInterface[]);
         const showCreateGameModal = ref(false);
+		const alertStore = useAlertStore();
+		
         const headers = [
             { text: "ID", value: "id", sortable: true },
             { text: "USERS", value: "players" },
@@ -203,9 +207,13 @@ export default defineComponent({
             filterGames("ALL");
         })
         .catch((error) => {
-            console.log(error);
+            const alert = {
+							status: error.response.data.statusCode,
+							message: error.response.data.message,
+						} as AlertInterface;
+
+						alertStore.setAlert(alert);
             if (axios.isAxiosError(error)) {
-                console.log(error.response?.data);
                 if (error.response?.status == 401) {
                     router.push({ path: "/" });
                 }
@@ -223,9 +231,13 @@ export default defineComponent({
                 router.push({ name: "game", params: { id: response.data.game.id } });
             })
             .catch((error) => {
-                console.log(error);
+				const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
                 if (axios.isAxiosError(error)) {
-                    console.log(error.response?.data);
                     if (error.response?.status == 401) {
                         router.push({ path: "/" });
                     }
@@ -245,9 +257,13 @@ export default defineComponent({
                 router.push({ name: "game", params: { id: gameId } });
             })
             .catch((error) => {
-                console.log(error);
+				const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
                 if (axios.isAxiosError(error)) {
-                    console.log(error.response?.data);
                     if (error.response?.status == 401) {
                         router.push({ path: "/" });
                     }
