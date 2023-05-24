@@ -221,6 +221,8 @@ export class ChannelsService {
         if (userChannel.status == UserChatStatus.ADMIN && memberChannel.status == UserChatStatus.MEMBER) {
             return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { permission: data.permission } }));
         }
+        else
+            throw new BadRequestException("Not allowed to perform this action");
     }
 
     async editChannel(userId: string, chatId: string, settings: EditChannelDto): Promise<Chat | null> {

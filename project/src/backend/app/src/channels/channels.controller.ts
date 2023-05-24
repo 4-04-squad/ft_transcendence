@@ -171,7 +171,7 @@ export class ChannelsController {
             res.status(401).send({ message: 'unauthorized' });
         } else {
             const channel = await this.channelsService.editChannel(user.id, channelId, data);
-            res.send({ channel });
+            res.send({ channel, message: 'Channel updated' });
         }
     }
 

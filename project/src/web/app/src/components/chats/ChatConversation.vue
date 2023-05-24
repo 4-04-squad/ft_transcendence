@@ -1,5 +1,5 @@
 <template>
-  <button v-if="channel.chat.type != 'DIRECT'" class="editButton" @click="toggleEditModal">
+  <button v-if="channel.chat.type != 'DIRECT' && myUserChatStatus == 'OWNER'" class="btn btn--normal editButton" @click="toggleEditModal">
     edit
   </button>
   <div v-if="chat" class="chat-view">
@@ -59,6 +59,23 @@ export default defineComponent({
 		const alertStore = useAlertStore();
 		const isBlocked = ref(false);
     const isMuted = ref(false);
+    const myUserChatStatus = ref("");
+
+    axios.get(
+      `${import.meta.env.VITE_APP_API_URL}/channels/me/${props.chat.chat.id}`,
+      {
+        withCredentials: true,
+      }
+    ).then((response) => {
+      myUserChatStatus.value = response.data.chat.status;
+    }).catch((error) => {
+        const alert = {
+          status: error.response.data.statusCode,
+          message: error.response.data.message,
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
+    });
 
     const sendMessage = () => {
       axios.get(
@@ -67,6 +84,7 @@ export default defineComponent({
           withCredentials: true,
         }
       ).then((response) => {
+        myUserChatStatus.value = response.data.chat.status;
         if (response.data.chat.permission == "MUTED") {
           isMuted.value = true;
           const alert = {
@@ -167,7 +185,6 @@ export default defineComponent({
     };
 
     const editChannel = (channel: any) => {
-      console.log(channel);
       axios.patch(`${import.meta.env.VITE_APP_API_URL}/channels/${route.params.id}`, {
         name: channel.name,
         type: channel.type,
@@ -179,10 +196,20 @@ export default defineComponent({
         },
       })
       .then((response) => {
-        console.log(response);
+        const alert = {
+          status: response.status,
+          message: response.data.message,
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
       })
       .catch((error) => {
-        console.log(error);
+        const alert = {
+          status: error.response.status,
+          message: error.response.data.message,
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
       });
     };
 
@@ -190,6 +217,7 @@ export default defineComponent({
 
     return {
       channel: props.chat,
+      myUserChatStatus,
       messages,
       newMessage,
       showEditModal,
