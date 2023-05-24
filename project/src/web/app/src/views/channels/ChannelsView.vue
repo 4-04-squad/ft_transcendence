@@ -12,6 +12,8 @@ import type { Socket } from "socket.io-client";
 import axios from "axios";
 import ChatConversation from "@/components/chats/ChatConversation.vue";
 import { useUserStore } from "@/stores/user";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "ChanelsView",
@@ -21,6 +23,7 @@ export default defineComponent({
     let channelData = ref(null);
     const userStore = useUserStore();
     const socket = inject('socket') as Socket;
+    const alertStore = useAlertStore();
 
     const fetchChatDataAndJoinChat = async (chatId: string) => {
       if (chatId) {
@@ -44,12 +47,37 @@ export default defineComponent({
 
     // Fetch chat data on route change
     watch(
+      
       () => route.params.id,
       async (newVal, oldVal) => {
-        if (oldVal) {
-          socket.emit("leaveChat", { chatId: oldVal, userId: userStore.user.pseudo });
+        if(newVal) {
+                axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/me/${newVal}`, {
+              withCredentials: true,
+            }).then((response) => {
+              if (response.data.chat.permission == "BANNED") {
+                const alert = {
+                    status: 403,
+                    message: 'You are banned from this channel',
+                  } as AlertInterface;
+                  alertStore.setAlert(alert);
+                router.push({
+                  name: "channels",
+                });
+              } else {
+
+                if (oldVal) {
+                  socket.emit("leaveChat", { chatId: oldVal, userId: userStore.user.pseudo });
+                }
+                fetchChatDataAndJoinChat(newVal);
+              }
+            }).catch((err) => {
+              const alert = {
+                status: err.response.status,
+                message: err.response.data.message,
+              } as AlertInterface;
+              alertStore.setAlert(alert);
+            });
         }
-        await fetchChatDataAndJoinChat(newVal);
       },
       { immediate: true } // Call the function immediately when the component is created
     );

@@ -48,7 +48,6 @@ export class ChannelsController {
         @Param('id', ParseUUIDPipe) channelId: string,
         @Req() req: RequestWithUser, @Res() res: Response
         ) {
-            console.log('getMyChannelsById');
         const user = req.user;
         if (!user)
             res.status(401).send({ message: 'unauthorized' });

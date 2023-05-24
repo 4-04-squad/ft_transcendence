@@ -29,7 +29,7 @@ import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 import { propsToAttrMap } from "@vue/shared";
 import ChannelEditModal from "../channels/ChannelEditModal.vue";
-import { shallowEqual } from "@babel/types";
+import { is, shallowEqual } from "@babel/types";
 import axios from "axios";
 
 export default defineComponent({
@@ -57,6 +57,7 @@ export default defineComponent({
     const route = useRoute();
 		const alertStore = useAlertStore();
 		const isBlocked = ref(false);
+    const isMuted = ref(false);
 
     const sendMessage = () => {
       axios.get(
@@ -66,13 +67,28 @@ export default defineComponent({
         }
       ).then((response) => {
         if (response.data.chat.permission == "MUTED") {
+          isMuted.value = true;
           const alert = {
             status: 403,
             message: 'You are muted in this channel',
           } as AlertInterface;
 
           alertStore.setAlert(alert);
-          return;
+        }
+        else {
+          if (newMessage.value.trim() !== "") {
+            const message = {
+              id: new Date().getTime(), // id with timestamp
+              status: MessageStatus.SENT,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              body: newMessage.value.trim(),
+              user: userStore.user,
+              chatId: props.chat.id || route.params.id,
+            };
+            props.socket.emit("newMessage", message);
+            newMessage.value = "";
+          } 
         }
       })
       .catch((error) => {
@@ -84,20 +100,6 @@ export default defineComponent({
 
         alertStore.setAlert(alert);
       });
-      if (newMessage.value.trim() !== "") {
-        const message = {
-          id: new Date().getTime(), // id with timestamp
-          status: MessageStatus.SENT,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          body: newMessage.value.trim(),
-          user: userStore.user,
-          chatId: props.chat.id || route.params.id,
-        };
-  
-        props.socket.emit("newMessage", message);
-        newMessage.value = "";
-      }
     };
 
     props.socket.on("newMessage", (message: MessageInterface) => {
@@ -196,11 +198,6 @@ export default defineComponent({
       toggleEditModal,
       onEdditReceived,
     };
-  },
-  methods: {
-  logchat() {
-    console.log(this.channel.chat.type);
-  },
   },
 });
 </script>
