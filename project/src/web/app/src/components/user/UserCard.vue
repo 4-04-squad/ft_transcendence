@@ -1,5 +1,6 @@
 <template>
-  <RouterLink
+  <div class="user-menu" @contextmenu.prevent="showContextMenu">
+    <RouterLink
     :class="`user user-${size}`"
     :to="
       isCurrentUser()
@@ -8,7 +9,7 @@
     "
     v-if="user"
   >
-    <div :class="`user-card grid ${full}-card`" @contextmenu.prevent="showContextMenu">
+    <div :class="`user-card grid ${full}-card`">
       <div :class="`column user-card__avatar ${size}`">
         <img :src="user.avatar" :alt="user.pseudo" />
         <div
@@ -20,10 +21,11 @@
         <p v-if="info.length" class="info">{{ info }}</p>
         <p v-if="preview.length" class="preview">{{ preview }}</p>
       </div>
-      <!-- context menu -->
-      <UserContextMenu :user="user" :type="type" :object="object" />
     </div>
   </RouterLink>
+  <!-- context menu -->
+  <UserContextMenu :user="user" :type="type" :object="object" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -118,20 +120,9 @@ export default defineComponent({
 
 <style lang="scss">
 .user-card {
+  display: grid;
   position: relative;
   grid-gap: 0;
-
-  &.active {
-    z-index: 2;
-
-    .user-card__details {
-      margin: 0.2rem 0 auto;
-      
-      .pseudo {
-        font-size: 1rem;
-      }
-    }
-  }
   
   &.full-card {
     grid-template-columns: 1fr 2fr;
