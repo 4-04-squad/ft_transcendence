@@ -89,12 +89,11 @@ export default defineComponent({
             })
             .catch((error) => {
                 const alert = {
-					status: error.response.data.statusCode,
-					message: error.response.data.message,
-				} as AlertInterface;
+                status: error.response.data.statusCode,
+                message: error.response.data.message,
+                } as AlertInterface;
 
-				alertStore.setAlert(alert);
-
+                alertStore.setAlert(alert);
                 if (axios.isAxiosError(error)) {
                     if (error.response?.status == 401) {
                         router.push({ path: "/" });
@@ -115,41 +114,39 @@ export default defineComponent({
         };
 
         const createChannel = (channelSettings: IChannelSettings) => {
-			axios.post(
-				`${import.meta.env.VITE_APP_API_URL}/channels/create`,
-				{
-					name: channelSettings.name,
-					type: channelSettings.type,
-					password: channelSettings.password
-				},
-				{
-					withCredentials: true,
-					headers: {
-						"Content-Type": "application/json",
-					},
-				}
-			).then((response) => {
-				console.log(response);
-				router.push({
-					name: "channel",
-					params: {
-						id: response.data.channel.id,
-					},
-				});
-			}).catch((error) => {
-				const alert = {
-					status: error.response.data.statusCode,
-					message: error.response.data.message,
-				} as AlertInterface;
+                axios.post(
+                    `${import.meta.env.VITE_APP_API_URL}/channels/create`,
+                    {
+                        name: channelSettings.name,
+                        type: channelSettings.type,
+                        password: channelSettings.password
+                    },
+                    {
+                        withCredentials: true,
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                ).then((response) => {
+                    router.push({
+                        name: "channel",
+                        params: {
+                            id: response.data.channel.id,
+                        },
+                    });
+                }).catch((error) => {
+                    const alert = {
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
+                    } as AlertInterface;
 
-				alertStore.setAlert(alert);
-
-				if (axios.isAxiosError(error)) {
-					if (error.response?.status == 401) {
-						router.push({ path: "/" });
-					}
-				}
-			});
+                    alertStore.setAlert(alert);
+                    if (axios.isAxiosError(error)) {
+                        if (error.response?.status == 401) {
+                            router.push({ path: "/" });
+                        }
+                    }
+                });
         };
 
         const joinChannel = (id: string, passwd?: string) => {
@@ -205,6 +202,7 @@ export default defineComponent({
             showPasswdModal,
             headers,
             items,
+            alertStore,
             bodyRowClassNameFunction,
             toggleCreateChannelModal,
             togglePasswdModal,
@@ -227,8 +225,13 @@ export default defineComponent({
                 }
             ).then((res) => {
                 document.querySelector(`.channel-${ id }`)?.remove();
-            })
-                .catch((err) => {
+            }).catch((error) => {
+                const alert = {
+                status: error.response.data.statusCode,
+                message: error.response.data.message,
+                } as AlertInterface;
+
+                alertStore.setAlert(alert);
                 router.push ({
                     name: "channels"
                 })

@@ -51,6 +51,18 @@ export class ChannelsService {
         return users;
     }
 
+    async getChannelme(chatId: string, userId: string): Promise<UserChat | null> {
+        const chat = await this.prisma.userChat.findFirst({
+            where: {
+                chatId: chatId,
+                userId: userId,
+            },
+        })
+        if (!chat)
+            throw new BadRequestException("User is not in the channel");
+        return chat;
+    }
+
     async getChannelsByUser(userTofindId: string): Promise<Chat[] | null> {
         let chatUser = await this.prisma.userChat.findMany({
             where: {
@@ -134,11 +146,16 @@ export class ChannelsService {
 
     async joinChannel(data: JoinChannelDto, userId: string): Promise<Chat | void> {
         const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
+        if (!channel)
+            throw new BadRequestException("Channel not found");
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
         if (channel.type == ChatType.RESTRICTED) {
             if (channel.passwd != data.passwd || !data.passwd)
                 throw new BadRequestException("Wrong password");
         }
+        const me = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: userId } });
+        if (me && me.permission == UserChatPermission.BANNED)
+            throw new BadRequestException("You are banned from this channel");
         if (userChannel.length > 0)
             return channel;
 
@@ -204,6 +221,8 @@ export class ChannelsService {
         if (userChannel.status == UserChatStatus.ADMIN && memberChannel.status == UserChatStatus.MEMBER) {
             return (await this.prisma.userChat.update({ where: { id: memberChannel.id }, data: { permission: data.permission } }));
         }
+        else
+            throw new BadRequestException("Not allowed to perform this action");
     }
 
     async editChannel(userId: string, chatId: string, settings: EditChannelDto): Promise<Chat | null> {
