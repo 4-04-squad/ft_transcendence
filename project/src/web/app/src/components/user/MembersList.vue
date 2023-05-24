@@ -19,6 +19,8 @@ import { defineComponent, ref, watch } from "vue";
 import UserCard from "./UserCard.vue";
 import axios from "axios";
 import { useRoute } from "vue-router";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "MembersList",
@@ -34,6 +36,7 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const alertStore = useAlertStore();
     const route = useRoute();
     const owner = ref(Object as () => UserInterface);
     const admins = ref([] as UserInterface[]);
@@ -54,7 +57,12 @@ export default defineComponent({
             members.value = response.data.users;
           })
           .catch((error) => {
-            console.log(error);
+            const alert = {
+              status: error.response.data.statusCode,
+              message: error.response.data.message,
+            } as AlertInterface;
+
+            alertStore.setAlert(alert);
           });
         }
       },

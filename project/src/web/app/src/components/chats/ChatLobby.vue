@@ -51,6 +51,8 @@ import type { UserInterface } from "@/interfaces/user.interface";
 import { SearchIcon, MessageIcon } from "@/components/icons";
 import type { ChatInterface } from "@/interfaces/chat.interface";
 import { useUserStore } from "@/stores/user";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
     name: "ChatLobby",
@@ -61,6 +63,7 @@ export default defineComponent({
     },
     setup() {
         const userStore = useUserStore();
+        const alertStore = useAlertStore();
         const searchValue = ref("");
 
         const users = ref([] as UserInterface[]);
@@ -74,7 +77,6 @@ export default defineComponent({
         const items = ref([] as Item[]);
 
         const getUser = (chat: ChatInterface) => {
-            // Detect if the user is the sender or the receiver
             if (chat.users[0].user.id === userStore.user.id) {
                 return chat.users[1].user;
             } else {
@@ -87,18 +89,14 @@ export default defineComponent({
                 withCredentials: true,
             })
             .then((response) => {
-                //console.log(response.data.chats);
                 const chats = response.data.chats;
 
-                // Loop chats and save all users in an array if not himself
                 chats.forEach((chat: ChatInterface) => {
                     const user = getUser(chat);
                     users.value.push(user);
-                    // add the chat id to the user
                     user.id = chat.id;
                 });
 
-                // Save all users in items
                 items.value = users.value.map((user) => ({
                     avatar: user.avatar,
                     pseudo: user.pseudo,
@@ -109,9 +107,13 @@ export default defineComponent({
 
             })
             .catch((error) => {
-                console.log(error);
+                const alert = {
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
+                } as AlertInterface;
+
+                alertStore.setAlert(alert);
                 if (axios.isAxiosError(error)) {
-                    console.log(error.response?.data);
                     if (error.response?.status == 401) {
                         router.push({ path: "/" });
                     }

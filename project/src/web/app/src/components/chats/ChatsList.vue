@@ -17,6 +17,8 @@ import { defineComponent, ref } from "vue";
 import ChatCard from "./ChatCard.vue";
 import axios from "axios";
 import { useUserStore } from "@/stores/user";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "ChatsList",
@@ -28,6 +30,7 @@ export default defineComponent({
     },
   },
   setup() {
+    const alertStore = useAlertStore();
     const userStore = useUserStore();
     const chats = ref([] as ChatInterface[]);
     const selectedChat = ref(null as ChatInterface | null);
@@ -50,11 +53,15 @@ export default defineComponent({
         withCredentials: true,
       })
       .then((response) => {
-        //console.log(response.data.chats);
         chats.value = response.data.chats;
       })
       .catch((error) => {
-        console.log(error);
+        const alert = {
+          status: error.response.data.statusCode,
+          message: error.response.data.message,
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
       });
 
     return {
