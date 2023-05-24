@@ -46,10 +46,19 @@
           title="Average Elo"
           :labels="['Your elo', 'Average elo']"
           :gamesData="[
-            userStats?.userGamesStatistics.averageScore,
-            userStats?.allGamesStatistics.averageScore,
+            userStats?.userGamesStatistics.elo,
+            userStats?.allGamesStatistics.elo,
           ]"
         />
+        <BarChartCard
+          title="Average experience"
+          :labels="['Your xp', 'Average xp']"
+          :gamesData="[
+            userStats?.userGamesStatistics.experience,
+            userStats?.allGamesStatistics.experience,
+          ]"
+        />
+
       </div>
     </div>
   </div>
@@ -88,6 +97,8 @@ export default defineComponent({
     const route = useRoute();
     const user = ref<UserInterface | undefined>(undefined);
     const userStats = ref<IUserStats | undefined>(undefined);
+
+
 
     // Watch for changes to route params and fetch user data again
     watch(

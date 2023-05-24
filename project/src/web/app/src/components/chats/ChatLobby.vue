@@ -65,6 +65,7 @@ export default defineComponent({
         const userStore = useUserStore();
         const alertStore = useAlertStore();
         const searchValue = ref("");
+		const alertStore = useAlertStore();
 
         const users = ref([] as UserInterface[]);
         const headers = [

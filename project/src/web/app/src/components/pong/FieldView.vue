@@ -2,15 +2,13 @@
 	<div class="field-view-container" ref="container">
 		<div class="field-view-container__game-zone">
 			<div class="game-buttons">
-				<button v-if="btn1" @click="oneplayer" class="btn">partie solo</button>
-				
-				<button v-if="btn2" @click="multiplayer" class="btn">partie multijoueur</button>
-				
-				<button v-if="btn3" @click="firstplayer" class="btn">joueur gauche</button>
+				<button v-if="btnOnePlayer" @click="oneplayer" class="btn">partie solo</button>
 
-				<button v-if="btn4" @click="secondplayer" class="btn">joueur droite</button>
-				
-				<button v-if="btn5" @click="replay" class="btn">refaire une partie</button>
+				<button v-if="btnMultiPlayer" @click="multiplayer" class="btn">partie multijoueur</button>
+
+				<button v-if="btnQuitGame" class="btn">
+					<RouterLink :to="{ name: 'games' }">retour au lobby</RouterLink>
+				</button>
 			</div>
 			<canvas id="Field" ref="Field">
 			</canvas>
@@ -19,8 +17,19 @@
 </template>
 
 <script lang="ts">
-import type { IGameSettings } from "@/interfaces/game.interface";
-import { defineComponent, ref, watch } from "vue";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { UserStatus } from "@/interfaces/user.interface";
+import router from "@/router";
+import { endGame } from "@/services/gameServices";
+import { useAlertStore } from "@/stores/alert";
+import { useUserStore } from "@/stores/user";
+import { defineComponent, watch } from "vue";
+
+enum userGameStatus {
+	WINNER = "WINNER",
+	LOSER = "LOSER",
+	DRAW = "DRAW",
+}
 
 export default defineComponent({
 	name: "FieldView",
@@ -29,30 +38,40 @@ export default defineComponent({
 			type: Object,
 			required: true,
 		},
-		settings: {
-			type: Object as () => IGameSettings | undefined,
-			required: true,
-		},
 		socket: {
 			type: Object,
 			required: true,
 		},
 	},
 	data() {
-		let btn1 = true
-		let btn2 = true
-		let btn3 = false
-		let btn4 = false
-		let btn5 = false
+		const userStore = useUserStore();
+		let btnOnePlayer = false;
+		let btnMultiPlayer = false;
+
+
+		// check if current user is one of the players
+		if (this.gameData.users.length == 2) {
+			if (this.gameData.users[0].id == userStore.user.id || this.gameData.users[1].id == userStore.user.id) {
+				btnOnePlayer = this.gameData.users.length == 1 ? true : false
+				btnMultiPlayer = this.gameData.users.length == 1 ? false : true
+				
+			}
+		} else {
+			if (this.gameData.users[0].id == userStore.user.id) {
+				btnOnePlayer = this.gameData.users.length == 1 ? true : false
+			}
+		}
+
+		let btnQuitGame = false
 		return {
-			btn1,
-			btn2,
-			btn3,
-			btn4,
-			btn5,
+			btnOnePlayer,
+			btnMultiPlayer,
+			btnQuitGame,
 		}
 	},
 	setup(props) {
+		const userStore = useUserStore();
+		const alertStore = useAlertStore();
 		let context = {}
 		let ball = {
 			xb: (window.innerWidth - 260) / 2 - 10,
@@ -76,26 +95,28 @@ export default defineComponent({
 			color: 'white',
 			max_score: 5,
 		}
-		
+
 		let player1 = {
 			me: 0,
-			speed: 10,
+			speed: 20,
 			tile: 75,
 			tilewidth: 10,
 			x: 0,
 			y: 0,
 			paddley: 0,
 			ply: 1,
+			id: "",
 		}
 		let player2 = {
 			me: 0,
-			speed: 10,
+			speed: 20,
 			tile: 75,
 			tilewidth: 10,
 			x: 0,
 			y: 0,
 			paddley: 0,
 			ply: 2,
+			id: "",
 		}
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data) => {
@@ -150,8 +171,9 @@ export default defineComponent({
 			context,
 			gameData: props.gameData,
 			socket: props.socket,
-			settings: props.settings,
 			cpu,
+			userStore,
+			alertStore,
 		}
 	},
 	beforeUnmount() {
@@ -186,77 +208,127 @@ export default defineComponent({
 	},
 	methods: {
 		oneplayer() {
-      		this.btn1 = false;
-			this.btn2 = false;
+			this.btnOnePlayer = false;
+			this.btnMultiPlayer = false;
 			this.player1.me = 1;
 			this.cpu.enable = 1;
-    	},
-
-		multiplayer() {
-			this.btn1 = false;
-      		this.btn2 = false;
-			this.btn3 = true;
-			this.btn4 = true;
-    	},
-
-		firstplayer() {
-			this.btn3 = false;
-			this.btn4 = false;
-			this.player1.me = 1;
 		},
 
-		secondplayer() {
-			this.btn3 = false;
-			this.btn4 = false;
-			this.player2.me = 1;
+		multiplayer() {
+			this.btnOnePlayer = false;
+			this.btnMultiPlayer = false;
+			if (this.gameData.userGames.length == 2) {
+				if (this.gameData.userGames[0].userId == this.userStore.user.id) {
+					this.firstplayer(this.gameData.userGames[0].userId);
+					this.secondplayer(this.gameData.userGames[1].userId);
+				} else {
+					this.firstplayer(this.gameData.userGames[1].userId);
+					this.secondplayer(this.gameData.userGames[0].userId);
+				}
+			}
+				
+		},
+
+		firstplayer(id: string) {
+			if (this.gameData.userGames[0].userId == id) {
+					this.player1.me = 1;
+			} else {
+					this.player1.me = 0;
+			}
+			this.player1.id = id;
+		},
+
+		secondplayer(id: string) {
+			if (this.gameData.userGames[1].userId == id) {
+					this.player2.me = 0;
+			} else {
+					this.player2.me = 1;
+			}
+			this.player2.id = id;
 		},
 
 		replay() {
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-			this.btn1 = true;
-			this.btn2 = true;
-			this.btn3 = false;
-			this.btn4 = false;
-			this.btn5 = false;
+			this.btnOnePlayer = true;
+			this.btnMultiPlayer = true;
+			this.btnQuitGame = false;
 		},
 
 		menuOfEnd() {
-  this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-  this.updatecsore();
-  this.context.font = '25px arial';
-  this.context.textAlign = 'center'; // Center the text horizontally
-  this.context.textBaseline = 'middle'; // Center the text vertically
-  const yOffset = 50; // Adjust the vertical offset as needed
-  const textY = this.context.canvas.height / 2 - yOffset;
-  if (this.score.p1 == this.score.max_score && this.player1.me == 1)
-    this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
-  else if (this.score.p2 == this.score.max_score && this.player2.me == 1)
-    this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
-  else
-    this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
-  this.player1.me = 0;
-  this.player2.me = 0;
-  this.cpu.enable = 0;
-  this.score.p1 = 0;
-  this.score.p2 = 0;
-  this.btn5 = true;
-},
+			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+			this.updatecsore();
+			this.context.font = '25px arial';
+			this.context.textAlign = 'center'; // Center the text horizontally
+			this.context.textBaseline = 'middle'; // Center the text vertically
+			const yOffset = 50; // Adjust the vertical offset as needed
+			const textY = this.context.canvas.height / 2 - yOffset;
+			if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
+				this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
+			}
+			else if (this.score.p2 == this.score.max_score && this.player2.me == 1) {
+				this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
+			}
+			else {
+				this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
+			}
+
+			if (this.gameData.userGames.length == 2) {
+				if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
+					this.gameData.userGames[0].status = userGameStatus.WINNER;
+					this.gameData.userGames[1].status = userGameStatus.LOSER;
+				}
+				else if (this.score.p2 == this.score.max_score && this.player2.me == 1) {
+					this.gameData.userGames[0].status = userGameStatus.LOSER;
+					this.gameData.userGames[1].status = userGameStatus.WINNER;
+				}
+				else {
+					this.gameData.userGames[0].status = userGameStatus.DRAW;
+					this.gameData.userGames[1].status = userGameStatus.DRAW;
+				}
+				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
+					const alert = {
+						status: err.response.status,
+						message: err.response.data.message,
+					} as AlertInterface;
+
+					this.alertStore.setAlert(alert);
+					router.push({
+						name: "games",
+					});
+				});
+			} else if (this.gameData.userGames.length == 1) {
+				if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
+					this.gameData.userGames[0].status = userGameStatus.WINNER;
+				}
+				else {
+					this.gameData.userGames[0].status = userGameStatus.LOSER;
+				}
+			}
+
+			this.player1.me = 0;
+			this.player2.me = 0;
+			this.cpu.enable = 0;
+			this.score.p1 = 0;
+			this.score.p2 = 0;
+			this.btnOnePlayer = false;
+			this.btnMultiPlayer = false;
+			this.btnQuitGame = true;
+		},
 
 		setvar() {
-			this.score.max_score = this.settings.scoreLimit;
-			this.ball.width = this.settings.ballSize;
-			this.ball.speed = this.settings.ballSpeed;
-			this.cpu.difficulty = this.settings.paddleSpeed;
-			this.player2.tile = this.settings.paddleSize;
-			this.player2.speed = this.settings.paddleSpeed;
-			this.player1.tile = this.settings.paddleSize;
-			this.player1.speed = this.settings.paddleSpeed;
+			this.score.max_score = this.gameData.scoreLimit;
+			this.ball.width = this.gameData.ballSize;
+			this.ball.speed = this.gameData.ballSpeed;
+			this.cpu.difficulty = this.gameData.paddleSpeed;
+			this.player2.tile = this.gameData.paddleSize;
+			this.player2.speed = this.gameData.paddleSpeed;
+			this.player1.tile = this.gameData.paddleSize;
+			this.player1.speed = this.gameData.paddleSpeed;
 		},
 
 		movecpu(player: Object) {
 			player.speed = this.cpu.difficulty;
-			if (player.y < this.ball.y && player.paddley < this.ball.y)
-			{
+			if (player.y < this.ball.y && player.paddley < this.ball.y) {
 				if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25))) {
 					player.y = this.context.canvas.height - player.tile;
 					player.paddley = player.y + player.tile;
@@ -266,8 +338,7 @@ export default defineComponent({
 					player.paddley = player.y + player.tile;
 				}
 			}
-			else if (player.y > this.ball.y && player.paddley > this.ball.y)
-			{
+			else if (player.y > this.ball.y && player.paddley > this.ball.y) {
 				if ((player.y - player.speed) <= 0) {
 					player.y = 0;
 					player.paddley = player.y + player.tile;
@@ -301,9 +372,9 @@ export default defineComponent({
 							player.paddley = player.y + player.tile;
 						}
 						if (player.ply == 1)
-							this.socket.emit("movePlayer", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
+							this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
 						else
-							this.socket.emit("movePlayerTwo", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
+							this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
 						break;
 					case up:
 						if ((player.y - player.speed) <= 0) {
@@ -315,9 +386,9 @@ export default defineComponent({
 							player.paddley = player.y + player.tile;
 						}
 						if (player.ply == 1)
-							this.socket.emit("movePlayer", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
+							this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
 						else
-							this.socket.emit("movePlayerTwo", {userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
+							this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
 						break;
 					default:
 						return;
@@ -336,7 +407,7 @@ export default defineComponent({
 
 		updatecsore() {
 			// color the background
-			this.context.fillStyle = this.settings.backgroundColor;
+			this.context.fillStyle = this.gameData.backgroundColor;
 			this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			// Putting the middle line
 			this.themecolor();
@@ -345,7 +416,12 @@ export default defineComponent({
 			// Draw score & update
 			this.context.font = '48px arial';
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
-			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);	
+			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);
+			if (this.gameData.userGames.length == 2) {
+				// Set gameData
+				this.gameData.userGames[0].score = this.score.p1;
+				this.gameData.userGames[1].score = this.score.p2;
+			}
 		},
 
 		updateball() {
@@ -363,28 +439,28 @@ export default defineComponent({
 			else if (this.ball.x + this.ball.velocityx + this.ball.width >= this.player2.x) {
 				if ((this.ball.y >= this.player2.y && this.ball.y <= this.player2.paddley)
 					|| (this.ball.y + this.ball.width >= this.player2.y && this.ball.y + this.ball.width <= this.player2.paddley)) {
-						if (this.ball.rebonetime == 0 || this.ball.rebonetime == 2)
-					{
-						/*if (++this.ball.rebound % 3 == 0)
+					if (this.ball.rebonetime == 0 || this.ball.rebonetime == 2) {
+						if (++this.ball.rebound % 3 == 0)
 						{
 							this.player1.speed++;
+							this.player2.speed++;
 							this.ball.speed++;
-						}*/
+						}
 						this.ball.rebonetime = 1;
 					}
-						this.ball.velocityx = -1;
+					this.ball.velocityx = -1;
 				}
 			}
 			else if ((this.ball.x - this.player1.tilewidth) - this.ball.velocityx <= this.player1.x) {
 				if ((this.ball.y >= this.player1.y && this.ball.y <= this.player1.paddley)
 					|| (this.ball.y + this.ball.width >= this.player1.y && this.ball.y + this.ball.width <= this.player1.paddley)) {
-					if (this.ball.rebonetime == 1 || this.ball.rebonetime == 2)
-					{
-						/*if (++this.ball.rebound % 3 == 0)
+					if (this.ball.rebonetime == 1 || this.ball.rebonetime == 2) {
+						if (++this.ball.rebound % 3 == 0)
 						{
 							this.player1.speed++;
+							this.player2.speed++;
 							this.ball.speed++;
-						}*/
+						}
 						this.ball.rebonetime = 0;
 					}
 					this.ball.velocityx = 1;
@@ -393,12 +469,10 @@ export default defineComponent({
 			else
 				;
 			// check the collision on the Y axe
-			if (this.ball.y + this.ball.velocityy + this.ball.width >= this.context.canvas.height)
-			{
+			if (this.ball.y + this.ball.velocityy + this.ball.width >= this.context.canvas.height) {
 				this.ball.velocityy = -1;
 			}
-			else if (this.ball.y - this.ball.velocityy <= 0)
-			{
+			else if (this.ball.y - this.ball.velocityy <= 0) {
 				this.ball.velocityy = 1;
 			}
 			else
@@ -409,11 +483,11 @@ export default defineComponent({
 		},
 
 		redrawall() {
-			this.context.fillStyle = this.settings.paddleColor;
+			this.context.fillStyle = this.gameData.paddleColor;
 			this.context.fillRect(this.player1.x, this.player1.y, this.player1.tilewidth, this.player1.tile);
 			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
 
-			this.context.fillStyle = this.settings.ballColor;
+			this.context.fillStyle = this.gameData.ballColor;
 			this.context.beginPath();
 			this.context.arc(this.ball.x + this.ball.width / 2, this.ball.y + this.ball.width / 2, this.ball.width / 2, 0, 2 * Math.PI);
 			this.context.fill();
@@ -424,13 +498,11 @@ export default defineComponent({
 			//this.setvar();
 			//console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
-					this.menuOfEnd();
-			else if (this.player1.me == 1 || this.player2.me == 1)
-			{
+				this.menuOfEnd();
+			else if (this.player1.me == 1 || this.player2.me == 1) {
 				this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 				this.updatecsore();
-				if (this.player1.me == 1)
-				{
+				if (this.player1.me == 1) {
 					this.moveplayer(this.player1);
 					this.updateball();
 				}
@@ -454,7 +526,7 @@ export default defineComponent({
 
 		createbackground() {
 			this.context = <HTMLCanvasElement>this.$refs.Field.getContext("2d");
-			this.context.canvas.width = window.innerWidth  - 145;
+			this.context.canvas.width = window.innerWidth - 145;
 			this.context.canvas.height = window.innerHeight - 40;
 			this.themecolor();
 		},

@@ -39,6 +39,50 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   }
 
   /*
+  * Emit action : User status
+  */
+  @SubscribeMessage('online')
+  onOnline(@Body() data: { userId: string, status: string }) {
+    const roomName = `online`;
+    // emit in room
+    this.server.to(roomName).emit('online', { userId: data.userId, status: data.status });
+  }
+
+  @SubscribeMessage('joinOnline')
+  onJoinOnline(client: Socket, data: { userId: string }) {
+    const roomName = `online`;
+    const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
+
+    if (userRooms.has(roomName)) {
+      return;
+    }
+
+    client.join(roomName);
+    this.logger.log(`Client ${data.userId} joined room ${roomName}`);
+  }
+
+  @SubscribeMessage('waiting')
+  onWaitingGame(@Body() data: { userId: string, status: string }) {
+    const roomName = `waiting`;
+    // emit in room
+    this.server.to(roomName).emit('waiting', { userId: data.userId, status: data.status });
+  }
+
+  @SubscribeMessage('joinWaitingGame')
+  onJoinWaitingGame(client: Socket, data: { userId: string }) {
+    const roomName = `waiting`;
+    const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
+
+    if (userRooms.has(roomName)) {
+      return;
+    }
+
+    client.join(roomName);
+    this.logger.log(`Client ${data.userId} joined room ${roomName}`);
+  }
+
+
+  /*
   * Emit action : Notif
   */
   @SubscribeMessage('sendNotif')

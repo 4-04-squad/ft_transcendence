@@ -25,6 +25,7 @@ import { useUserStore } from "@/stores/user";
 import UserCard from "@/components/user/UserCard.vue";
 import LogoutButton from "@/components/ui/button/LogoutButton.vue";
 import LoginButton from "@/components/ui/button/LoginButton.vue";
+import { UsersIcon, InfoIcon, LoginIcon, LogoutIcon } from "@/components/icons";
 
 export default defineComponent({
     name: "MainNavContainer",
@@ -33,6 +34,10 @@ export default defineComponent({
         UserCard,
         LogoutButton,
         LoginButton,
+        UsersIcon,
+        InfoIcon,
+        LoginIcon,
+        LogoutIcon,
     },
     setup() {
         const userStore = useUserStore();

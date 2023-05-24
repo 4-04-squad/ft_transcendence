@@ -9,11 +9,42 @@
       <div class="content-wrapper">
         <div class="grid">
           <div class="home-card">
-            <h2 class="title">Shortcut</h2>
-          </div>
-          <div class="home-card">
             <h2 class="title">Top classement</h2>
           </div>
+          <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
+              :buttons-pagination="true" empty-message="Aucun utilisateur trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
+              rows-per-page-message="Utilisateurs par page">
+              <template #item-avatar="{ avatar, pseudo }">
+                <RouterLink :to="{ name: 'user', params: { pseudo: pseudo } }">
+                  <img class="avatar avatar--rounded medium" :src="avatar" :alt="pseudo" />
+                </RouterLink>
+              </template>
+              <template #item-pseudo="{ pseudo }">
+                <RouterLink :to="{ name: 'user', params: { pseudo: pseudo } }">
+                  <span>{{ pseudo }}</span>
+                </RouterLink>
+              </template>
+              <template #item-elo="{ elo }">
+                <span :class="`status ${elo}`">{{ elo }}</span>
+              </template>
+              <template #item-status="{ status }">
+                <span :class="`status ${status}`">{{ status }}</span>
+              </template>
+              <template #item-profile="{ profile, pseudo }">
+                <ul class="btns">
+                  <li>
+                    <FriendRequestButton :friendId="profile" class="btn btn--icon only-icon" />
+                  </li>
+                  <li>
+                    <RouterLink :to="{ name: 'user', params: { pseudo: pseudo } }">
+                      <button class="btn btn--icon only-icon">
+                        <ExternalLinkIcon />
+                      </button>
+                    </RouterLink>
+                  </li>
+                </ul>
+              </template>
+            </EasyDataTable>
         </div>
       </div>
     </div>
@@ -22,20 +53,70 @@
 
 <script lang="ts">
 import MainLayout from "@/components/layout/layout/MainLayout.vue";
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import { useUserStore } from "@/stores/user";
+import EasyDataTable from "vue3-easy-data-table";
 import router from "@/router";
+import type { UserInterface } from "@/interfaces/user.interface";
+import type { Header, Item } from "vue3-easy-data-table";
+import axios from "axios";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "HomeView",
   components: {
     MainLayout,
+    EasyDataTable,
   },
   setup() {
-    const userStore = useUserStore();
+    const alertStore = useAlertStore();
+    const userStore = useUserStore()
+    const users = ref([] as UserInterface[]);
+    const headers = [
+      { text: "AVATAR", value: "avatar", sortable: false },
+      { text: "PSEUDO", value: "pseudo" },
+      { text: "STATUS", value: "status", sortable: true },
+      { text: "ELO", value: "elo", sortable: true },
+      { text: "", value: "profile" },
+    ] as Header[];
+    const items = ref([] as Item[]);
+
+    axios
+      .get(`${import.meta.env.VITE_APP_API_URL}/users`, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        users.value = response.data.users;
+        users.value.sort((a, b) => {
+          return b.elo - a.elo;
+        });
+        items.value = users.value.map((user) => ({
+          avatar: user.avatar,
+          pseudo: user.pseudo,
+          email: user.email,
+          elo: user.elo,
+          status: user.status ? user.status.toLowerCase() : "",
+          profile: user.id,
+        })) as Item[];
+      })
+      .catch((error) => {
+        const alert = {
+          status: error.response.data.statusCode,
+          message: error.response.data.message,
+        } as AlertInterface;
+        alertStore.setAlert(alert);
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status == 401) {
+            router.push({ path: "/login" });
+          }
+        }
+      });
 
     return {
       userStore,
+      headers,
+      items,
     };
   },
 });
