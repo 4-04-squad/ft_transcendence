@@ -169,3 +169,7 @@
   .toggle-switch.checked .toggle-switch-switch {
     transform: translateX(20.8px);
   }
+
+  .not-allowed {
+    cursor: not-allowed;
+  }

@@ -3,26 +3,27 @@
     <div v-if="gameData" class="game-settings">
       <p>Game status: {{ gameData.status }}</p>
       <p>Game ID: {{ gameData.id }}</p>
-      <p v-if="users && users.length > 0">User name: {{ users[0].pseudo }}</p>
-      <p v-if="users && users.length > 1">User name: {{ users[1].pseudo }}</p>
-      <p v-if="settings"> {{ settings }}</p>
+      <p v-if="users && users.length > 0">Player 1: {{ users[0].pseudo }}</p>
+      <p v-if="users && users.length > 1">Player 2: {{ users[1].pseudo }}</p>
     </div>
 
     <!-- GAME VIEW -->
-    <FieldView v-if="gameData" :gameData="gameData" :settings="settings" :socket="socket" />
+    <FieldView v-if="gameData" :gameData="gameData" :socket="socket" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import type { GameInterface, IGameSettings } from "@/interfaces/game.interface";
+import type { GameInterface } from "@/interfaces/game.interface";
 import type { UserInterface } from "@/interfaces/user.interface";
 import FieldView from "@/components/pong/FieldView.vue";
-import { useGamesSettingsStore } from "@/stores/gamesSettingsStore";
 import axios from "axios";
 import type { Socket } from "socket.io-client";
 import { useUserStore } from "@/stores/user";
+import router from "@/router";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "GamesView",
@@ -31,10 +32,9 @@ export default defineComponent({
   },
   setup() {
     const route = useRoute();
+    const alertStore = useAlertStore();
     const gameData = ref<GameInterface | null>(null);
     const users = ref<UserInterface[] | null>(null);
-    const settings = ref<IGameSettings | undefined>(undefined);
-    const gamesettingsStore = useGamesSettingsStore();
     const userStore = useUserStore();
     const socket = inject('socket') as Socket;
 
@@ -46,15 +46,43 @@ export default defineComponent({
             withCredentials: true,
           }
         );
-        console.log("response", response);
         users.value = response.data.games.users;
         gameData.value = response.data.games;
+        if (!gameData.value?.id) {
+          const alert = {
+            status: 401,
+            message: "The game doesn't exist",
+          } as AlertInterface;
+
+          alertStore.setAlert(alert);
+          router.push({
+            name: "games",
+          });
+        }
+        if (gameData.value?.status === "FINISHED") {
+          const alert = {
+            status: 401,
+            message: "The game is finished",
+          } as AlertInterface;
+
+          alertStore.setAlert(alert);
+          router.push({
+            name: "games",
+          });
+        }
         if (gameData.value) {
-          settings.value = gamesettingsStore.getGameSettings(gameData.value.id);
           socket.emit("joinGame", { gameId: gameId, userId: userStore.user.pseudo });
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        const alert = {
+          status: err.response?.status,
+          message: err.response?.data.message,
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
+        router.push({
+          name: "games",
+        });
       }
     };
 
@@ -70,9 +98,17 @@ export default defineComponent({
           if (oldVal) {
             socket.emit("leaveGame", { gameId: oldVal, userId: userStore.user.pseudo });
           }
-          await fetchChatDataAndJoinGame(newVal);
-        } catch (err) {
-          console.error(err);
+          await fetchChatDataAndJoinGame(newVal as string);
+        } catch (err: any) {
+          const alert = {
+            status: err.response.status,
+            message: err.response.data.message,
+          } as AlertInterface;
+
+          alertStore.setAlert(alert);
+          router.push({
+            name: "games",
+          });
         }
       },
       { immediate: true } // Call the function immediately when the component is created
@@ -85,13 +121,12 @@ export default defineComponent({
     onMounted(() => {
       // Call the function when the page is reloaded
       socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.pseudo });
-      fetchChatDataAndJoinGame(route.params.id);
+      fetchChatDataAndJoinGame(route.params.id as string);
     });
 
     return {
       gameData: gameData,
       users: users,
-      settings: settings,
       socket: socket,
     };
   },
@@ -102,6 +137,7 @@ export default defineComponent({
 #page-games {
   position: relative;
 }
+
 .game-settings {
   position: absolute;
   top: 0;
