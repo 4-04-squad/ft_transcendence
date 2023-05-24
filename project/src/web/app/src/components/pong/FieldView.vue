@@ -401,9 +401,11 @@ export default defineComponent({
 			this.context.font = '48px arial';
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
 			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);
-			// Set gameData
-			this.gameData.userGames[0].score = this.score.p1;
-			this.gameData.userGames[1].score = this.score.p2;
+			if (this.gameData.userGames.length == 2) {
+				// Set gameData
+				this.gameData.userGames[0].score = this.score.p1;
+				this.gameData.userGames[1].score = this.score.p2;
+			}
 		},
 
 		updateball() {
