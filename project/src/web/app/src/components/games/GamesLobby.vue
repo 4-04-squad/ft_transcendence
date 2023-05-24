@@ -106,7 +106,6 @@ export default defineComponent({
         const alertStore = useAlertStore();
         const games = ref([] as GameInterface[]);
         const showCreateGameModal = ref(false);
-		const alertStore = useAlertStore();
 		
         const headers = [
             { text: "ID", value: "id", sortable: true },
