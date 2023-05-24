@@ -46,12 +46,11 @@ export class AuthController {
         sameSite: 'none',
         maxAge 
       });
-  
-      // Send the response
-      const statusCode = isTwoFactorEnabled ? 206 : 200;
-      res.status(statusCode).send({ user });
-      if (isTwoFactorEnabled)
-        return;
+      
+      if (isTwoFactorEnabled) {
+		res.status(206).send({ user });
+		return;
+	  }
     }
   
     // Set user as ONLINE
@@ -60,7 +59,7 @@ export class AuthController {
     }
   
     // Send the response
-    res.send({ user });
+    res.status(200).send({ user });
   
   }
 
