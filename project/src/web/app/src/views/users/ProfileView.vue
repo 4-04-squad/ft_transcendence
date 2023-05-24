@@ -26,6 +26,7 @@
     </div>
     <div class="content-wrapper content-wrapper--user">
       <div v-if="userStats?.userGamesStatistics" class="user-stats-container">
+        <div>
         <DoughutChartCard
           title="Win / Lose games"
           :labels="['win', 'lose']"
@@ -58,6 +59,29 @@
             userStats?.allGamesStatistics.experience,
           ]"
         />
+        </div>
+        <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :buttons-pagination="true"
+        empty-message="Aucun game trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
+        rows-per-page-message="Games par page">
+        <template #item-id="{ id, status }">
+            <RouterLink :to="{ name: 'game', params: { id: id } }" v-if="status != 'FINISHED'">
+                <span>Game <span class="game-name">#{{ id }}</span></span>
+            </RouterLink>
+            <span v-else>Game <span class="game-name not-allowed">#{{ id }}</span></span>
+        </template>
+        <template #item-status="{ status }">
+            <span :class="`game-status game-status--${status.toLowerCase()}`">{{ status.toLowerCase() }}</span>
+        </template>
+        <template #item-players="{ players }">
+            <div class="players">
+                <div class="players__item" v-for="player in players" :key="player.id">
+                    <RouterLink :to="{ name: 'user', params: { pseudo: player.pseudo } }">
+                        <img class="avatar avatar--rounded small" :src="player.avatar" :alt="player.pseudo" />
+                    </RouterLink>
+                </div>
+            </div>
+        </template>
+    </EasyDataTable>
 
       </div>
     </div>
@@ -66,7 +90,7 @@
 
 <script lang="ts">
 import type { UserInterface } from "@/interfaces/user.interface";
-import type { IUserStats } from "@/interfaces/game.interface";
+import type { GameInterface, IUserStats } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
 import { defineComponent, ref, watch } from "vue";
 import { useRoute } from "vue-router";
@@ -76,14 +100,19 @@ import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue"
 import DoughutChartCard from "@/components/ui/chart/DoughutChartCard.vue";
 import BarChartCard from "@/components/ui/chart/BarChartCard.vue";
 import LineChartCard from "@/components/ui/chart/LineChartCard.vue";
+import EasyDataTable, { type Header, type Item } from "vue3-easy-data-table";
 
 import { EditIcon } from "@/components/icons";
-import { getStatsByUser } from "@/services/gameServices";
+import { getGames, getStatsByUser } from "@/services/gameServices";
 import BlockUserButton from "@/components/ui/button/BlockUserButton.vue";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
+import router from "@/router";
 
 export default defineComponent({
   name: "ProfileView",
   components: {
+    EasyDataTable,
     UserCard,
     EditIcon,
     FriendRequestButton,
@@ -93,11 +122,48 @@ export default defineComponent({
     BlockUserButton,
   },
   setup() {
+    const alertStore = useAlertStore();
     const userStore = useUserStore();
     const route = useRoute();
     const user = ref<UserInterface | undefined>(undefined);
     const userStats = ref<IUserStats | undefined>(undefined);
+    const games = ref([] as GameInterface[]);
+    const headers = [
+            { text: "ID", value: "id", sortable: true },
+            { text: "USERS", value: "players" },
+            { text: "STATUS", value: "status", sortable: true },
+            { text: "RESULT", value: "result"},
+            { text: "DATE", value: "date", sortable: true},
+            { text: "", value: "game" } // game id
+        ] as Header[];
+    const items = ref([] as Item[]);
 
+    getGames().then((response) => {
+            console.log(response.data.games);
+            games.value = response.data.games;
+            games.value = games.value.filter((game) => {
+              if (game.status === "FINISHED") {
+                return game;
+              }
+            });
+            items.value = games.value.map((game) => {
+                return {
+                    id: game.id,
+                    players: game.users,
+                    status: game.status,
+                    result: game.userGames.find((userGame) => userGame.userId === userStore.user?.id)?.status,
+                    date: game.updatedAt,
+                } as Item;
+            });
+        })
+            .catch((error) => {
+                const alert = {
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
+                } as AlertInterface;
+
+                alertStore.setAlert(alert);
+        });
 
 
     // Watch for changes to route params and fetch user data again
@@ -145,6 +211,8 @@ export default defineComponent({
     );
 
     return {
+      headers,
+      items,
       userStore,
       user,
       userStats,
