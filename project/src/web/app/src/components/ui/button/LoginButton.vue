@@ -5,11 +5,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, inject } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import router from "@/router";
-import type { UserInterface } from "@/interfaces/user.interface";
+import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "LoginButton",
@@ -21,9 +24,23 @@ export default defineComponent({
   },
   setup() {
     const userStore = useUserStore();
+    const alertStore = useAlertStore();
+    const socket = inject('socket') as Socket;
+
+    socket.on('shoutOnline', (data) => {
+      console.log(data);
+			const alert = {
+				status: 200,
+				message: data.msg,
+			} as AlertInterface;
+
+			alertStore.setAlert(alert);
+		});
 
     return {
       userStore,
+      alertStore,
+      socket
     };
   },
   methods: {
@@ -76,6 +93,7 @@ export default defineComponent({
             }
             // set the user in the store
             this.userStore.setUser(response.data.user as UserInterface);
+            this.socket.emit("joinOnline", { user: this.userStore.user });
             if (this.userStore.user) {
               if (this.userStore.user.createdAt === this.userStore.user.updatedAt) {
                 router.push({ path: `/users/${this.userStore.user.id}/edit`});
@@ -86,8 +104,12 @@ export default defineComponent({
               }
             }
           }
-        } catch (error) {
-          console.log(error);
+        } catch (error: any) {
+          const alert = {
+            status: error.response.data.statusCode,
+            message: error.response.data.message,
+          } as AlertInterface;
+          this.alertStore.setAlert(alert);
         }
       }, 100);
     },

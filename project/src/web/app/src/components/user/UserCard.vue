@@ -29,10 +29,11 @@
 <script lang="ts">
 import { RouterLink } from "vue-router";
 import type { UserInterface } from "@/interfaces/user.interface";
-import { defineComponent } from "vue";
+import { defineComponent, inject } from "vue";
 import type { PropType } from "vue";
 import { useUserStore } from "@/stores/user";
 import UserContextMenu from "./UserContextMenu.vue";
+import type { Socket } from "socket.io-client";
 
 type Size = "medium" | "small" | "large";
 type CardSize = "full" | "half";
@@ -80,6 +81,7 @@ export default defineComponent({
   setup(props) {
     // check if current user is the same as the user in the card
     const userStore = useUserStore();
+    const socket = inject('socket') as Socket;
     const isCurrentUser = () => {
       return props.user?.pseudo === userStore.user?.pseudo ? true : false;
     };
@@ -108,6 +110,7 @@ export default defineComponent({
     return {
       isCurrentUser,
       showContextMenu,
+      socket,
     };
   },
 });

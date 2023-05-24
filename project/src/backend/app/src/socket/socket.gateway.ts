@@ -41,25 +41,49 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   /*
   * Emit action : User status
   */
-  @SubscribeMessage('online')
-  onOnline(@Body() data: { userId: string, status: string }) {
+
+  @SubscribeMessage('user:status')
+  onUserStatus(@MessageBody() data: { userId: string, status: string }) {
     const roomName = `online`;
     // emit in room
-    this.server.to(roomName).emit('online', { userId: data.userId, status: data.status });
+    this.server.to(roomName).emit('user:status', { userId: data.userId, status: data.status });
+  }
+
+  @SubscribeMessage('shoutOnline')
+  onShoutOnline(@MessageBody() data: { msg: string }) {
+    const roomName = `online`;
+    // emit in room
+    this.server.to(roomName).emit('shoutOnline', { msg: data.msg });
   }
 
   @SubscribeMessage('joinOnline')
-  onJoinOnline(client: Socket, data: { userId: string }) {
+  onJoinOnline(client: Socket, data: { user }) {
     const roomName = `online`;
-    const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
+    const userRooms = this.connectedRooms.get(data.user.id) || new Set<string>();
 
     if (userRooms.has(roomName)) {
       return;
     }
 
     client.join(roomName);
-    this.logger.log(`Client ${data.userId} joined room ${roomName}`);
+    this.logger.log(`Client ${data.user.id} joined room ${roomName}`);
+    // emit that the user is online to room except sender
+    client.to(roomName).emit('shoutOnline', { msg: `${data.user.username} is online`});
   }
+
+  @SubscribeMessage('leaveOnline')
+  onLeaveOnline(client: Socket, data: { user }) {
+    const roomName = `online`;
+    const userRooms = this.connectedRooms.get(data.user.id) || new Set<string>();
+
+    if (!userRooms.has(roomName)) {
+      return;
+    }
+
+    client.leave(roomName);
+    this.logger.log(`Client ${data.user.id} left room ${roomName}`);
+  }
+
 
   @SubscribeMessage('waiting')
   onWaitingGame(@Body() data: { userId: string, status: string }) {
@@ -138,6 +162,13 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   /*
   * Handle action
   */
+
+  @SubscribeMessage('ready')
+  onReady(@Body() data: { gameId: string, userId: string }) {
+    const roomName = `${data.gameId}`;
+    // emit in room
+    this.server.to(roomName).emit('ready', { gameId: data.gameId, userId: data.userId });
+  }
 
   @SubscribeMessage('joinGame')
   onJoinGame(client: Socket, data: { gameId: string, userId: string }) {
