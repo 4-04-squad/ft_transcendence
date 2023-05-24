@@ -8,6 +8,7 @@
 import { defineComponent, inject } from "vue";
 import { useUserStore } from "@/stores/user";
 import { createGame, joinGame, getGamesByUser } from "@/services/gameServices";
+import { IGameSettings } from "@/interfaces/game.interface";
 import axios from "axios";
 import router from "@/router";
 import type { Socket } from "socket.io-client";
@@ -32,12 +33,23 @@ export default defineComponent({
     const user = props.user;
 		const socket = inject('socket') as Socket;
 		const alertStore = useAlertStore();
+    const defaultGameSettings: IGameSettings = {
+      gameId: '0',
+      ballSpeed: 5,
+      paddleSpeed: 5,
+      ballColor: "#ffffff",
+      backgroundColor: "#000000",
+      ballSize: 5,
+      paddleSize: 5,
+      paddleColor: "#ffffff",
+      scoreLimit: 10,
+    };
 
     const createGameAndNavigate = () => {
-      createGame()
+      createGame(defaultGameSettings)
         .then((res) => {
-					socket.emit("sendNotif", {userId: user, linkId: res.data.games.id});
-          router.push({ name: "game", params: { id: res.data.games.id } });
+					socket.emit("sendNotif", {userId: user, linkId: res.data.game.id});
+          router.push({ name: "game", params: { id: res.data.game.id } });
         })
         .catch((err) => {
 			const alert = {
