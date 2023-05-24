@@ -17,8 +17,11 @@
 </template>
 
 <script lang="ts">
+import type { AlertInterface } from "@/interfaces/alert.interface";
 import { UserStatus } from "@/interfaces/user.interface";
+import router from "@/router";
 import { endGame } from "@/services/gameServices";
+import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
 import { defineComponent, watch } from "vue";
 
@@ -52,6 +55,7 @@ export default defineComponent({
 	},
 	setup(props) {
 		const userStore = useUserStore();
+		const alertStore = useAlertStore();
 		let context = {}
 		let ball = {
 			xb: (window.innerWidth - 260) / 2 - 10,
@@ -153,6 +157,7 @@ export default defineComponent({
 			socket: props.socket,
 			cpu,
 			userStore,
+			alertStore,
 		}
 	},
 	beforeUnmount() {
@@ -242,24 +247,47 @@ export default defineComponent({
 			const yOffset = 50; // Adjust the vertical offset as needed
 			const textY = this.context.canvas.height / 2 - yOffset;
 			if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
-				this.gameData.userGames[0].status = userGameStatus.WINNER;
-				this.gameData.userGames[1].status = userGameStatus.LOSER;
 				this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
 			}
 			else if (this.score.p2 == this.score.max_score && this.player2.me == 1) {
-				this.gameData.userGames[0].status = userGameStatus.LOSER;
-				this.gameData.userGames[1].status = userGameStatus.WINNER;
 				this.context.fillText("Bravo vous avez gagné", this.context.canvas.width / 2, textY);
 			}
 			else {
-				this.gameData.userGames[1].status = userGameStatus.WINNER;
-				this.gameData.userGames[0].status = userGameStatus.LOSER;
 				this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
 			}
 
-			endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
-                console.log(err);
-            });
+			if (this.gameData.userGames.length == 2) {
+				if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
+					this.gameData.userGames[0].status = userGameStatus.WINNER;
+					this.gameData.userGames[1].status = userGameStatus.LOSER;
+				}
+				else if (this.score.p2 == this.score.max_score && this.player2.me == 1) {
+					this.gameData.userGames[0].status = userGameStatus.LOSER;
+					this.gameData.userGames[1].status = userGameStatus.WINNER;
+				}
+				else {
+					this.gameData.userGames[0].status = userGameStatus.DRAW;
+					this.gameData.userGames[1].status = userGameStatus.DRAW;
+				}
+				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
+					const alert = {
+						status: err.response.status,
+						message: err.response.data.message,
+					} as AlertInterface;
+
+					this.alertStore.setAlert(alert);
+					router.push({
+						name: "games",
+					});
+				});
+			} else if (this.gameData.userGames.length == 1) {
+				if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
+					this.gameData.userGames[0].status = userGameStatus.WINNER;
+				}
+				else {
+					this.gameData.userGames[0].status = userGameStatus.LOSER;
+				}
+			}
 
 			this.player1.me = 0;
 			this.player2.me = 0;
