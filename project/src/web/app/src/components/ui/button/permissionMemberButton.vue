@@ -11,6 +11,8 @@
   import router from "@/router";
   import { UserChatPermission } from "@/interfaces/user.interface"
 import type { Socket } from "socket.io-client";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
   
   export default defineComponent({
     name: "permissionMemberButton",
@@ -41,6 +43,7 @@ import type { Socket } from "socket.io-client";
     },
     setup(props) {
       const userStore = useUserStore();
+      const alertStore = useAlertStore();
       const socket = inject("socket") as Socket;
   
       return {
@@ -50,6 +53,7 @@ import type { Socket } from "socket.io-client";
         channel: props.channel,
         permission: props.permission,
         status: props.status,
+        alertStore,
       };
     },
     methods: {
@@ -70,12 +74,20 @@ import type { Socket } from "socket.io-client";
               }
             )
             .then((res) => {
-              if (res.data.channel.permission == "BANNED") {
-                this.socket.emit("Ban", { chatId: channel, userId: user });
+              if (permission == "BANNED") {
+                this.socket.emit("ban", { chatId: channel, userId: user });
+              }
+              if (permission == "KICKED") {
+                this.socket.emit("kick", { chatId: channel, userId: user });
               }
             })
             .catch((err) => {
-              console.log(err);
+              const alert = {
+                status: err.response.status,
+                message: err.response.data.message,
+              } as AlertInterface;
+
+              this.alertStore.setAlert(alert);
             });
         },
       },

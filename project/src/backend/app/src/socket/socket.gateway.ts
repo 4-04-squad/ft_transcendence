@@ -277,10 +277,16 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.deleteSocketRoom(chatId);
   }
 
-  @SubscribeMessage('Ban')
+  @SubscribeMessage('ban')
   onBan(client: Socket, data: { chatId: string, userId: string }) {
     const roomName = `${data.chatId}`;
-    this.server.to(roomName).emit('Ban', { chatId: data.chatId, userId: data.userId });
+    this.server.to(roomName).emit('ban', { chatId: data.chatId, userId: data.userId });
+  }
+  
+  @SubscribeMessage('kick')
+  onKick(client: Socket, data: { chatId: string, userId: string }) {
+    const roomName = `${data.chatId}`;
+    this.server.to(roomName).emit('kick', { chatId: data.chatId, userId: data.userId });
   }
 
 }

@@ -25,11 +25,25 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
     const alertStore = useAlertStore();
 
-    socket.on("Ban", (data: any) => {
+    socket.on("ban", (data: any) => {
       if (data.userId == userStore.user.id) {
         const alert = {
           status: 403,
           message: 'You are banned from this channel',
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
+        router.push({
+          name: "channels",
+        });
+      }
+    });
+
+    socket.on("kick", (data: any) => {
+      if (data.userId == userStore.user.id) {
+        const alert = {
+          status: 403,
+          message: 'You are kicked from this channel',
         } as AlertInterface;
 
         alertStore.setAlert(alert);
