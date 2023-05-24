@@ -44,8 +44,24 @@ export default defineComponent({
 		},
 	},
 	data() {
-		let btnOnePlayer = this.gameData.users.length == 1 ? true : false
-		let btnMultiPlayer = this.gameData.users.length == 1 ? false : true
+		const userStore = useUserStore();
+		let btnOnePlayer = false;
+		let btnMultiPlayer = false;
+
+
+		// check if current user is one of the players
+		if (this.gameData.users.length == 2) {
+			if (this.gameData.users[0].id == userStore.user.id || this.gameData.users[1].id == userStore.user.id) {
+				btnOnePlayer = this.gameData.users.length == 1 ? true : false
+				btnMultiPlayer = this.gameData.users.length == 1 ? false : true
+				
+			}
+		} else {
+			if (this.gameData.users[0].id == userStore.user.id) {
+				btnOnePlayer = this.gameData.users.length == 1 ? true : false
+			}
+		}
+
 		let btnQuitGame = false
 		return {
 			btnOnePlayer,
