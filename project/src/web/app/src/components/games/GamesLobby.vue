@@ -177,8 +177,8 @@ export default defineComponent({
         })
             .catch((error) => {
                 const alert = {
-                    status: error.response?.status,
-                    message: error.response?.data.message,
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
                 } as AlertInterface;
 
                 alertStore.setAlert(alert);
@@ -199,8 +199,8 @@ export default defineComponent({
             })
                 .catch((error) => {
                     const alert = {
-                        status: error.response?.status,
-                        message: error.response?.data.message,
+                        status: error.response.data.statusCode,
+                        message: error.response.data.message,
                     } as AlertInterface;
 
                     alertStore.setAlert(alert);
@@ -223,8 +223,8 @@ export default defineComponent({
             })
                 .catch((error) => {
                     const alert = {
-                        status: error.response?.status,
-                        message: error.response?.data.message,
+                        status: error.response.data.statusCode,
+                        message: error.response.data.message,
                     } as AlertInterface;
 
                     alertStore.setAlert(alert);
