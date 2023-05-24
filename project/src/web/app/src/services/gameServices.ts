@@ -63,3 +63,15 @@ export const joinGame = (gameId: number) => {
 export const createGame = (settings: any) => {
     return axios.post(`${API_URL}/games/create`, settings, { withCredentials: true });
 };
+
+/**
+ * @description End a game
+ * @returns {Promise<AxiosResponse<any>>}
+ */
+export const endGame = (gameId: number, data: []) => {
+    return axios.patch(
+        `${API_URL}/games/${gameId}/end`,
+        data,
+        { withCredentials: true }
+    );
+}

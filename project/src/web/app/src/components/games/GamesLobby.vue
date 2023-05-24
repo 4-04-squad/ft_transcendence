@@ -2,10 +2,10 @@
     <div class="head">
         <h1 class="title title--search">
             <span> Rechercher une game</span>
-                <div class="search search--icon">
-                    <SearchIcon />
-                    <input type="text" v-model="searchValue" placeholder="Rechercher" />
-                </div>
+            <div class="search search--icon">
+                <SearchIcon />
+                <input type="text" v-model="searchValue" placeholder="Rechercher" />
+            </div>
             <button class="btn btn--success create-game" @click="toggleCreateGameModal">
                 <p>Créer une game</p>
             </button>
@@ -15,46 +15,40 @@
         </h1>
     </div>
     <ul class="games-filters">
-                <li>
-                    <button class="btn btn--normal btn-game-filter only-mine" @click="filterGames('MINE')">
-                        Mes parties
-                    </button>
-                </li>
-                <li>
-                    <button class="btn btn--normal btn-game-filter only-waiting" @click="filterGames('WAITING')">
-                        En attente
-                    </button>
-                </li>
-                <li>
-                    <button class="btn btn--normal btn-game-filter only-inprogress" @click="filterGames('INPROGRESS')">
-                        En cours
-                    </button>
-                </li>
-                <li>
-                    <button class="btn btn--normal btn-game-filter only-finished" @click="filterGames('FINISHED')">
-                       Terminée
-                    </button>
-                </li>
-                <li>
-                    <button class="btn btn--normal btn-game-filter only-all active" @click="filterGames('ALL')">
-                        Tout
-                    </button>
-                </li>
-            </ul>
-    <EasyDataTable
-        :headers="headers"
-        :items="items"
-        :theme-color="'var(--primary-color)'"
-        :buttons-pagination="true"
-        empty-message="Aucun game trouvé"
-        :rows-items="[10, 15, 20]"
-        :rows-per-page="5"
-        rows-per-page-message="Games par page"
-    >
-        <template #item-id="{ id }">
-            <RouterLink :to="{ name: 'game', params: { id: id } }">
+        <li>
+            <button class="btn btn--normal btn-game-filter only-mine" @click="filterGames('MINE')">
+                Mes parties
+            </button>
+        </li>
+        <li>
+            <button class="btn btn--normal btn-game-filter only-waiting" @click="filterGames('WAITING')">
+                En attente
+            </button>
+        </li>
+        <li>
+            <button class="btn btn--normal btn-game-filter only-inprogress" @click="filterGames('INPROGRESS')">
+                En cours
+            </button>
+        </li>
+        <li>
+            <button class="btn btn--normal btn-game-filter only-finished" @click="filterGames('FINISHED')">
+                Terminée
+            </button>
+        </li>
+        <li>
+            <button class="btn btn--normal btn-game-filter only-all active" @click="filterGames('ALL')">
+                Tout
+            </button>
+        </li>
+    </ul>
+    <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :buttons-pagination="true"
+        empty-message="Aucun game trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
+        rows-per-page-message="Games par page">
+        <template #item-id="{ id, status }">
+            <RouterLink :to="{ name: 'game', params: { id: id } }" v-if="status != 'FINISHED'">
                 <span>Game <span class="game-name">#{{ id }}</span></span>
             </RouterLink>
+            <span v-else>Game <span class="game-name not-allowed">#{{ id }}</span></span>
         </template>
         <template #item-users="{ users }">
             <span>{{ users }} / 2</span>
@@ -72,16 +66,16 @@
             </div>
         </template>
         <template #item-game="{ game, status }">
-            <ul class="btns"  v-if="status == 'WAITING'">
+            <ul class="btns" v-if="status == 'WAITING'">
                 <li @click="joinAndNavigate(game)">
-                        <button class="btn btn--icon only-icon">
-                            <AirplayIcon />
-                        </button>
+                    <button class="btn btn--icon only-icon">
+                        <AirplayIcon />
+                    </button>
                 </li>
             </ul>
         </template>
     </EasyDataTable>
-    <GameSettingsModal v-if="showCreateGameModal" @onClose="toggleCreateGameModal" @onCreate="onSettingReceived"/>
+    <GameSettingsModal v-if="showCreateGameModal" @onClose="toggleCreateGameModal" @onCreate="onSettingReceived" />
 </template>
   
 <script lang="ts">
@@ -95,9 +89,8 @@ import type { GameInterface, IGameSettings } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
 import { joinGame, getGames, createGame } from "@/services/gameServices";
 import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
-import { useGamesSettingsStore } from "@/stores/gamesSettingsStore";
-import { useAlertStore } from "@/stores/alert";
 import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -110,10 +103,9 @@ export default defineComponent({
     setup() {
         const searchValue = ref("");
         const userStore = useUserStore();
-        const gamesettingsStore = useGamesSettingsStore();
+        const alertStore = useAlertStore();
         const games = ref([] as GameInterface[]);
         const showCreateGameModal = ref(false);
-		const alertStore = useAlertStore();
 		
         const headers = [
             { text: "ID", value: "id", sortable: true },
@@ -202,23 +194,21 @@ export default defineComponent({
                 .map(mapGameToItem);
         };
 
-        getGames().then((response) => {                
+        getGames().then((response) => {
             games.value = response.data.games;
             filterGames("ALL");
         })
-        .catch((error) => {
-            const alert = {
-							status: error.response.data.statusCode,
-							message: error.response.data.message,
-						} as AlertInterface;
+            .catch((error) => {
+                const alert = {
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
+                } as AlertInterface;
 
-						alertStore.setAlert(alert);
-            if (axios.isAxiosError(error)) {
-                if (error.response?.status == 401) {
-                    router.push({ path: "/" });
-                }
-            }
-        });
+                alertStore.setAlert(alert);
+                router.push({
+                    name: "games",
+                });
+            });
 
         const onSettingReceived = (newSetting: IGameSettings) => {
             toggleCreateGameModal();
@@ -227,28 +217,26 @@ export default defineComponent({
 
         const createGameAndNavigate = (gameSettings: IGameSettings) => {
             // create game add the settings to the store and navigate to the game
-            createGame(gameSettings).then((response) => {
-                router.push({ name: "game", params: { id: response.data.game.id } });
+            createGame().then((response) => {
+                router.push({ name: "game", params: { id: response.data.games.id } });
             })
-            .catch((error) => {
-				const alert = {
-					status: error.response.data.statusCode,
-					message: error.response.data.message,
-				} as AlertInterface;
+                .catch((error) => {
+                    const alert = {
+                        status: error.response.data.statusCode,
+                        message: error.response.data.message,
+                    } as AlertInterface;
 
-				alertStore.setAlert(alert);
-                if (axios.isAxiosError(error)) {
-                    if (error.response?.status == 401) {
-                        router.push({ path: "/" });
-                    }
-                }
-            });
+                    alertStore.setAlert(alert);
+                    router.push({
+                        name: "games",
+                    });
+                });
         };
 
         const joinAndNavigate = (gameId: number) => {
             const game = games.value.find((game) => game.id == gameId);
             // if user is already in the game, just navigate to it
-            if (game?.users.some((user) => user.id == userStore.user.id)){
+            if (game?.users.some((user) => user.id == userStore.user.id)) {
                 router.push({ name: "game", params: { id: gameId } });
                 return;
             }
@@ -256,19 +244,17 @@ export default defineComponent({
             joinGame(gameId).then((response) => {
                 router.push({ name: "game", params: { id: gameId } });
             })
-            .catch((error) => {
-				const alert = {
-					status: error.response.data.statusCode,
-					message: error.response.data.message,
-				} as AlertInterface;
+                .catch((error) => {
+                    const alert = {
+                        status: error.response.data.statusCode,
+                        message: error.response.data.message,
+                    } as AlertInterface;
 
-				alertStore.setAlert(alert);
-                if (axios.isAxiosError(error)) {
-                    if (error.response?.status == 401) {
-                        router.push({ path: "/" });
-                    }
-                }
-            });
+                    alertStore.setAlert(alert);
+                    router.push({
+                        name: "games",
+                    });
+                });
         };
 
         return {
@@ -288,7 +274,6 @@ export default defineComponent({
 </script>
   
 <style lang="scss">
-
 .games-filters {
     display: flex;
     align-items: center;
@@ -311,6 +296,7 @@ export default defineComponent({
 
         .btn {
             white-space: nowrap;
+
             &.active {
                 background-color: var(--primary-color);
                 color: #ffffff;
@@ -341,15 +327,14 @@ export default defineComponent({
     display: flex;
     flex-direction: row;
     align-items: center;
-    
-  }
-  
+
+}
+
 .players__item {
     margin-right: 5px;
 }
 
-.create-game{
+.create-game {
     margin-top: 20px;
 }
-
 </style>
