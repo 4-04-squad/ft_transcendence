@@ -56,6 +56,7 @@ export default defineComponent({
 		const messageStore = useMessageStore();
     const route = useRoute();
 		const alertStore = useAlertStore();
+		const isBlocked = ref(false);
 
     const sendMessage = () => {
       if (newMessage.value.trim() !== "") {
@@ -75,8 +76,26 @@ export default defineComponent({
     };
 
     props.socket.on("newMessage", (message: MessageInterface) => {
-      messages.value.push(message);
-			messageStore.addMessage(message);
+			axios.get(
+				`${import.meta.env.VITE_APP_API_URL}/users/@me/${message.user.id}/blocked`,
+				{
+					withCredentials: true,
+				}
+			).then((response) => {
+				isBlocked.value = response.data.isBlocked;
+				if (!isBlocked.value) {
+					messages.value.push(message);
+					messageStore.addMessage(message);
+				}
+			})
+			.catch((error) => {
+				const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
+			});
     });
 
 		props.socket.on("sendNotif", (data: any) => {
@@ -136,7 +155,12 @@ export default defineComponent({
         console.log(response);
       })
       .catch((error) => {
-        console.log(error);
+        const alert = {
+					status: error.response.data.statusCode,
+					message: error.response.data.message,
+				} as AlertInterface;
+
+				alertStore.setAlert(alert);
       });
     };
 

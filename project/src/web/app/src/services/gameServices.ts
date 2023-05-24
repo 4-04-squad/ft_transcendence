@@ -60,8 +60,8 @@ export const joinGame = (gameId: number) => {
  * @description Create a game
  * @returns {Promise<AxiosResponse<any>>}
  */
-export const createGame = () => {
-	  return axios.post(`${API_URL}/games/create`, {}, { withCredentials: true });
+export const createGame = (settings: any) => {
+    return axios.post(`${API_URL}/games/create`, settings, { withCredentials: true });
 };
 
 /**

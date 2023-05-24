@@ -146,7 +146,6 @@ export default defineComponent({
         })
         .catch((error) => {
           if (error.response?.status == 400) {
-            console.log(error.response?.data);
             this.isFriend = FriendsRequestStatus.TRUE;
           }
         });
@@ -168,7 +167,6 @@ export default defineComponent({
         })
         .catch((error) => {
           if (error.response?.status == 400) {
-            console.log(error.response?.data);
             this.isFriend = FriendsRequestStatus.FALSE;
           }
         });
@@ -188,7 +186,6 @@ export default defineComponent({
         })
         .catch((error) => {
           if (error.response?.status == 400) {
-            console.log(error.response?.data);
             this.isFriend = FriendsRequestStatus.FALSE;
           }
         });
@@ -212,7 +209,6 @@ export default defineComponent({
         })
         .catch((error) => {
           if (error.response?.status == 400) {
-            console.log(error.response?.data);
             this.isFriend = FriendsRequestStatus.TRUE;
           }
         });
