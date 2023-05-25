@@ -105,27 +105,36 @@ export default defineComponent({
   
 <style lang="scss">
 
-.hidden {
-    display: none;
-}
-
 .user-context-menu {
-    position: absolute;
-    bottom: -100%;
     background-color: var(--primary-color);
     width: 100%;
-    z-index: 5;
     padding: 0.5rem;
-    border-bottom-left-radius: var(--radius-sm);
-    border-bottom-right-radius: var(--radius-sm);
+    border-radius: var(--radius-sm);
+    margin-top: 0.5rem;
+
+    &.hidden {
+        display: none;
+    }
 
     ul {
         list-style: none;
         padding: 0;
-        margin: 1rem 0 0;
         display: flex;
         flex-direction: column;
         font-weight: 500;
+        width: 100%;
+        
+        li {
+            padding: 0.2rem 0;
+            border-bottom: 1px solid var(--primary-color-light);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-weight: bold;
+
+            &:hover {
+                background-color: var(--primary-color-light);
+            }
+        }
     }
 }
 

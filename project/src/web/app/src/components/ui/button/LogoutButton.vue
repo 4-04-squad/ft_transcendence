@@ -5,12 +5,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, inject } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import router from "@/router";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "LogoutButton",
@@ -22,11 +23,13 @@ export default defineComponent({
   },
   setup() {
     const userStore = useUserStore();
-	const alertStore = useAlertStore();
+    const alertStore = useAlertStore();
+    const socket = inject('socket') as Socket;
 
     return {
       userStore,
-	  alertStore
+      alertStore,
+      socket,
     };
   },
   methods: {
@@ -35,28 +38,34 @@ export default defineComponent({
         try {
           const response = await axios
             .get(
-              `${import.meta.env.VITE_APP_API_URL}/auth/signout/${
-                this.userStore.user.id
+              `${import.meta.env.VITE_APP_API_URL}/auth/signout/${this.userStore.user.id
               }`,
               {
                 withCredentials: true,
               }
             )
             .then((res) => {
+              
+              this.socket.emit("leaveOnline", { user: this.userStore.user });
+                  const alert = {
+                  status: res.data.statusCode,
+                  message: res.data.message,
+                } as AlertInterface;
+
+              this.alertStore.setAlert(alert);
               this.userStore.clearUser();
-              console.log(res);
+              
               if (!this.userStore.user) {
-                console.log("User is logged out");
                 router.push({ path: "/login" });
               }
             })
             .catch((err) => {
-				const alert = {
-					status: err.response.data.statusCode,
-					message: err.response.data.message,
-				} as AlertInterface;
+              const alert = {
+                status: err.response.data.statusCode,
+                message: err.response.data.message,
+              } as AlertInterface;
 
-				this.alertStore.setAlert(alert);
+              this.alertStore.setAlert(alert);
             });
         } catch (error: any) {
           console.log(error);
