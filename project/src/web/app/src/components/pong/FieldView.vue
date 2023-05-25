@@ -96,7 +96,8 @@ export default defineComponent({
 			p1: 0,
 			p2: 0,
 			color: 'white',
-			max_score: 5,
+			max_score: 105,
+			finish_game: 0,
 		};
 
 		const player1: Player = {
@@ -110,6 +111,8 @@ export default defineComponent({
 			ply: 1,
 			id: "",
 			ready: 0,
+			canvasX: 0,
+			canvasY: 0,
 		};
     
 		const player2: Player = {
@@ -123,6 +126,9 @@ export default defineComponent({
 			ply: 2,
 			id: "",
 			ready: 0,
+			canvasX: 0,
+			canvasY: 0,
+			ratio: 1,
 		};
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data: any) => {
@@ -158,12 +164,18 @@ export default defineComponent({
 		});
 
 		props.socket.on("ready", (data: any) => {
-				if (data.userId == player1.id) {
-					player1.ready = 1;
-				} else if (data.userId == player2.id) {
-					player2.ready = 1;
-				}
-			});
+			if (data.userId == player1.id) {
+				player1.ready = 1;
+			} else if (data.userId == player2.id) {
+				player2.ready = 1;
+			}
+		});
+
+		props.socket.on("sendCanvasSizeP1", (data: any) => {
+			console.log("data:", data.x, data.y);
+			player1.canvasX = data.width;
+			player1.canvasY = data.height;
+		});
 
 		// watch for changes in the gameData prop
 		watch(
@@ -271,6 +283,7 @@ export default defineComponent({
 		menuOfEnd() {
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			this.updatecsore();
+			this.score.finish_game = 1;
 			this.context.font = '25px arial';
 			this.context.textAlign = 'center'; // Center the text horizontally
 			this.context.textBaseline = 'middle'; // Center the text vertically
@@ -364,57 +377,80 @@ export default defineComponent({
 			}
 		},
 
-		moveplayer(player: Player) {
+		movePlayerFonctionOne(event) {
 			let up = "w";
 			let down = "s";
-			if (player.ply == 2) {
-				up = "ArrowUp";
-				down = "ArrowDown";
-			}
-			window.addEventListener("keypress", (event) => {
-				if (event.defaultPrevented) {
+			switch (event.key) {
+				case down:
+					if ((this.player1.y + this.player1.speed) >= (this.context.canvas.height - (this.player1.tile))) {
+						this.player1.y = this.context.canvas.height - this.player1.tile;
+						this.player1.paddley = this.player1.y + this.player1.tile;
+					}
+					else {
+						this.player1.y = this.player1.y + this.player1.speed;
+						this.player1.paddley = this.player1.y + this.player1.tile;
+					}
+					this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: this.player1.x, y: this.player1.y, }, });
+					break;
+				case up:
+					if ((this.player1.y - this.player1.speed) <= 0) {
+						this.player1.y = 0;
+						this.player1.paddley = this.player1.y + this.player1.tile;
+					}
+					else {
+						this.player1.y = this.player1.y - this.player1.speed;
+						this.player1.paddley = this.player1.y + this.player1.tile;
+					}
+					this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: this.player1.x, y: this.player1.y, }, });
+					break;
+				default:
 					return;
-				}
-				switch (event.key) {
-					case down:
-						if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile))) {
-							player.y = this.context.canvas.height - player.tile;
-							player.paddley = player.y + player.tile;
-						}
-						else {
-							player.y = player.y + player.speed;
-							player.paddley = player.y + player.tile;
-						}
-						if (player.ply == 1)
-							this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
-						else
-							this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
-						break;
-					case up:
-						if ((player.y - player.speed) <= 0) {
-							player.y = 0;
-							player.paddley = player.y + player.tile;
-						}
-						else {
-							player.y = player.y - player.speed;
-							player.paddley = player.y + player.tile;
-						}
-						if (player.ply == 1)
-							this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
-						else
-							this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: player.x, y: player.y, }, });
-						break;
-					default:
-						return;
-				}
-				event.preventDefault();
-			},
-			);
+			}
+		},
+
+		movePlayerFonctionTwo(event) {
+			let up = "c";
+			let down = "v";
+			switch (event.key) {
+				case down:
+					if ((this.player2.y + this.player2.speed) >= (this.context.canvas.height - (this.player2.tile))) {
+						this.player2.y = this.context.canvas.height - this.player2.tile;
+						this.player2.paddley = this.player2.y + this.player2.tile;
+					}
+					else {
+						this.player2.y = this.player2.y + this.player2.speed;
+						this.player2.paddley = this.player2.y + this.player2.tile;
+					}
+					this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: this.player2.x, y: this.player2.y, }, });
+					break;
+				case up:
+					if ((this.player2.y - this.player2.speed) <= 0) {
+						this.player2.y = 0;
+						this.player2.paddley = this.player2.y + this.player2.tile;
+					}
+					else {
+						this.player2.y = this.player2.y - this.player2.speed;
+						this.player2.paddley = this.player2.y + this.player2.tile;
+					}
+					this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: this.player2.x, y: this.player2.y, }, });
+					break;
+				default:
+					return;
+			}
+		},
+
+		movePlayerOne(player: Player) {
+			window.addEventListener("keypress", this.movePlayerFonctionOne);
+		},
+
+		movePlayerTwo(player: Player) {
+			window.addEventListener("keypress", this.movePlayerFonctionTwo);
 		},
 
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
+			this.ball.speed = 3;
 			this.ball.rebound = 0;
 			this.ball.rebonetime = 2;
 		},
@@ -431,6 +467,9 @@ export default defineComponent({
 			this.context.font = '48px arial';
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
 			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);
+			this.context.font = '24px arial';
+			this.context.fillText("w : monter | s : descendre", 10, this.context.canvas.height - 15);
+			this.context.fillText("ArrowUp : monter | ArrowDown : descendre", this.context.canvas.width / 2 + 10, this.context.canvas.height - 15);
 			if (this.gameData.userGames.length == 2) {
 				// Set gameData
 				this.gameData.userGames[0].score = this.score.p1;
@@ -496,6 +535,8 @@ export default defineComponent({
 
 		redrawall() {
 			this.context.fillStyle = this.gameData.paddleColor;
+			if (this.player2.me == 1)
+				this.player1.y = this.player1.y * this.player1.ratio;
 			this.context.fillRect(this.player1.x, this.player1.y, this.player1.tilewidth, this.player1.tile);
 			this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
 
@@ -505,27 +546,38 @@ export default defineComponent({
 			this.context.fill();
 		},
 
+		calculateRatio() {
+			if (this.player1.y > this.context.canvas.height)
+			{
+				this.player1.ratio = this.player1.y / this.context.canvas.height;
+				console.log(this.player1.y, this.context.canvas.height);
+			}
+			else
+				this.player1.ratio = 1;
+		},
 
 		update() {
-			console.log(this.player1.ready, this.player2.ready);
 			//this.setvar();
-			//console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
 			else if ((this.player1.me == 1 && this.player2.ready == 1) || (this.player2.me == 1 && this.player1.ready == 1)) {
 				this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 				this.updatecsore();
 				if (this.player1.me == 1) {
-					this.moveplayer(this.player1);
+					this.movePlayerOne(this.player1);
 					this.updateball();
 				}
 				if (this.player2.me == 1)
-					this.moveplayer(this.player2);
+				{
+					this.calculateRatio();
+					this.movePlayerTwo(this.player2);
+				}
 				if (this.cpu.enable == 1)
 					this.movecpu(this.player2);
 				this.redrawall();
 			}
-			window.requestAnimationFrame(this.update);
+			if (this.score.finish_game == 0)
+				window.requestAnimationFrame(this.update);
 		},
 
 		themecolor() {
@@ -559,6 +611,10 @@ export default defineComponent({
 			this.player2.x = this.context.canvas.width - 20; // Update the x position of player2
 			this.player2.y = this.context.canvas.height / 2 - 25;
 			this.player2.paddley = this.player2.y + this.player2.tile;
+			let height = this.context.canvas.height;
+			let width = this.context.canvas.width;
+			if (this.player1.me == 1)
+				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.gameId, width, height});
 			this.redrawPlayers();
 		},
 	},
