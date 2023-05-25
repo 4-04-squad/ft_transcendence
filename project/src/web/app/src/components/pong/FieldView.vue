@@ -18,6 +18,7 @@
 
 <script lang="ts">
 import type { AlertInterface } from "@/interfaces/alert.interface";
+import type { Ball, CPU, Score, Player } from "@/interfaces/game.interface";
 import { UserStatus } from "@/interfaces/user.interface";
 import router from "@/router";
 import { endGame } from "@/services/gameServices";
@@ -48,13 +49,12 @@ export default defineComponent({
 		let btnOnePlayer = false;
 		let btnMultiPlayer = false;
 
-
 		// check if current user is one of the players
 		if (this.gameData.users.length == 2) {
 			if (this.gameData.users[0].id == userStore.user.id || this.gameData.users[1].id == userStore.user.id) {
 				btnOnePlayer = this.gameData.users.length == 1 ? true : false
 				btnMultiPlayer = this.gameData.users.length == 1 ? false : true
-				
+
 			}
 		} else {
 			if (this.gameData.users[0].id == userStore.user.id) {
@@ -72,8 +72,9 @@ export default defineComponent({
 	setup(props) {
 		const userStore = useUserStore();
 		const alertStore = useAlertStore();
-		let context = {}
-		let ball = {
+		let context = {} as any;
+
+		const ball: Ball = {
 			xb: (window.innerWidth - 260) / 2 - 10,
 			yb: (window.innerHeight - 145) / 2,
 			x: 0,
@@ -84,19 +85,21 @@ export default defineComponent({
 			rebound: 0,
 			rebonetime: 2,
 			speed: 3,
-		}
-		let cpu = {
+		};
+
+		const cpu: CPU = {
 			enable: 0,
 			difficulty: 3,
-		}
-		let score = {
+		};
+
+		const score: Score = {
 			p1: 0,
 			p2: 0,
 			color: 'white',
 			max_score: 5,
-		}
+		};
 
-		let player1 = {
+		const player1: Player = {
 			me: 0,
 			speed: 20,
 			tile: 75,
@@ -106,8 +109,10 @@ export default defineComponent({
 			paddley: 0,
 			ply: 1,
 			id: "",
-		}
-		let player2 = {
+			ready: 0,
+		};
+
+		const player2: Player = {
 			me: 0,
 			speed: 20,
 			tile: 75,
@@ -117,35 +122,36 @@ export default defineComponent({
 			paddley: 0,
 			ply: 2,
 			id: "",
-		}
+			ready: 0,
+		};
 		// Socket event listeners envoyer les infos au serveur
-		props.socket.on("joinGame", (data) => {
+		props.socket.on("joinGame", (data: any) => {
 			//console.log("User joined game:", data);
 		});
 
-		props.socket.on("leaveGame", (data) => {
+		props.socket.on("leaveGame", (data: any) => {
 			//console.log("User left game:", data);
 		});
 
-		props.socket.on("movePlayer", (data) => {
+		props.socket.on("movePlayer", (data: any) => {
 			//console.log("Player moved:", data);
 			player1.y = data.position.y;
 			player1.paddley = data.position.y + player1.tile;
 		});
 
-		props.socket.on("movePlayerTwo", (data) => {
+		props.socket.on("movePlayerTwo", (data: any) => {
 			//console.log("Player Two moved:", data);
 			player2.y = data.position.y;
 			player2.paddley = data.position.y + player2.tile;
 		});
 
-		props.socket.on("moveBall", (data) => {
+		props.socket.on("moveBall", (data: any) => {
 			//console.log("Ball moved:", data);
 			ball.x = data.x;
 			ball.y = data.y;
 		});
 
-		props.socket.on("updateScore", (data) => {
+		props.socket.on("updateScore", (data: any) => {
 			//console.log("Score updated:", data);
 			score.p1 = data.score.p1;
 			score.p2 = data.score.p2;
@@ -178,7 +184,6 @@ export default defineComponent({
 	},
 	beforeUnmount() {
 		window.removeEventListener("resize", this.handleWindowResize);
-		window.removeEventListener("keydown", this.moveplayer); // You'll need to update moveplayer to use a named function instead of an anonymous function
 	},
 	mounted() {
 		this.createbackground();
@@ -226,23 +231,23 @@ export default defineComponent({
 					this.secondplayer(this.gameData.userGames[0].userId);
 				}
 			}
-				
+
 		},
 
 		firstplayer(id: string) {
 			if (this.gameData.userGames[0].userId == id) {
-					this.player1.me = 1;
+				this.player1.me = 1;
 			} else {
-					this.player1.me = 0;
+				this.player1.me = 0;
 			}
 			this.player1.id = id;
 		},
 
 		secondplayer(id: string) {
 			if (this.gameData.userGames[1].userId == id) {
-					this.player2.me = 0;
+				this.player2.me = 0;
 			} else {
-					this.player2.me = 1;
+				this.player2.me = 1;
 			}
 			this.player2.id = id;
 		},
@@ -326,7 +331,7 @@ export default defineComponent({
 			this.player1.speed = this.gameData.paddleSpeed;
 		},
 
-		movecpu(player: Object) {
+		movecpu(player: Player) {
 			player.speed = this.cpu.difficulty;
 			if (player.y < this.ball.y && player.paddley < this.ball.y) {
 				if ((player.y - player.speed) >= (this.context.canvas.height - (player.tile + 25))) {
@@ -350,14 +355,14 @@ export default defineComponent({
 			}
 		},
 
-		moveplayer(player: Object) {
+		moveplayer(player: Player) {
 			let up = "w";
 			let down = "s";
 			if (player.ply == 2) {
 				up = "ArrowUp";
 				down = "ArrowDown";
 			}
-			window.addEventListener("keydown", (event) => {
+			window.addEventListener("keypress", (event) => {
 				if (event.defaultPrevented) {
 					return;
 				}
@@ -440,8 +445,7 @@ export default defineComponent({
 				if ((this.ball.y >= this.player2.y && this.ball.y <= this.player2.paddley)
 					|| (this.ball.y + this.ball.width >= this.player2.y && this.ball.y + this.ball.width <= this.player2.paddley)) {
 					if (this.ball.rebonetime == 0 || this.ball.rebonetime == 2) {
-						if (++this.ball.rebound % 3 == 0)
-						{
+						if (++this.ball.rebound % 3 == 0) {
 							this.player1.speed++;
 							this.player2.speed++;
 							this.ball.speed++;
@@ -455,8 +459,7 @@ export default defineComponent({
 				if ((this.ball.y >= this.player1.y && this.ball.y <= this.player1.paddley)
 					|| (this.ball.y + this.ball.width >= this.player1.y && this.ball.y + this.ball.width <= this.player1.paddley)) {
 					if (this.ball.rebonetime == 1 || this.ball.rebonetime == 2) {
-						if (++this.ball.rebound % 3 == 0)
-						{
+						if (++this.ball.rebound % 3 == 0) {
 							this.player1.speed++;
 							this.player2.speed++;
 							this.ball.speed++;
@@ -525,7 +528,8 @@ export default defineComponent({
 		},
 
 		createbackground() {
-			this.context = <HTMLCanvasElement>this.$refs.Field.getContext("2d");
+			let canvas = document.getElementById('Field') as HTMLCanvasElement;
+			this.context = canvas?.getContext('2d');
 			this.context.canvas.width = window.innerWidth - 145;
 			this.context.canvas.height = window.innerHeight - 40;
 			this.themecolor();
