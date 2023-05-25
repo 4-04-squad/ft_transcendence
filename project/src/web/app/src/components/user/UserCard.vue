@@ -90,6 +90,7 @@ export default defineComponent({
 
     // show context menu
     const showContextMenu = (event: MouseEvent) => {
+      if (isCurrentUser()) return;
       if (!props.menu) return;
       event.preventDefault();
       const contextMenu = event.currentTarget as HTMLElement;
