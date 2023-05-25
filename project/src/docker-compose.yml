@@ -17,7 +17,7 @@ services:
             #- "443:443"
             - "80:80"
         volumes:
-            #- ./web/app/dist:/usr/share/nginx/html
+            - web_data:/usr/share/nginx/html/app/dist:ro,Z
             - ./web/nginx/conf.d:/etc/nginx/conf.d
         networks:
             - 42Pong
@@ -28,11 +28,11 @@ services:
             context: ./web
             dockerfile: Dockerfile
         env_file: .env
-        restart: always
         tty: true
         ports:
             - "3003:3003"
         volumes:
+          - web_data:/app/dist
           - ./web/app:/app
           - exclude_web:/app/node_modules/
         networks:
@@ -87,6 +87,7 @@ services:
 # Volumes
 volumes:
     database_data:
+    web_data:
     exclude_web:
     exclude_backend:
 
