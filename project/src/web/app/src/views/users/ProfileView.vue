@@ -137,7 +137,6 @@ export default defineComponent({
     const items = ref([] as Item[]);
 
     getGames().then((response) => {
-            console.log(response.data.games);
             games.value = response.data.games;
             games.value = games.value.filter((game) => {
               if (game.status === "FINISHED") {
@@ -149,7 +148,7 @@ export default defineComponent({
                     id: game.id,
                     players: game.users,
                     status: game.status,
-                    result: game.userGames.find((userGame) => userGame.userId === userStore.user?.id)?.status,
+                    result: game.userGames? game.userGames.find((userGame) => userGame.userId === userStore.user?.id)?.status: "",
                     date: game.updatedAt,
                 } as Item;
             });

@@ -100,10 +100,10 @@ export default defineComponent({
 				});
 
 		},
-		codeRef(index) {
+		codeRef(index: number) {
 			return `code${index + 1}`;
 		},
-    next(e) {
+    next(e: any) {
       e.target?.nextElementSibling?.focus();
     },
 		async removeTfa() {

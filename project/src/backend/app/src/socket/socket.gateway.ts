@@ -86,7 +86,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   * Emit action : Notif
   */
   @SubscribeMessage('sendNotif')
-  onSendNotif(@Body() data: { userId: string, linkId: number }) {
+  onSendNotif(@Body() data: { userId: string, linkId: string }) {
     // emit in room
     this.server.emit('sendNotif', { userId: data.userId, linkId: data.linkId });
   }
