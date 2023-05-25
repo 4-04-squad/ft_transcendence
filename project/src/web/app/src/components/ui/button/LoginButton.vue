@@ -9,7 +9,7 @@ import { defineComponent, inject } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import router from "@/router";
-import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
+import type { UserInterface } from "@/interfaces/user.interface";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 import type { Socket } from "socket.io-client";

@@ -157,7 +157,7 @@ export default defineComponent({
 			score.p2 = data.score.p2;
 		});
 
-		props.socket.on("ready", (data) => {
+		props.socket.on("ready", (data: any) => {
 				if (data.userId == player1.id) {
 					player1.ready = 1;
 				} else if (data.userId == player2.id) {
