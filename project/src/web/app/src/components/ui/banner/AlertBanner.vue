@@ -99,7 +99,7 @@ export default defineComponent({
 
 	&.active {
 		opacity: 1;
-		z-index: 1;
+		z-index: 102;
 		transition: opacity 0.3s ease-in-out;
 	}
 

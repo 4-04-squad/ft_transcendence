@@ -7,11 +7,8 @@
         </h1>
       </div>
       <div class="content-wrapper">
-        <div class="grid">
-          <div class="home-card">
-            <h2 class="title">Top classement</h2>
-          </div>
-          <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
+        <h2 class="title">Top classement</h2>
+          <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'"
               :buttons-pagination="true" empty-message="Aucun utilisateur trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
               rows-per-page-message="Utilisateurs par page">
               <template #item-avatar="{ avatar, pseudo }">
@@ -44,8 +41,7 @@
                   </li>
                 </ul>
               </template>
-            </EasyDataTable>
-        </div>
+          </EasyDataTable>
       </div>
     </div>
   </MainLayout>
@@ -74,10 +70,11 @@ export default defineComponent({
     const userStore = useUserStore()
     const users = ref([] as UserInterface[]);
     const headers = [
+      { text: "TOP", value: "index", sortable: true },
+      { text: "ELO", value: "elo", sortable: true },
       { text: "AVATAR", value: "avatar", sortable: false },
       { text: "PSEUDO", value: "pseudo" },
-      { text: "STATUS", value: "status", sortable: true },
-      { text: "ELO", value: "elo", sortable: true },
+      { text: "STATUS", value: "status"},
       { text: "", value: "profile" },
     ] as Header[];
     const items = ref([] as Item[]);
@@ -91,13 +88,14 @@ export default defineComponent({
         users.value.sort((a, b) => {
           return b.elo - a.elo;
         });
-        items.value = users.value.map((user) => ({
+        items.value = users.value.map((user, index) => ({
           avatar: user.avatar,
           pseudo: user.pseudo,
           email: user.email,
           elo: user.elo,
           status: user.status ? user.status.toLowerCase() : "",
           profile: user.id,
+          index: index + 1,
         })) as Item[];
       })
       .catch((error) => {
@@ -129,6 +127,13 @@ export default defineComponent({
     height: 55vh;
     overflow-y: hidden;
 
+    .title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
     @media (max-width: var(--tablet)) {
       overflow-y: scroll;
     }
@@ -139,16 +144,5 @@ export default defineComponent({
     }
   }
 
-  .home-card {
-    background-color: var(--border-color);
-    padding: var(--spacing);
-    border-radius: var(--radius-sm);
-    height: 100%;
-
-    .title {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-  }
 }
 </style>

@@ -1,8 +1,8 @@
 <template>
-  <button v-if="channel.chat.type != 'DIRECT' && myUserChatStatus == 'OWNER'" class="btn btn--normal editButton" @click="toggleEditModal">
-    edit
-  </button>
   <div v-if="chat" class="chat-view">
+    <button v-if="channel.chat.type != 'DIRECT' && myUserChatStatus == 'OWNER'" class="btn btn--normal editButton" @click="toggleEditModal">
+      edit
+    </button>
     <section class="chat-view__container">
       <div class="chat-view__container__messages">
         <Message v-for="message in messages" :key="message.id" :message="message" :user="message.user" />
@@ -296,9 +296,9 @@ export default defineComponent({
 
   .editButton {
     position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 100;
+    top: var(--spacing);
+    right: var(--spacing);
+    z-index: 10;
   }
 }
 </style>
