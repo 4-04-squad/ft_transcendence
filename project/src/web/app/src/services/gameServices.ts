@@ -46,7 +46,7 @@ export const getStatsByUser = (userId: string) => {
  * @returns {Promise<AxiosResponse<any>>}
  * @param gameId
  */
-export const joinGame = (gameId: number) => {
+export const joinGame = (gameId: string) => {
   return axios.post(
     `${API_URL}/games/join`,
     { gameId },

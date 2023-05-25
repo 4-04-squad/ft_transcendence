@@ -40,6 +40,7 @@ export interface UserChat {
 export interface UserGame {
   id: string;
   status?: UserGameStatus;
+  pseudo?: string;
   score: number;
   game: GameInterface;
   gameId: string;
