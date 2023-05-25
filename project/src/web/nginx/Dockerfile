@@ -1,6 +1,9 @@
 FROM nginx:1.23-alpine
 
 # Install dependencies
+
+ARG ENV
+
 RUN apk update && apk upgrade \
     && apk add --no-cache --quiet --update \
     	  openssl vim curl bash zsh git gettext
@@ -15,4 +18,5 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 EXPOSE 80 443
 
 # Start the Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+
+CMD if [ "${ENV}" = "development" ]; then nginx -g "daemon off;"; else nginx -c /etc/nginx/conf.d/prod.conf -g "daemon off;"; fi
