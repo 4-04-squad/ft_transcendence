@@ -6,6 +6,7 @@ export interface GameInterface {
   createdAt: Date;
   updatedAt: Date;
   users: UserGame[];
+  userGames?: UserGame[];
 }
 
 export const enum GameStatus {
@@ -32,6 +33,7 @@ export interface IUserStats {
 }
 
 export interface GameStatistics {
+  experience: number;
   totalGames: number;
   totalWins: number;
   totalLoses: number;

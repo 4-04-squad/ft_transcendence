@@ -16,7 +16,7 @@ import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
 import router from "@/router";
-import { AlertInterface } from "@/interfaces/alert.interface";
+import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
@@ -35,8 +35,8 @@ export default defineComponent({
 		async signin() {
 			const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/auth/signin`,
 				{
-					pseudo: this.$refs.pseudo.value,
-					password: this.$refs.password.value
+					pseudo: (this.$refs.pseudo as any).value,
+					password: (this.$refs.password as any).value
 				},
 				{
 					withCredentials: true,

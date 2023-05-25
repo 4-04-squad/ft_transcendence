@@ -58,7 +58,7 @@ export default {
             borderWidth: 0,
           },
         ],
-      },
+      } as any,
       chartOptions: {
         responsive: true,
         maintainAspectRatio: false,

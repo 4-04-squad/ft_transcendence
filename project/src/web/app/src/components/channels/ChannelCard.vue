@@ -55,39 +55,38 @@ export default defineComponent({
 	},
   methods: {
     async leaveChannel(id: string) {
-                const response = await axios
-                .get(
-                    `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
-                    {
-                    withCredentials: true,
-                    headers: {"Content-Type": "application/json",
-                    },
-                    }
-                ).then((res) => {
-                  if (res.data.channel) {
-                    router.push(
-                    {
-                      name: "channel",
-                      params: {
-                        id: res.data.channel.id,
-                      },
-                    });
-                  }
-                  else {
-                    router.push(
-                    {
-                      name: "channels",
-                    });
-                  }
-                }).catch((err) => {
-                  const alert = {
-                    status: 401,
-                    message: 'Code 2FA incorrect.',
-                  } as AlertInterface;
+          await axios
+          .get(
+              `${import.meta.env.VITE_APP_API_URL}/channels/${id}/leave`,
+              {
+              withCredentials: true,
+              headers: {"Content-Type": "application/json",
+              },
+              }
+          ).then((res) => {
+            if (res.data.channel) {
+              router.push(
+              {
+                name: "channel",
+                params: {
+                  id: res.data.channel.id,
+                },
+              });
+            }
+            else {
+              router.push(
+              {
+                name: "channels",
+              });
+            }
+          }).catch((err) => {
+            const alert = {
+              status: 401,
+              message: 'Code 2FA incorrect.',
+            } as AlertInterface;
 
-                  this.alertStore.setAlert(alert);
-                });
-                  
+            this.alertStore.setAlert(alert);
+          });
         },
     converse() {
       this.$router.push({

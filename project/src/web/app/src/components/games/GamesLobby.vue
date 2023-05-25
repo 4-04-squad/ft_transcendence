@@ -6,12 +6,14 @@
                 <SearchIcon />
                 <input type="text" v-model="searchValue" placeholder="Rechercher" />
             </div>
-            <button class="btn btn--success create-game" @click="toggleCreateGameModal">
-                <p>Créer une game</p>
-            </button>
-            <button class="btn btn--success create-game" @click="searchAndJoinGame">
-                <p>Joindre une game</p>
-            </button>
+            <div class="btns my-4">
+                <button class="btn btn--success create-game" @click="toggleCreateGameModal">
+                    <p>Créer une game</p>
+                </button>
+                <button class="btn btn--success create-game" @click="searchAndJoinGame">
+                    <p>Joindre une game</p>
+                </button>
+            </div>
         </h1>
     </div>
     <ul class="games-filters">
@@ -139,7 +141,9 @@ export default defineComponent({
                 const prevElo = prev.users[0].elo;
                 const currElo = curr.users[0].elo;
                 // if the current game is closer to the user elo than the previous one, return it
-                if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo)) return curr;
+                if (prevElo && currElo)
+                    if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo))
+                        return curr;
                 return prev;
             });
             joinAndNavigate(closestGame.id);
@@ -153,7 +157,11 @@ export default defineComponent({
             if (searchValue.value.trim() === "") return games.value.map(mapGameToItem);
             return games.value.filter((game) => {
                 return (
-                    game.users.some((user) => user.pseudo.toLowerCase().includes(searchValue.value.toLowerCase())) ||
+                    game.users.some((user) => {
+                        if (user.pseudo)
+                            user.pseudo.toLowerCase().includes(searchValue.value.toLowerCase())
+                    }
+                        ) ||
                     game.id.toString().includes(searchValue.value) ||
                     game.status.toLowerCase().includes(searchValue.value.toLowerCase())
                 );
@@ -217,7 +225,7 @@ export default defineComponent({
 
         const createGameAndNavigate = (gameSettings: IGameSettings) => {
             // create game add the settings to the store and navigate to the game
-            createGame().then((response) => {
+            createGame(gameSettings).then((response) => {
                 router.push({ name: "game", params: { id: response.data.games.id } });
             })
                 .catch((error) => {
@@ -233,7 +241,7 @@ export default defineComponent({
                 });
         };
 
-        const joinAndNavigate = (gameId: number) => {
+        const joinAndNavigate = (gameId: string) => {
             const game = games.value.find((game) => game.id == gameId);
             // if user is already in the game, just navigate to it
             if (game?.users.some((user) => user.id == userStore.user.id)) {

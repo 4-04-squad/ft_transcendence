@@ -42,6 +42,21 @@ export class ChannelsController {
         }
     }
 
+    @Get('me/:id')
+    @UseGuards(AuthGuard)
+    async getMyChannelsById(
+        @Param('id', ParseUUIDPipe) channelId: string,
+        @Req() req: RequestWithUser, @Res() res: Response
+        ) {
+        const user = req.user;
+        if (!user)
+            res.status(401).send({ message: 'unauthorized' });
+        else {
+            const chat = await this.channelsService.getChannelme(channelId, user.id);
+            res.send({ chat });
+        }
+    }
+
     @Get(':id')
     @UseGuards(AuthGuard)
     async getChannelsById(
@@ -156,7 +171,7 @@ export class ChannelsController {
             res.status(401).send({ message: 'unauthorized' });
         } else {
             const channel = await this.channelsService.editChannel(user.id, channelId, data);
-            res.send({ channel });
+            res.send({ channel, message: 'Channel updated' });
         }
     }
 

@@ -4,9 +4,9 @@
 	  <form class="modal">
 			<h1 class="modal-title">{{ title() }}</h1>
 		<slot></slot>
-		<div class="modal-action">
-			<button class="btn btn--cancel" @click="closeModal">Annuler</button>
-			<button class="btn btn--submit" @click="createButtonHandler">{{ buttonText() }}</button>
+		<div class="btns modal-action">
+			<button class="btn btn--delete" @click="closeModal">Annuler</button>
+			<button class="btn btn--success" @click="createButtonHandler">{{ buttonText() }}</button>
 		</div>
 	</form>
 	</div>

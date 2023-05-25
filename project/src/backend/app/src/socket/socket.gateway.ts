@@ -110,7 +110,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   * Emit action : Notif
   */
   @SubscribeMessage('sendNotif')
-  onSendNotif(@Body() data: { userId: string, linkId: number }) {
+  onSendNotif(@Body() data: { userId: string, linkId: string }) {
     // emit in room
     this.server.emit('sendNotif', { userId: data.userId, linkId: data.linkId });
   }
@@ -351,4 +351,17 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.logger.log(`Client ${client.id} deleted chat ${chatId}`);
     this.deleteSocketRoom(chatId);
   }
+
+  @SubscribeMessage('ban')
+  onBan(client: Socket, data: { chatId: string, userId: string }) {
+    const roomName = `${data.chatId}`;
+    this.server.to(roomName).emit('ban', { chatId: data.chatId, userId: data.userId });
+  }
+  
+  @SubscribeMessage('kick')
+  onKick(client: Socket, data: { chatId: string, userId: string }) {
+    const roomName = `${data.chatId}`;
+    this.server.to(roomName).emit('kick', { chatId: data.chatId, userId: data.userId });
+  }
+
 }

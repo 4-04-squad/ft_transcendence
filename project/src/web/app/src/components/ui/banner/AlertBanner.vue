@@ -12,13 +12,14 @@ import { useAlertStore } from "@/stores/alert";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import router from "@/router";
 import { joinGame } from "@/services/gameServices";
+import type { TimerOptions } from "timers";
 
 export default defineComponent({
     name: "AlertBanner",
     setup() {
         const alertStore = useAlertStore();
         const alert = ref<AlertInterface | undefined>(alertStore.alert);
-        let timeoutId: number;
+        let timeoutId: any;
 
         alert.value = alertStore.alert;
 
@@ -71,7 +72,8 @@ export default defineComponent({
 			if (this.alert && this.alert.link) {
 				joinGame(this.alert.link)
 				.then((res) => {
-					router.push({ name: "game", params: { id: this.alert.link } });
+					if (this.alert?.link)
+						router.push({ name: "game", params: { id: this.alert.link } });
 				})
 				.catch((err) => {
 					const alert = {
@@ -99,7 +101,7 @@ export default defineComponent({
 
 	&.active {
 		opacity: 1;
-		z-index: 1;
+		z-index: 102;
 		transition: opacity 0.3s ease-in-out;
 	}
 

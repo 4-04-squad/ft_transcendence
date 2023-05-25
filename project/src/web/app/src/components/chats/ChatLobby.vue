@@ -77,7 +77,6 @@ export default defineComponent({
         const items = ref([] as Item[]);
 
         const getUser = (chat: ChatInterface) => {
-            // Detect if the user is the sender or the receiver
             if (chat.users[0].user.id === userStore.user.id) {
                 return chat.users[1].user;
             } else {
@@ -90,18 +89,14 @@ export default defineComponent({
                 withCredentials: true,
             })
             .then((response) => {
-                //console.log(response.data.chats);
                 const chats = response.data.chats;
 
-                // Loop chats and save all users in an array if not himself
                 chats.forEach((chat: ChatInterface) => {
                     const user = getUser(chat);
                     users.value.push(user);
-                    // add the chat id to the user
                     user.id = chat.id;
                 });
 
-                // Save all users in items
                 items.value = users.value.map((user) => ({
                     avatar: user.avatar,
                     pseudo: user.pseudo,
@@ -112,12 +107,12 @@ export default defineComponent({
 
             })
             .catch((error) => {
-				const alert = {
-					status: error.response.data.statusCode,
-					message: error.response.data.message,
-				} as AlertInterface;
+                const alert = {
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
+                } as AlertInterface;
 
-				alertStore.setAlert(alert);
+                alertStore.setAlert(alert);
                 if (axios.isAxiosError(error)) {
                     if (error.response?.status == 401) {
                         router.push({ path: "/" });

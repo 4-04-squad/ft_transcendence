@@ -12,6 +12,8 @@ import type { Socket } from "socket.io-client";
 import axios from "axios";
 import ChatConversation from "@/components/chats/ChatConversation.vue";
 import { useUserStore } from "@/stores/user";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "ChanelsView",
@@ -21,35 +23,90 @@ export default defineComponent({
     let channelData = ref(null);
     const userStore = useUserStore();
     const socket = inject('socket') as Socket;
+    const alertStore = useAlertStore();
+
+    socket.on("ban", (data: any) => {
+      if (data.userId == userStore.user.id) {
+        const alert = {
+          status: 403,
+          message: 'You are banned from this channel',
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
+        router.push({
+          name: "channels",
+        });
+      }
+    });
+
+    socket.on("kick", (data: any) => {
+      if (data.userId == userStore.user.id) {
+        const alert = {
+          status: 403,
+          message: 'You are kicked from this channel',
+        } as AlertInterface;
+
+        alertStore.setAlert(alert);
+        router.push({
+          name: "channels",
+        });
+      }
+    });
 
     const fetchChatDataAndJoinChat = async (chatId: string) => {
       if (chatId) {
-        try {
           const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/${chatId}`, {
             withCredentials: true,
+          }).then((response) => {
+            channelData.value = response.data;
+            socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
           }).catch((err) => {
+            const alert = {
+                    status: err.response.data.statusCode,
+                    message: err.response.data.message,
+                  } as AlertInterface;
+
+                  alertStore.setAlert(alert);
             router.push({
               name: "channels",
             });
-          });
-          channelData.value = response.data;
-          socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
-        } catch (err) {
-          router.push({
-            name: "channels",
-          });
-        }
+        })
       }
     }
 
     // Fetch chat data on route change
     watch(
+      
       () => route.params.id,
       async (newVal, oldVal) => {
-        if (oldVal) {
-          socket.emit("leaveChat", { chatId: oldVal, userId: userStore.user.pseudo });
+        if(newVal) {
+                axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/me/${newVal}`, {
+              withCredentials: true,
+            }).then((response) => {
+              if (response.data.chat.permission == "BANNED") {
+                const alert = {
+                    status: 403,
+                    message: 'You are banned from this channel',
+                  } as AlertInterface;
+                  alertStore.setAlert(alert);
+                router.push({
+                  name: "channels",
+                });
+              } else {
+
+                if (oldVal) {
+                  socket.emit("leaveChat", { chatId: oldVal, userId: userStore.user.pseudo });
+                }
+                fetchChatDataAndJoinChat(newVal as string);
+              }
+            }).catch((err) => {
+              const alert = {
+                status: err.response.status,
+                message: err.response.data.message,
+              } as AlertInterface;
+              alertStore.setAlert(alert);
+            });
         }
-        await fetchChatDataAndJoinChat(newVal);
       },
       { immediate: true } // Call the function immediately when the component is created
     );
@@ -61,7 +118,7 @@ export default defineComponent({
     onMounted(() => {
       // Call the function when the page is reloaded
       socket.emit("leaveChat", { chatId: route.params.id, userId: userStore.user.pseudo });
-      fetchChatDataAndJoinChat(route.params.id);
+      fetchChatDataAndJoinChat(route.params.id as string);
     });
     return {
       socket: socket,

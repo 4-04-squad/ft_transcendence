@@ -21,4 +21,13 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: true,
+    manifest: true,
+    rollupOptions: {
+      // Additional rollup options if needed
+    },
+  },
 });

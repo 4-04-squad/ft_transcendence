@@ -41,7 +41,7 @@
 		() => route.params,
 		async () => {
 		  if (route.params.id) {
-			getGameById(route.params.id).then((data) => {
+			getGameById(route.params.id as string).then((data) => {
 			  players.value = data.data.games.users;
 			});
 		  }

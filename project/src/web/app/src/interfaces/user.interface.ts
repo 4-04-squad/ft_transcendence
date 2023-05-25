@@ -10,7 +10,11 @@ export interface UserInterface {
   lastName?: string;
   avatar?: string;
   about?: string;
-  experience: bigint;
+  password?: string;
+  twofasecret?: string;
+  twofaenabled: boolean;
+  experience: number;
+  elo: number;
   status: UserStatus;
   role: UserRole;
   createdAt: Date;
@@ -36,6 +40,8 @@ export interface UserChat {
 export interface UserGame {
   id: string;
   status?: UserGameStatus;
+  elo?: number;
+  pseudo?: string;
   score: number;
   game: GameInterface;
   gameId: string;
