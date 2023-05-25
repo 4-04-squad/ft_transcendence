@@ -35,8 +35,7 @@ export default defineComponent({
   methods: {
     async logout() {
       if (this.userStore.user) {
-        try {
-          const response = await axios
+        axios
             .get(
               `${import.meta.env.VITE_APP_API_URL}/auth/signout/${this.userStore.user.id
               }`,
@@ -66,10 +65,7 @@ export default defineComponent({
               } as AlertInterface;
 
               this.alertStore.setAlert(alert);
-            });
-        } catch (error: any) {
-          console.log(error);
-        }
+        });
       }
     },
   },

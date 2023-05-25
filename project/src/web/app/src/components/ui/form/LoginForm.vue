@@ -45,7 +45,6 @@ export default defineComponent({
 					},
 				}
 			).then((res) => {
-				console.log(res)
 				if (res.status === 206) {
 					router.push({ path: "/login_2fa" });
 				} else {

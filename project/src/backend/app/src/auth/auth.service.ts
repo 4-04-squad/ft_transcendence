@@ -104,8 +104,8 @@ export class AuthService {
     // Remove JWT token from cookie
     res.cookie(process.env.JWT_NAME, '', {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
       maxAge: 0,
     });
     return res.status(200).send('Sign out succes!');

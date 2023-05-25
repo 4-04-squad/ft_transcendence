@@ -52,30 +52,16 @@ export default defineComponent({
         import.meta.env.VITE_APP_API_URL
       }/auth/login/callback`;
       const redirectUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${token}&redirect_uri=${callbackUrl}&response_type=code`;
-      const popup = window.open(redirectUrl, "_blank", "height=600,width=600");
-
-      popup?.addEventListener("load", () => {
-        setTimeout(function(){
-          if (popup?.location.href === loginUrl) {
-            loading.value = 1;
-            popup.close();
-          }
-        }, 1000);
-        logUser();
-      });
-
+      
       const logUser = async () => {
         await axios.get(loginUrl, {
             withCredentials: true,
           }).then((response) => {
           // check if the user is logged in
           if (response.status === 206) {
-            popup?.close();
 						router.push({ path: "/login_2fa" });
 					}
           else if (response.status === 200) {
-            // clear the interval and close the popup
-            popup?.close();
             // set the default image
             if (!response.data.user.avatar) {
               axios.patch(
@@ -114,13 +100,19 @@ export default defineComponent({
           });
       }
 
-      watch(
-      () => loading.value == 1,
-      () => {
-        logUser();
-      },
-      { immediate: true }
-    );
+        const popup = window.open(redirectUrl, "_blank", "height=600,width=600");
+        popup?.addEventListener("load", () => {
+          setTimeout(function(){
+            if (popup?.location.href === loginUrl && loading.value === 0) {
+              loading.value = 1;
+            } else {
+              loading.value = 0;
+            }
+          }, 100);
+          logUser();
+          popup?.close();
+        });
+
     },
   },
 });
