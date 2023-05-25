@@ -6,12 +6,14 @@
                 <SearchIcon />
                 <input type="text" v-model="searchValue" placeholder="Rechercher" />
             </div>
-            <button class="btn btn--success create-game" @click="toggleCreateGameModal">
-                <p>Créer une game</p>
-            </button>
-            <button class="btn btn--success create-game" @click="searchAndJoinGame">
-                <p>Joindre une game</p>
-            </button>
+            <div class="btns my-4">
+                <button class="btn btn--success create-game" @click="toggleCreateGameModal">
+                    <p>Créer une game</p>
+                </button>
+                <button class="btn btn--success create-game" @click="searchAndJoinGame">
+                    <p>Joindre une game</p>
+                </button>
+            </div>
         </h1>
     </div>
     <ul class="games-filters">

@@ -83,6 +83,12 @@
 
     &--delete {
       @include btn($color: #ffffff  , $bg: var(--warning-color), $border: 0, $radius: $radius-xs, $padding: 0.5rem 1rem);
+
+      &:hover {
+        background-color: transparent;
+        border: 1px solid var(--warning-color);
+        color: var(--warning-color);
+      }
     }
 
     &--success {

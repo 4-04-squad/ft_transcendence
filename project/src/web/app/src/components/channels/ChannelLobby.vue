@@ -6,9 +6,11 @@
                 <SearchIcon />
                 <input type="text" v-model="searchValue" placeholder="Rechercher" />
             </div>
-            <button class="btn btn--submit" @click="toggleCreateChannelModal()" >
-                Create
-            </button>
+            <div class="btns my-4">
+                <button class="btn btn--success" @click="toggleCreateChannelModal()" >
+                    Create
+                </button>
+            </div>
         </h1>
     </div>
     <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :search-value="searchValue"
