@@ -111,7 +111,7 @@ export default defineComponent({
 			id: "",
 			ready: 0,
 		};
-
+    
 		const player2: Player = {
 			me: 0,
 			speed: 20,
@@ -156,6 +156,14 @@ export default defineComponent({
 			score.p1 = data.score.p1;
 			score.p2 = data.score.p2;
 		});
+
+		props.socket.on("ready", (data: any) => {
+				if (data.userId == player1.id) {
+					player1.ready = 1;
+				} else if (data.userId == player2.id) {
+					player2.ready = 1;
+				}
+			});
 
 		// watch for changes in the gameData prop
 		watch(
@@ -217,6 +225,7 @@ export default defineComponent({
 			this.btnMultiPlayer = false;
 			this.player1.me = 1;
 			this.cpu.enable = 1;
+			this.player2.ready = 1;
 		},
 
 		multiplayer() {
@@ -231,7 +240,7 @@ export default defineComponent({
 					this.secondplayer(this.gameData.userGames[0].userId);
 				}
 			}
-
+			this.socket.emit("ready", { gameId: this.gameData.gameId, userId: this.userStore.user.id });
 		},
 
 		firstplayer(id: string) {
@@ -498,11 +507,12 @@ export default defineComponent({
 
 
 		update() {
+			console.log(this.player1.ready, this.player2.ready);
 			//this.setvar();
 			//console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
-			else if (this.player1.me == 1 || this.player2.me == 1) {
+			else if ((this.player1.me == 1 && this.player2.ready == 1) || (this.player2.me == 1 && this.player1.ready == 1)) {
 				this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 				this.updatecsore();
 				if (this.player1.me == 1) {

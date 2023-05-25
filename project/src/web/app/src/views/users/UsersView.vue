@@ -118,7 +118,6 @@ export default defineComponent({
 <style lang="scss">
 
 .users-filters {
-    display: flex;
     align-items: center;
     margin-left: auto;
     margin-right: 0;
@@ -126,6 +125,8 @@ export default defineComponent({
     padding: 0;
     margin: 1.5rem auto;
     font-size: 0.5rem;
+    display: flex;
+    justify-content: center;
 
     li {
         margin-left: 1rem;

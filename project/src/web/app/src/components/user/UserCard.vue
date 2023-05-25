@@ -1,5 +1,6 @@
 <template>
-  <RouterLink
+  <div class="user-menu" @contextmenu.prevent="showContextMenu">
+    <RouterLink
     :class="`user user-${size}`"
     :to="
       isCurrentUser()
@@ -8,7 +9,7 @@
     "
     v-if="user"
   >
-    <div :class="`user-card grid ${full}-card`" @contextmenu.prevent="showContextMenu">
+    <div :class="`user-card grid ${full}-card`">
       <div :class="`column user-card__avatar ${size}`">
         <img :src="user.avatar" :alt="user.pseudo" />
         <div
@@ -20,19 +21,21 @@
         <p v-if="info.length" class="info">{{ info }}</p>
         <p v-if="preview.length" class="preview">{{ preview }}</p>
       </div>
-      <!-- context menu -->
-      <UserContextMenu :user="user" :type="type" :object="object" />
     </div>
   </RouterLink>
+  <!-- context menu -->
+  <UserContextMenu :user="user" :type="type" :object="object" />
+  </div>
 </template>
 
 <script lang="ts">
 import { RouterLink } from "vue-router";
 import type { UserInterface } from "@/interfaces/user.interface";
-import { defineComponent } from "vue";
+import { defineComponent, inject } from "vue";
 import type { PropType } from "vue";
 import { useUserStore } from "@/stores/user";
 import UserContextMenu from "./UserContextMenu.vue";
+import type { Socket } from "socket.io-client";
 
 type Size = "medium" | "small" | "large";
 type CardSize = "full" | "half";
@@ -80,12 +83,14 @@ export default defineComponent({
   setup(props) {
     // check if current user is the same as the user in the card
     const userStore = useUserStore();
+    const socket = inject('socket') as Socket;
     const isCurrentUser = () => {
       return props.user?.pseudo === userStore.user?.pseudo ? true : false;
     };
 
     // show context menu
     const showContextMenu = (event: MouseEvent) => {
+      if (isCurrentUser()) return;
       if (!props.menu) return;
       event.preventDefault();
       const contextMenu = event.currentTarget as HTMLElement;
@@ -108,6 +113,7 @@ export default defineComponent({
     return {
       isCurrentUser,
       showContextMenu,
+      socket,
     };
   },
 });
@@ -115,20 +121,9 @@ export default defineComponent({
 
 <style lang="scss">
 .user-card {
+  display: grid;
   position: relative;
   grid-gap: 0;
-
-  &.active {
-    z-index: 2;
-
-    .user-card__details {
-      margin: 0.2rem 0 auto;
-      
-      .pseudo {
-        font-size: 1rem;
-      }
-    }
-  }
   
   &.full-card {
     grid-template-columns: 1fr 2fr;
