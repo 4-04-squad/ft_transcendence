@@ -40,7 +40,7 @@ import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
 import router from "@/router";
-import { AlertInterface } from "@/interfaces/alert.interface";
+import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
@@ -87,10 +87,10 @@ export default defineComponent({
 				});
 
 		},
-		codeRef(index) {
+		codeRef(index: number) {
 			return `code${index + 1}`;
 		},
-		next(e) {
+		next(e: any) {
       e.target?.nextElementSibling?.focus();
     },
 	}

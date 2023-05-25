@@ -26,7 +26,7 @@
   
 <script lang="ts">
 import { defineComponent } from "vue";
-import { RouterLink } from "vue-router";
+import { RouterLink, type RouteRecordName } from "vue-router";
 import { useRoute } from 'vue-router';
 
 export default defineComponent({
@@ -37,7 +37,7 @@ export default defineComponent({
     setup() {
     const route = useRoute();
 
-    const isRouteActive = (routeName) => {
+    const isRouteActive = (routeName: RouteRecordName | null | undefined) => {
         return route.name === routeName;
     };
 

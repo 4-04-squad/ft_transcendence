@@ -8,7 +8,7 @@
 import { defineComponent, inject } from "vue";
 import { useUserStore } from "@/stores/user";
 import { createGame, joinGame, getGamesByUser } from "@/services/gameServices";
-import { IGameSettings } from "@/interfaces/game.interface";
+import type { IGameSettings } from "@/interfaces/game.interface";
 import axios from "axios";
 import router from "@/router";
 import type { Socket } from "socket.io-client";
@@ -61,7 +61,7 @@ export default defineComponent({
         });
     };
 
-    const joinGameAndNavigate = (gameId: number) => {
+    const joinGameAndNavigate = (gameId: string) => {
       joinGame(gameId)
         .then((res) => {
 					socket.emit("sendNotif", {userId: user, linkId: res.data.games.id});
