@@ -25,43 +25,8 @@
       </div>
     </div>
     <div class="content-wrapper content-wrapper--user">
-      <div v-if="userStats?.userGamesStatistics" class="user-stats-container">
-        <div>
-        <DoughutChartCard
-          title="Win / Lose games"
-          :labels="['win', 'lose']"
-          :gamesData="[
-            userStats?.userGamesStatistics.totalWins,
-            userStats?.userGamesStatistics.totalLoses,
-          ]"
-        />
-        <BarChartCard
-          title="Average Score"
-          :labels="['Player Average Score', 'Average Score']"
-          :gamesData="[
-            userStats?.userGamesStatistics.averageScore,
-            userStats?.allGamesStatistics.averageScore,
-          ]"
-        />
-        <BarChartCard
-          title="Average Elo"
-          :labels="['Your elo', 'Average elo']"
-          :gamesData="[
-            userStats?.userGamesStatistics.elo,
-            userStats?.allGamesStatistics.elo,
-          ]"
-        />
-        <BarChartCard
-          title="Average experience"
-          :labels="['Your xp', 'Average xp']"
-          :gamesData="[
-            userStats?.userGamesStatistics.experience,
-            userStats?.allGamesStatistics.experience,
-          ]"
-        />
-        </div>
-        <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :buttons-pagination="true"
-        empty-message="Aucun game trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
+      <EasyDataTable :headers="headers" :items="items" :theme-color="'var(--primary-color)'" :buttons-pagination="true"
+        empty-message="Aucun history game trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
         rows-per-page-message="Games par page">
         <template #item-id="{ id, status }">
             <RouterLink :to="{ name: 'game', params: { id: id } }" v-if="status != 'FINISHED'">
@@ -81,9 +46,42 @@
                 </div>
             </div>
         </template>
-    </EasyDataTable>
-
+      </EasyDataTable>
+      <div v-if="userStats?.userGamesStatistics" class="user-stats-container">
+          <DoughutChartCard
+            title="Win / Lose games"
+            :labels="['win', 'lose']"
+            :gamesData="[
+              userStats?.userGamesStatistics.totalWins,
+              userStats?.userGamesStatistics.totalLoses,
+            ]"
+          />
+          <BarChartCard
+            title="Average Score"
+            :labels="['Player Average Score', 'Average Score']"
+            :gamesData="[
+              userStats?.userGamesStatistics.averageScore,
+              userStats?.allGamesStatistics.averageScore,
+            ]"
+          />
+          <BarChartCard
+            title="Average Elo"
+            :labels="['Your elo', 'Average elo']"
+            :gamesData="[
+              userStats?.userGamesStatistics.elo,
+              userStats?.allGamesStatistics.elo,
+            ]"
+          />
+          <BarChartCard
+            title="Average experience"
+            :labels="['Your xp', 'Average xp']"
+            :gamesData="[
+              userStats?.userGamesStatistics.experience,
+              userStats?.allGamesStatistics.experience,
+            ]"
+          />
       </div>
+
     </div>
   </div>
 </template>
