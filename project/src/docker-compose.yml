@@ -7,8 +7,11 @@ services:
         build:
             context: ./web/nginx
             dockerfile: Dockerfile
+            args:
+                ENV: ${ENVIRONMENT}
         env_file: .env
         restart: always
+        
         tty: true
         depends_on:
             - web
