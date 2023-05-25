@@ -4,7 +4,7 @@
     <slot></slot>
     <Sidebar>
       <UsersList title="Utilisateurs en ligne" v-if="isLayout"/>
-      <MembersList title="Membres" :channel="route.params.id" v-else/>
+      <MembersList title="Membres" :channel="(route.params.id as string)" v-else/>
     </Sidebar>
   </div>
 </template>

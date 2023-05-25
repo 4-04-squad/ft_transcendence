@@ -233,7 +233,7 @@ export default defineComponent({
                 message: error.response.data.message,
                 } as AlertInterface;
 
-                alertStore.setAlert(alert);
+                this.alertStore.setAlert(alert);
                 router.push ({
                     name: "channels"
                 })

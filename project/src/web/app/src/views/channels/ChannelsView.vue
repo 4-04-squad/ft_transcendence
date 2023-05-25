@@ -96,7 +96,7 @@ export default defineComponent({
                 if (oldVal) {
                   socket.emit("leaveChat", { chatId: oldVal, userId: userStore.user.pseudo });
                 }
-                fetchChatDataAndJoinChat(newVal);
+                fetchChatDataAndJoinChat(newVal as string);
               }
             }).catch((err) => {
               const alert = {
@@ -117,7 +117,7 @@ export default defineComponent({
     onMounted(() => {
       // Call the function when the page is reloaded
       socket.emit("leaveChat", { chatId: route.params.id, userId: userStore.user.pseudo });
-      fetchChatDataAndJoinChat(route.params.id);
+      fetchChatDataAndJoinChat(route.params.id as string);
     });
     return {
       socket: socket,
