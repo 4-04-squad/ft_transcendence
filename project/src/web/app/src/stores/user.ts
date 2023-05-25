@@ -44,18 +44,6 @@ export const useUserStore = defineStore("user", {
       this.user.status = status;
     },
     clearUser() {
-      axios.patch(
-        `${import.meta.env.VITE_APP_API_URL}/users/${this.user.id}/edit`,
-        {
-          status: UserStatus.OFFLINE
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
       this.user = undefined;
       localStorage.removeItem("localUser");
     },

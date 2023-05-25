@@ -42,7 +42,7 @@ export class AuthController {
       const cookieName = isTwoFactorEnabled ? jwtTmpName : jwtName;
       res.cookie(cookieName, token, {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: 'none',
         maxAge 
       });
@@ -120,7 +120,7 @@ export class AuthController {
         const cookieName = isTwoFactorEnabled ? jwtTmpName : jwtName;
         res.cookie(cookieName, token, {
           httpOnly: true,
-          secure: true,
+          secure: false,
           sameSite: 'none',
           maxAge 
         });
