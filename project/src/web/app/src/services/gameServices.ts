@@ -18,7 +18,7 @@ export const getGames = () => {
  * @param userId 
  * @returns {Promise<AxiosResponse<any>>}
  */
-export const getGamesByUser = (userId: number) => {
+export const getGamesByUser = (userId: string) => {
     return axios.get(`${API_URL}/games/${userId}/user`, {
         withCredentials: true,
     });
@@ -29,7 +29,7 @@ export const getGamesByUser = (userId: number) => {
  * @param gameId
  * @returns {Promise<AxiosResponse<any>>}
  */
-export const getGameById = (gameId: number) => {
+export const getGameById = (gameId: string) => {
   return axios.get(`${API_URL}/games/${gameId}`, {
     withCredentials: true,
   });
@@ -68,7 +68,7 @@ export const createGame = (settings: any) => {
  * @description End a game
  * @returns {Promise<AxiosResponse<any>>}
  */
-export const endGame = (gameId: number, data: []) => {
+export const endGame = (gameId: string, data: []) => {
     return axios.patch(
         `${API_URL}/games/${gameId}/end`,
         data,

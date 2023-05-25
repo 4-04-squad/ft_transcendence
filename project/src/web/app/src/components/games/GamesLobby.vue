@@ -141,7 +141,9 @@ export default defineComponent({
                 const prevElo = prev.users[0].elo;
                 const currElo = curr.users[0].elo;
                 // if the current game is closer to the user elo than the previous one, return it
-                if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo)) return curr;
+                if (prevElo && currElo)
+                    if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo))
+                        return curr;
                 return prev;
             });
             joinAndNavigate(closestGame.id);

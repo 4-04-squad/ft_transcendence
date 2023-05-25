@@ -110,7 +110,7 @@ export default defineComponent({
     };
   },
   methods: {
-    handleFileChange(event: { target: { files: any; }; }) {
+    handleFileChange(event: any) {
       this.selectedFile = event.target.files[0];
       this.previewUrl = URL.createObjectURL(this.selectedFile);
     },
