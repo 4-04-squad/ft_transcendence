@@ -32,11 +32,49 @@ export interface IUserStats {
   allGamesStatistics: GameStatistics;
 }
 
-interface GameStatistics {
+export interface GameStatistics {
   experience: number;
   totalGames: number;
   totalWins: number;
   totalLoses: number;
   averageScore: number;
   elo: number;
+}
+
+export interface Ball {
+  xb: number;
+  yb: number;
+  x: number;
+  y: number;
+  width: number;
+  velocityx: number;
+  velocityy: number;
+  rebound: number;
+  rebonetime: number;
+  speed: number;
+}
+
+export interface CPU {
+  enable: number;
+  difficulty: number;
+}
+
+export interface Score {
+  p1: number;
+  p2: number;
+  color: string;
+  max_score: number;
+}
+
+export interface Player {
+  me: number;
+  speed: number;
+  tile: number;
+  tilewidth: number;
+  x: number;
+  y: number;
+  paddley: number;
+  ply: number;
+  id: string;
+  ready: number;
 }
