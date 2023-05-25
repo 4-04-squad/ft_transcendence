@@ -103,9 +103,8 @@ export default defineComponent({
   .chat-type-btn {
     display: inline-block;
     padding: 10px 20px;
-    border: 2px solid #ccc;
     border-radius: 10px;
-    cursor: pointer;  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
     transition: background-color 0.3s ease;
 
     font-size: 16px;
@@ -114,7 +113,7 @@ export default defineComponent({
   
   .chat-type-btn:hover {
     background-color: #f5f5f5;
-    color: #2196f3;
+    color:  var(--primary-color);
   }
   
   .chat-type-btn:focus {
@@ -123,7 +122,7 @@ export default defineComponent({
 
   
 .chat-type-btn {
-    background-color: #2196f3;
+    background-color:  var(--primary-color);
     color: #fff;
   }
 .chat-type input[type="radio"]:checked + .chat-type-btn {

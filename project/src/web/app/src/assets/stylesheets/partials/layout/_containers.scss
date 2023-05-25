@@ -209,6 +209,7 @@ main {
     background-color: var(--border-color);
     border-top-right-radius: var(--radius);
     border-top-left-radius: var(--radius);
+    z-index: 3;
 
     @include bp($small, max) {
       border-radius: 0;

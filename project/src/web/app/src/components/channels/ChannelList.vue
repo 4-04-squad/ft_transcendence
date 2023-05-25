@@ -29,7 +29,7 @@ export default defineComponent({
     },
   },
   setup() {
-	  const alertStore = useAlertStore();
+    const alertStore = useAlertStore();
     const channels = ref([] as ChatInterface[]);
     const selectedChannels = ref(null as ChatInterface | null);
 
