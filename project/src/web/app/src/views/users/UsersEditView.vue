@@ -70,7 +70,7 @@ import { useRoute, RouterLink } from "vue-router";
 import axios from "axios";
 import { defineComponent, ref } from "vue";
 import { EditIcon } from "@/components/icons";
-import { AlertInterface } from "@/interfaces/alert.interface";
+import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
@@ -88,7 +88,7 @@ export default defineComponent({
     const userStore = useUserStore();
     const route = useRoute();
     const avatarRef = ref();
-    const selectedFile = ref(null);
+    const selectedFile = ref();
 	const alertStore = useAlertStore();
 
     // Get the user from the store
@@ -147,12 +147,13 @@ export default defineComponent({
       }
 
       // Get the form Object
+
       const formObject = {
-        pseudo: this.$refs.pseudo.value,
-        email: this.$refs.email.value,
-        firstName: this.$refs.firstName.value,
-        lastName: this.$refs.lastName.value,
-        about: this.$refs.about.value,
+        pseudo: (this.$refs.pseudo as any).value,
+        email: (this.$refs.email as any).value,
+        firstName: (this.$refs.firstName as any).value,
+        lastName: (this.$refs.lastName as any).value,
+        about: (this.$refs.about as any).value,
         role: this.user.role || "USER",
       };
 
@@ -173,7 +174,7 @@ export default defineComponent({
             this.userStore.setUser(res.data.user);
             this.$router.push({ path: "/profile" });
           })
-      } catch (error) {
+      } catch (error: any) {
         const alert = {
 					status: 400,
 					message: error.response.data.message,
