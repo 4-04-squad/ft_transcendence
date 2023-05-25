@@ -10,7 +10,11 @@ export interface UserInterface {
   lastName?: string;
   avatar?: string;
   about?: string;
-  experience: bigint;
+  password?: string;
+  twofasecret?: string;
+  twofaenabled: boolean;
+  experience: number;
+  elo: number;
   status: UserStatus;
   role: UserRole;
   createdAt: Date;
