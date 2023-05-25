@@ -7,8 +7,6 @@ services:
         build:
             context: ./web/nginx
             dockerfile: Dockerfile
-            args:
-                ENV: ${ENVIRONMENT}
         env_file: .env
         restart: always
         
@@ -21,7 +19,6 @@ services:
             - "80:80"
         volumes:
             - web_data:/usr/share/nginx/html/app/dist:ro,Z
-            - ./web/nginx/conf.d:/etc/nginx/conf.d
         networks:
             - 42Pong
 
