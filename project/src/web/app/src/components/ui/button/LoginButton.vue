@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import router from "@/router";
@@ -27,7 +27,7 @@ export default defineComponent({
     const alertStore = useAlertStore();
     const socket = inject('socket') as Socket;
 
-    socket.on('shoutOnline', (data) => {
+    socket.on('shoutOnline', (data: any) => {
       console.log(data);
 			const alert = {
 				status: 200,
@@ -45,6 +45,7 @@ export default defineComponent({
   },
   methods: {
     async login() {
+      const loading = ref(0);
       const loginUrl = `${import.meta.env.VITE_APP_API_URL}/users/@me`;
       const token = import.meta.env.VITE_APP_FORTY_TWO_CLIENT_ID;
       const callbackUrl = `${
@@ -54,31 +55,30 @@ export default defineComponent({
       const popup = window.open(redirectUrl, "_blank", "height=600,width=600");
 
       popup?.addEventListener("load", () => {
-        if (popup?.location.href === loginUrl) {
-          popup.close();
-        }
+        setTimeout(function(){
+          if (popup?.location.href === loginUrl) {
+            loading.value = 1;
+            popup.close();
+          }
+        }, 1000);
+        logUser();
       });
 
-      // wait for the user to complete the login process
-      const interval = setInterval(async () => {
-        try {
-          const response = await axios.get(loginUrl, {
+      const logUser = async () => {
+        await axios.get(loginUrl, {
             withCredentials: true,
-          });
+          }).then((response) => {
           // check if the user is logged in
           if (response.status === 206) {
-            clearInterval(interval);
             popup?.close();
-
 						router.push({ path: "/login_2fa" });
 					}
           else if (response.status === 200) {
             // clear the interval and close the popup
-            clearInterval(interval);
             popup?.close();
             // set the default image
             if (!response.data.user.avatar) {
-              await axios.patch(
+              axios.patch(
                   `${import.meta.env.VITE_APP_API_URL}/users/${response.data.user.id}/edit`,
                   {
                     avatar: "/public/img/marvin.png"
@@ -104,14 +104,23 @@ export default defineComponent({
               }
             }
           }
-        } catch (error: any) {
-          const alert = {
+          })
+          .catch((error) => {
+            const alert = {
             status: error.response.data.statusCode,
             message: error.response.data.message,
           } as AlertInterface;
           this.alertStore.setAlert(alert);
-        }
-      }, 100);
+          });
+      }
+
+      watch(
+      () => loading.value == 1,
+      () => {
+        logUser();
+      },
+      { immediate: true }
+    );
     },
   },
 });
