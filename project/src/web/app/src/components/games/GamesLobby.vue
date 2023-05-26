@@ -81,7 +81,7 @@
 </template>
   
 <script lang="ts">
-import { defineComponent, ref, computed, watch } from "vue";
+import { defineComponent, ref, computed, watch, inject } from "vue";
 import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
@@ -93,6 +93,7 @@ import { joinGame, getGames, createGame } from "@/services/gameServices";
 import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -104,16 +105,23 @@ export default defineComponent({
     },
     setup() {
         const searchValue = ref("");
+        const updatedAt = ref("");
         const userStore = useUserStore();
         const alertStore = useAlertStore();
         const games = ref([] as GameInterface[]);
         const showCreateGameModal = ref(false);
-		
+        const socket = inject('socket') as Socket;
+
+        socket.on("createGame", (data: any) => {
+            updatedAt.value = data.updatedAt;
+        });
+
         const headers = [
             { text: "ID", value: "id", sortable: true },
             { text: "USERS", value: "players" },
             { text: "STATUS", value: "status", sortable: true },
             { text: "PLAYERS", value: "users", sortable: true },
+            { text: "CREATED AT", value: "createdAt", sortable: true, type: "date"},
             { text: "", value: "game" }, // game id
         ] as Header[];
         const items = ref([] as Item[]);
@@ -153,6 +161,18 @@ export default defineComponent({
             items.value = filteredItems.value;
         });
 
+        // watch updatedAt to update the games list every new created game
+        watch(updatedAt, () => {
+            getGames().then((res) => {
+                games.value = res.data.games;
+                items.value = filteredItems.value;
+
+                // filter games by default
+                filterGames("all");
+            });
+        });
+
+
         const filteredItems = computed(() => {
             if (searchValue.value.trim() === "") return games.value.map(mapGameToItem);
             return games.value.filter((game) => {
@@ -161,7 +181,7 @@ export default defineComponent({
                         if (user.pseudo)
                             user.pseudo.toLowerCase().includes(searchValue.value.toLowerCase())
                     }
-                        ) ||
+                    ) ||
                     game.id.toString().includes(searchValue.value) ||
                     game.status.toLowerCase().includes(searchValue.value.toLowerCase())
                 );
@@ -175,6 +195,14 @@ export default defineComponent({
                 status: game.status,
                 players: game.users,
                 users: game.users.length,
+                // format date to dd/mm/yyyy hh:mm
+                createdAt: new Date(game.createdAt).toLocaleString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
             };
         };
 
@@ -226,7 +254,9 @@ export default defineComponent({
         const createGameAndNavigate = (gameSettings: IGameSettings) => {
             // create game add the settings to the store and navigate to the game
             createGame(gameSettings).then((response) => {
-                router.push({ name: "game", params: { id: response.data.games.id } });
+                router.push({ name: "game", params: { id: response.data.game.id } });
+                updatedAt.value = new Date().toISOString();
+                socket.emit('createGame', {updatedAt: updatedAt});
             })
                 .catch((error) => {
                     const alert = {
@@ -292,6 +322,12 @@ export default defineComponent({
     overflow-x: auto;
     width: 100%;
     justify-content: center;
+
+    -ms-overflow-style: none; /* for Internet Explorer, Edge */
+    scrollbar-width: none; /* for Firefox */
+    &::-webkit-scrollbar{
+      display: none;
+    } 
 
     @media screen and (max-width: 768px) {
         justify-content: flex-start;

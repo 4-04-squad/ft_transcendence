@@ -21,7 +21,7 @@
 <script lang="ts">
 import { MessageStatus, type MessageInterface } from "@/interfaces/message.interface";
 import { useUserStore } from "@/stores/user";
-import { defineComponent, ref, watch } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import Message from "./Message.vue";
 import { useRoute } from "vue-router";
 import { useMessageStore } from "@/stores/messages";
@@ -32,6 +32,7 @@ import ChannelEditModal from "../channels/ChannelEditModal.vue";
 import { is, shallowEqual } from "@babel/types";
 import axios from "axios";
 import router from "@/router";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "ChatConversation",
@@ -253,6 +254,12 @@ export default defineComponent({
     padding: var(--spacing);
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing);
+
+    -ms-overflow-style: none; /* for Internet Explorer, Edge */
+    scrollbar-width: none; /* for Firefox */
+    &::-webkit-scrollbar{
+      display: none;
+    } 
 
     &__messages {
       display: flex;

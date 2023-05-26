@@ -114,14 +114,25 @@ export class UsersService {
 
   async getUsersByStatus(status: string, limit: string, currentUserId: string): Promise<User[]> {
     const statusEnum = UserStatus[status];
+    let users: User[] = [];
 
-    const users = await this.prisma.user.findMany({
+    if (statusEnum == "ONLINE") {
+      users = await this.prisma.user.findMany({
+        where: {
+          status: { in: [UserStatus.ONLINE, UserStatus.PLAYING]},
+          id: { not: currentUserId },
+        },
+        take: parseInt(limit) ? parseInt(limit.toString()) : undefined,
+      });
+    } else {
+    users = await this.prisma.user.findMany({
       where: {
         status: statusEnum,
         id: { not: currentUserId },
       },
       take: parseInt(limit) ? parseInt(limit.toString()) : undefined,
     });
+  }
 
     return users;
   }

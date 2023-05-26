@@ -117,8 +117,8 @@ export class TwoFactorAuthenticationController {
 		// Set jwt cookie
 		res.cookie(process.env.JWT_NAME, token, {
 			httpOnly: true,
-			secure: true,
-			sameSite: 'none',
+			secure: false,
+			sameSite: 'lax',
 			maxAge: 86400000, // 1 day
 		});
 	

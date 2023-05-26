@@ -38,7 +38,7 @@
 </template>
   
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import axios from "axios";
 import router from "@/router";
 import type { Header, Item, BodyRowClassNameFunction } from "vue3-easy-data-table";
@@ -50,6 +50,8 @@ import ChannelPasswdModal from "@/components/channels/ChannelPasswdModal.vue";
 import { channel } from "diagnostics_channel";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
+import { useUserStore } from "@/stores/user";
 
 export default defineComponent({
     name: "ChatLobby",
@@ -63,17 +65,67 @@ export default defineComponent({
 },
     setup() {
         const alertStore = useAlertStore();
+        const userStore = useUserStore();
         const searchValue = ref("");
+        const updatedAt = ref("");
         const showCreateChannelModal = ref(false);
         const showPasswdModal = ref(false);
         const channels = ref([] as ChatInterface[]);
+        const socket = inject('socket') as Socket;
         const headers = [
             { text: "NAME", value: "name" },
             { text: "TYPE", value: "type" },
+            { text: "CREATED AT", value: "createdAt", sortable: true, type: "date"},
             { text: "", value: "channel" }, // channel id
         ] as Header[];
         const items = ref([] as Item[]);
         const channelId = ref("");
+
+        socket.on("createChannel", (data: any) => {
+            updatedAt.value = data.updatedAt;
+        });
+
+         // watch updatedAt to update the channels list every new created game
+        watch(updatedAt, () => {
+            axios
+                .get(`${import.meta.env.VITE_APP_API_URL}/channels`, {
+                    withCredentials: true,
+                })
+                .then((response) => {
+                    channels.value = response.data.channels;
+
+                    items.value = channels.value.map((channel) => {
+                        return {
+                            name: channel.name,
+                            channel: channel.id,
+                            type: channel.type,
+                            // format date to dd/mm/yyyy hh:mm
+                            createdAt: new Date(channel.createdAt).toLocaleString("fr-FR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }),
+                        };
+                    });
+                })
+                .catch((error) => {
+                    const alert = {
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
+                    } as AlertInterface;
+
+                    alertStore.setAlert(alert);
+                    if (axios.isAxiosError(error)) {
+                        if (error.response?.status == 401) {
+                            router.push({ path: "/" });
+                        }
+                    }
+                });
+        });
+
+
         axios
             .get(`${import.meta.env.VITE_APP_API_URL}/channels`, {
                 withCredentials: true,
@@ -86,6 +138,14 @@ export default defineComponent({
                         name: channel.name,
                         channel: channel.id,
                         type: channel.type,
+                        // format date to dd/mm/yyyy hh:mm
+                        createdAt: new Date(channel.createdAt).toLocaleString("fr-FR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }),
                     };
                 });
             })
@@ -135,6 +195,8 @@ export default defineComponent({
                         },
                     }
                 ).then((response) => {
+                    updatedAt.value = new Date().toISOString();
+                    socket.emit('createChannel', {updatedAt: updatedAt});
                     router.push({
                         name: "channel",
                         params: {
@@ -173,6 +235,8 @@ export default defineComponent({
                 },
                 }
             ).then((res) => {
+                updatedAt.value = new Date().toISOString();
+                socket.emit('updateChannelMembersList', {updatedAt: updatedAt, channelId: res.data.channel.id});
                 router.push({
                 name: "channel",
                 params: {
@@ -221,6 +285,9 @@ export default defineComponent({
             joinChannel,
             onSettingReceived,
             onPasswdReceived,
+            socket,
+            updatedAt,
+            userStore,
         };
 
     },
