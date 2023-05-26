@@ -35,37 +35,37 @@ export default defineComponent({
   methods: {
     async logout() {
       if (this.userStore.user) {
-        await axios
-          .get(
-            `${import.meta.env.VITE_APP_API_URL}/auth/signout/${this.userStore.user.id
-            }`,
-            {
-              withCredentials: true,
-            }
-          )
-          .then((res) => {
-            
-            this.socket.emit("leaveOnline", { user: this.userStore.user });
-                const alert = {
-                status: res.data.statusCode,
-                message: res.data.message,
+        axios
+            .get(
+              `${import.meta.env.VITE_APP_API_URL}/auth/signout/${this.userStore.user.id
+              }`,
+              {
+                withCredentials: true,
+              }
+            )
+            .then((res) => {
+              
+              this.socket.emit("leaveOnline", { user: this.userStore.user });
+                  const alert = {
+                  status: res.data.statusCode,
+                  message: res.data.message,
+                } as AlertInterface;
+
+              this.alertStore.setAlert(alert);
+              this.userStore.clearUser();
+              
+              if (!this.userStore.user) {
+                router.push({ path: "/login" });
+              }
+            })
+            .catch((err) => {
+              const alert = {
+                status: err.response.data.statusCode,
+                message: err.response.data.message,
               } as AlertInterface;
 
-            this.alertStore.setAlert(alert);
-            this.userStore.clearUser();
-            
-            if (!this.userStore.user) {
-              router.push({ path: "/login" });
-            }
-          })
-          .catch((err) => {
-            const alert = {
-              status: err.response.data.statusCode,
-              message: err.response.data.message,
-            } as AlertInterface;
-
-            this.alertStore.setAlert(alert);
-          });
+              this.alertStore.setAlert(alert);
+        });
       }
     },
   },

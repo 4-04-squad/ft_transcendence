@@ -30,7 +30,7 @@
     height: calc((var(--vh) * 40) - (var(--spacing) * 2));
     max-height: calc((var(--vh) * 40) - (var(--spacing) * 2));
 
-    @include bp($small, max) {
+    @include bp($tablet, max) {
         max-height: calc((var(--vh) * 30) - (var(--spacing) * 2));
         height: calc((var(--vh) * 30) - (var(--spacing) * 2));
       }
@@ -43,7 +43,7 @@
             font-weight: bold;
         }
 
-        @include bp($small, max) {
+        @include bp($tablet, max) {
             font-size: 2rem;
         }
       }
