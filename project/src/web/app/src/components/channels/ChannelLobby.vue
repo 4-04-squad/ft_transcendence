@@ -17,13 +17,13 @@
         :buttons-pagination="true" empty-message="Aucun channel trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
         rows-per-page-message="Channels par page" :body-row-class-name="bodyRowClassNameFunction">
         <template #item-name="{ name, channel, type }">
-            <span @click.stop="togglePasswdModal(type, channel)" v-if="name">{{ name }}</span>
-            <span @click.stop="togglePasswdModal(type, channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
+            <span @click.stop="joinChannelfunc(type, channel)" v-if="name">{{ name }}</span>
+            <span @click.stop="joinChannelfunc(type, channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
         </template>
         <template #item-channel="{ channel, type }">
             <ul class="btns">
                 <li>
-                    <button @click="togglePasswdModal(type, channel)" class="btn btn--icon only-icon">
+                    <button @click="joinChannelfunc(type, channel)" class="btn btn--icon only-icon">
                         <MessageIcon /> 
                     </button>
                 </li>
