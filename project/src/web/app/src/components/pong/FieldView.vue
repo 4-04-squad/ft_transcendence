@@ -311,14 +311,18 @@ export default defineComponent({
 					});
 				});
 			} else if (this.gameData.userGames.length == 1) {
-				if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
-					this.gameData.userGames[0].status = userGameStatus.WINNER;
-				}
-				else {
-					this.gameData.userGames[0].status = userGameStatus.LOSER;
-				}
-			}
+				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
+					const alert = {
+						status: err.response.status,
+						message: err.response.data.message,
+					} as AlertInterface;
 
+					this.alertStore.setAlert(alert);
+					router.push({
+						name: "games",
+					});
+				});
+			}
 			this.player1.me = 0;
 			this.player2.me = 0;
 			this.cpu.enable = 0;
