@@ -42,11 +42,9 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   * Emit action : User status
   */
 
-  @SubscribeMessage('user:status')
+  @SubscribeMessage('userStatus')
   onUserStatus(@MessageBody() data: { userId: string, status: string }) {
-    const roomName = `online`;
-    // emit in room
-    this.server.to(roomName).emit('user:status', { userId: data.userId, status: data.status });
+    this.server.emit('userStatus', { userId: data.userId, status: data.status });
   }
 
   @SubscribeMessage('shoutOnline')
@@ -191,6 +189,8 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
     userRooms.add(roomName);
     this.connectedRooms.set(data.userId, userRooms);
+    this.server.emit('userStatus', { userId: data.userId, status: 'PLAYING' });
+    this.server.to(roomName).emit('joinGame', { gameId: data.gameId, userId: data.userId });
   }
 
   @SubscribeMessage('leaveGame')
@@ -213,6 +213,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     }
 
     this.leaveSocketGame(data.gameId, data.userId);
+    this.server.emit('userStatus', { userId: data.userId, status: 'ONLINE' });
   }
 
   @SubscribeMessage('movePlayer')
@@ -305,6 +306,19 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   /*
   * Handle action
   */
+
+  @SubscribeMessage('createChannel')
+  onCreateChannel(@Body() data: { updatedAt: string }) {
+    // emit to all online users
+    this.server.emit('createChannel', { updated: data.updatedAt });
+  }
+
+  @SubscribeMessage('updateChannelMembersList')
+  onUpdateChannelMembersList(@Body() data: { updatedAt: string, channelId: string }) {
+    const roomName = `${data.channelId}`;
+    // emit to all online users
+    this.server.to(roomName).emit('updateChannelMembersList', { updated: data.updatedAt, channelId: data.channelId });
+  }
 
   @SubscribeMessage('joinChat')
   onJoinChat(client: Socket, data: { chatId: string, userId: string }) {

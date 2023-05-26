@@ -323,6 +323,12 @@ export default defineComponent({
     width: 100%;
     justify-content: center;
 
+    -ms-overflow-style: none; /* for Internet Explorer, Edge */
+    scrollbar-width: none; /* for Firefox */
+    &::-webkit-scrollbar{
+      display: none;
+    } 
+
     @media screen and (max-width: 768px) {
         justify-content: flex-start;
         padding-right: 1rem !important;

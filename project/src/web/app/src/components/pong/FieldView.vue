@@ -24,7 +24,7 @@ import router from "@/router";
 import { endGame } from "@/services/gameServices";
 import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
-import { defineComponent, watch } from "vue";
+import { defineComponent, ref, watch } from "vue";
 
 enum userGameStatus {
 	WINNER = "WINNER",
@@ -44,35 +44,33 @@ export default defineComponent({
 			required: true,
 		},
 	},
-	data() {
-		const userStore = useUserStore();
-		let btnOnePlayer = false;
-		let btnMultiPlayer = false;
-
-		// check if current user is one of the players
-		if (this.gameData.users.length == 2) {
-			if (this.gameData.users[0].id == userStore.user.id || this.gameData.users[1].id == userStore.user.id) {
-				btnOnePlayer = this.gameData.users.length == 1 ? true : false
-				btnMultiPlayer = this.gameData.users.length == 1 ? false : true
-
-			}
-		} else {
-			if (this.gameData.users[0].id == userStore.user.id) {
-				btnOnePlayer = this.gameData.users.length == 1 ? true : false
-			}
-		}
-
-		let btnQuitGame = false
-		return {
-			btnOnePlayer,
-			btnMultiPlayer,
-			btnQuitGame,
-		}
-	},
 	setup(props) {
 		const userStore = useUserStore();
 		const alertStore = useAlertStore();
 		let context = {} as any;
+		
+		const btnOnePlayer = ref(true);
+		const btnMultiPlayer = ref(false);
+		const btnQuitGame = ref(false);
+		const isReady = ref(0);
+
+		watch(
+			() => props.gameData.users,
+			() => {
+				if (props.gameData.users.length == 2) {
+					if (props.gameData.users[0].id == userStore.user.id || props.gameData.users[1].id == userStore.user.id) {
+						btnOnePlayer.value = props.gameData.users.length == 1 ? true : false
+						btnMultiPlayer.value = props.gameData.users.length == 1 ? false : true
+					}
+				} else {
+					if (props.gameData.users[0].id == userStore.user.id) {
+						btnOnePlayer.value = props.gameData.users.length == 1 ? true : false
+					}
+				}
+			}
+		), {
+			immediate: true
+		};
 
 		const ball: Ball = {
 			xb: (window.innerWidth - 260) / 2 - 10,
@@ -127,6 +125,10 @@ export default defineComponent({
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data: any) => {
 			//console.log("User joined game:", data);
+			if (props.gameData.userGames.length == 2) {
+				btnOnePlayer.value = false;
+				btnMultiPlayer.value = true;
+			}
 		});
 
 		props.socket.on("leaveGame", (data: any) => {
@@ -135,9 +137,12 @@ export default defineComponent({
 
 		props.socket.on("movePlayer", (data: any) => {
 			//console.log("Player moved:", data);
-			player1.y = data.position.y;
-			player1.paddley = data.position.y + player1.tile;
-		});
+			if (player1.me == 0)
+			{
+				player1.y = data.position.y;
+				player1.paddley = data.position.y + player1.tile;
+			}
+			});
 
 		props.socket.on("movePlayerTwo", (data: any) => {
 			//console.log("Player Two moved:", data);
@@ -158,24 +163,10 @@ export default defineComponent({
 		});
 
 		props.socket.on("ready", (data: any) => {
-				if (data.userId == player1.id) {
-					player1.ready = 1;
-				} else if (data.userId == player2.id) {
-					player2.ready = 1;
-				}
-			});
+			isReady.value++;
+			console.log("Ready:", isReady.value);
+		});
 
-		// watch for changes in the gameData prop
-		watch(
-			() => props.gameData,
-			(newVal, oldVal) => {
-				if (oldVal) {
-					props.socket.emit("leaveGame", { gameId: oldVal.gameId, userId: props.gameData.userId });
-				}
-				props.socket.emit("joinGame", { gameId: newVal.gameId, userId: props.gameData.userId });
-			},
-			{ immediate: true } // Call the function immediately when the component is created
-		);
 
 		return {
 			player1,
@@ -188,6 +179,10 @@ export default defineComponent({
 			cpu,
 			userStore,
 			alertStore,
+			btnOnePlayer,
+			btnMultiPlayer,
+			btnQuitGame,
+			isReady,
 		}
 	},
 	beforeUnmount() {
@@ -215,7 +210,7 @@ export default defineComponent({
 		else
 			this.ball.velocityy = 1;
 
-		//this.setvar();
+		// watch if player is ready
 		window.requestAnimationFrame(this.update);
 		window.addEventListener("resize", this.handleWindowResize);
 	},
@@ -240,7 +235,7 @@ export default defineComponent({
 					this.secondplayer(this.gameData.userGames[0].userId);
 				}
 			}
-			this.socket.emit("ready", { gameId: this.gameData.gameId, userId: this.userStore.user.id });
+			this.socket.emit("ready", { gameId: this.gameData.id, userId: this.userStore.user.id });
 		},
 
 		firstplayer(id: string) {
@@ -367,10 +362,6 @@ export default defineComponent({
 		moveplayer(player: Player) {
 			let up = "w";
 			let down = "s";
-			if (player.ply == 2) {
-				up = "ArrowUp";
-				down = "ArrowDown";
-			}
 			window.addEventListener("keypress", (event) => {
 				if (event.defaultPrevented) {
 					return;
@@ -507,12 +498,11 @@ export default defineComponent({
 
 
 		update() {
-			console.log(this.player1.ready, this.player2.ready);
 			//this.setvar();
 			//console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
-			else if ((this.player1.me == 1 && this.player2.ready == 1) || (this.player2.me == 1 && this.player1.ready == 1)) {
+			else if (this.isReady == 2 && (this.player1.me == 1 || this.player2.me == 1)) {
 				this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 				this.updatecsore();
 				if (this.player1.me == 1) {

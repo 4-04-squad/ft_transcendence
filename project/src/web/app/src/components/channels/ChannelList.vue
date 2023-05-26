@@ -65,6 +65,25 @@ export default defineComponent({
 
 <style lang="scss">
 .channels-list {
+  overflow-y: scroll;
+    height: calc(var(--vh) * 85);
+    max-height: calc(var(--vh) * 85);
+    
+    -ms-overflow-style: none; /* for Internet Explorer, Edge */
+    scrollbar-width: none; /* for Firefox */
+    &::-webkit-scrollbar{
+      display: none;
+    } 
+
+    @media screen and (max-width: 768px) {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: auto;
+      max-height: auto;
+    }
+
   &__title {
     font-size: 1.5rem;
     font-weight: 600;
@@ -73,14 +92,10 @@ export default defineComponent({
 
   &__item {
     margin-bottom: 1rem;
-    overflow-y: auto;
 
     @media screen and (max-width: 768px) {
       margin-bottom: 0;
       width: 100%;
-      display: flex;
-      overflow-x: auto;
-      overflow-y: hidden;
     }
   }
 
