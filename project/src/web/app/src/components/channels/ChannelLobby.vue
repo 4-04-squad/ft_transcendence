@@ -102,13 +102,18 @@ export default defineComponent({
                     }
                 }
             });
+        
+        const joinChannelfunc = (type: string, chatId: string) => {
+            if (type == "RESTRICTED") {
+                togglePasswdModal(type, chatId);
+            } else {
+                joinChannel(chatId);
+            }
+        };
 
         const togglePasswdModal = (type: string, chatId: string) => {
             channelId.value = chatId;
-            if (type == "RESTRICTED")
-                showPasswdModal.value = !showPasswdModal.value;
-            else
-                joinChannel(chatId);
+            showPasswdModal.value = !showPasswdModal.value;
         };
 
         const toggleCreateChannelModal = () => {
@@ -152,6 +157,9 @@ export default defineComponent({
         };
 
         const joinChannel = (id: string, passwd?: string) => {
+            if (!id) {
+                return;
+            }
             const response = axios
             .post(
                 `${import.meta.env.VITE_APP_API_URL}/channels/join`,
@@ -205,6 +213,7 @@ export default defineComponent({
             headers,
             items,
             alertStore,
+            joinChannelfunc,
             bodyRowClassNameFunction,
             toggleCreateChannelModal,
             togglePasswdModal,
