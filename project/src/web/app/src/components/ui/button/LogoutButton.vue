@@ -46,10 +46,10 @@ export default defineComponent({
           .then((res) => {
             
             this.socket.emit("leaveOnline", { user: this.userStore.user });
-                const alert = {
-                status: res.data.statusCode,
-                message: res.data.message,
-              } as AlertInterface;
+            const alert = {
+              status: res.data.statusCode,
+              message: res.data.message,
+            } as AlertInterface;
 
             this.alertStore.setAlert(alert);
             this.userStore.clearUser();

@@ -22,7 +22,7 @@
         <div class="form-fields">
           <div class="form-field">
             <label for="pseudo">Pseudo</label>
-            <input type="text" id="pseudo" name="pseudo" ref="pseudo" :value="user.pseudo" />
+            <input type="text" id="pseudo" name="pseudo" ref="pseudo" :value="user.pseudo" required/>
           </div>
           <div class="form-field">
             <label for="email">Email</label>

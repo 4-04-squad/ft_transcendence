@@ -11,7 +11,7 @@
                     <p>Créer une game</p>
                 </button>
                 <button class="btn btn--success create-game" @click="searchAndJoinGame">
-                    <p>Joindre une game</p>
+                    <p>Matchmaking</p>
                 </button>
             </div>
         </h1>
@@ -81,7 +81,7 @@
 </template>
   
 <script lang="ts">
-import { defineComponent, ref, computed, watch } from "vue";
+import { defineComponent, ref, computed, watch, inject } from "vue";
 import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
@@ -93,6 +93,7 @@ import { joinGame, getGames, createGame } from "@/services/gameServices";
 import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -108,6 +109,7 @@ export default defineComponent({
         const alertStore = useAlertStore();
         const games = ref([] as GameInterface[]);
         const showCreateGameModal = ref(false);
+        const socket = inject('socket') as Socket;
 		
         const headers = [
             { text: "ID", value: "id", sortable: true },
@@ -117,6 +119,18 @@ export default defineComponent({
             { text: "", value: "game" }, // game id
         ] as Header[];
         const items = ref([] as Item[]);
+
+        const defaultGameSettings: IGameSettings = {
+            gameId: '0',
+            ballSpeed: 5,
+            paddleSpeed: 5,
+            ballColor: "#ffffff",
+            backgroundColor: "#000000",
+            ballSize: 5,
+            paddleSize: 5,
+            paddleColor: "#ffffff",
+            scoreLimit: 10,
+        };
 
         const removeActiveClass = () => {
             document.querySelectorAll(".btn-game-filter").forEach((element) => {
@@ -130,24 +144,54 @@ export default defineComponent({
 
         // function to join a waiting game where the user elo is closest to the current user elo
         const searchAndJoinGame = () => {
-            const userElo = userStore.user.elo;
-            const waitingGames = games.value.filter((game) => game.status == "WAITING");
+            // const userElo = userStore.user.elo;
+            // const waitingGames = games.value.filter((game) => game.status == "WAITING");
             // if no waiting game, create one
-            if (waitingGames.length == 0) {
-                toggleCreateGameModal();
-                return;
-            }
-            const closestGame = waitingGames.reduce((prev, curr) => {
-                const prevElo = prev.users[0].elo;
-                const currElo = curr.users[0].elo;
-                // if the current game is closer to the user elo than the previous one, return it
-                if (prevElo && currElo)
-                    if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo))
-                        return curr;
-                return prev;
+            
+            socket.emit("joinWaitingGame", {
+                userId: userStore.user.id
             });
-            joinAndNavigate(closestGame.id);
+
+            socket.emit("waiting", {
+                userId: userStore.user.id,
+            });
+            return
+                
+            
+            // const closestGame = waitingGames.reduce((prev, curr) => {
+            //     const prevElo = prev.users[0].elo;
+            //     const currElo = curr.users[0].elo;
+            //     // if the current game is closer to the user elo than the previous one, return it
+            //     if (prevElo && currElo)
+            //         if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo))
+            //             return curr;
+            //     return prev;
+            // });
+            // joinAndNavigate(closestGame.id);
         };
+
+        socket.on("waiting", (data: any) => {
+            console.log("data: ", data);
+            if(data.gameId !== undefined && data.userId != userStore.user.id){
+                joinAndNavigate(data.gameId);
+                socket.emit("leaveWaiting", {
+                    userId: userStore.user.id,
+                })
+            }
+            else if (data.userId != userStore.user.id) {
+                createGame(defaultGameSettings).then((response) => {
+                    console.log(response);
+                    socket.emit("waiting", {
+                        userId: userStore.user.id,   
+                        gameId: response.data.game.id,
+                    });
+                    router.push({ name: "game", params: { id: response.data.game.id } });
+                    socket.emit("leaveWaiting", {
+                        userId: userStore.user.id,
+                    })
+                })
+            }
+        });
 
         watch(searchValue, () => {
             items.value = filteredItems.value;
@@ -276,6 +320,7 @@ export default defineComponent({
             joinAndNavigate,
             onSettingReceived,
             searchAndJoinGame,
+            socket
         };
     },
 });
