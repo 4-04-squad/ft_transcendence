@@ -25,6 +25,7 @@ import { endGame } from "@/services/gameServices";
 import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
 import { defineComponent, watch } from "vue";
+import ChannelPasswdModal from "../channels/ChannelPasswdModal.vue";
 
 enum userGameStatus {
 	WINNER = "WINNER",
@@ -75,8 +76,8 @@ export default defineComponent({
 		let context = {} as any;
 
 		const ball: Ball = {
-			xb: (window.innerWidth - 260) / 2 - 10,
-			yb: (window.innerHeight - 145) / 2,
+			xb: 0,
+			yb: 0,
 			x: 0,
 			y: 0,
 			width: 20,
@@ -84,7 +85,7 @@ export default defineComponent({
 			velocityy: 1,
 			rebound: 0,
 			rebonetime: 2,
-			speed: 3,
+			speed: 1,
 		};
 
 		const cpu: CPU = {
@@ -130,7 +131,7 @@ export default defineComponent({
 			ready: 0,
 			canvasX: 0,
 			canvasY: 0,
-			ratioY: 1,
+			ratioY: 0,
 			ratioX: 0,
 		};
 		// Socket event listeners envoyer les infos au serveur
@@ -246,6 +247,7 @@ export default defineComponent({
 			this.ball.velocityy = 1;
 
 		//this.setvar();
+		this.resizeVar();
 		window.requestAnimationFrame(this.update);
 		window.addEventListener("resize", this.handleWindowResize);
 	},
@@ -271,6 +273,10 @@ export default defineComponent({
 				}
 			}
 			this.socket.emit("ready", { gameId: this.gameData.gameId, userId: this.userStore.user.id });
+			if (this.player1.me == 1)
+				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.gameId, width: this.context.canvas.width, height: this.context.canvas.height});
+			else
+				this.socket.emit("sendCanvasSizeP2", { gameId: this.gameData.gameId, width: this.context.canvas.width, height: this.context.canvas.height});
 		},
 
 		firstplayer(id: string) {
@@ -358,6 +364,12 @@ export default defineComponent({
 			this.btnOnePlayer = false;
 			this.btnMultiPlayer = false;
 			this.btnQuitGame = true;
+		},
+
+		resizeVar() {
+			this.player1.tile = (this.context.canvas.height * 75) / 650;
+			this.player2.tile = (this.context.canvas.height * 75) / 650;
+			this.ball.width = (this.context.canvas.width * 15) / 650;
 		},
 
 		setvar() {
@@ -474,7 +486,7 @@ export default defineComponent({
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
-			this.ball.speed = 3;
+			this.ball.speed = 1;
 			this.ball.rebound = 0;
 			this.ball.rebonetime = 2;
 		},
@@ -503,6 +515,7 @@ export default defineComponent({
 
 		updateball() {
 			// calcul where the ball is and if she touch something
+			console.log("ball y :", this.ball.y + this.ball.velocityy + this.ball.width);
 			if (this.ball.x + this.ball.velocityx + this.ball.width >= this.context.canvas.width) {
 				this.respawnball();
 				this.score.p1++;
@@ -524,6 +537,8 @@ export default defineComponent({
 						}
 						this.ball.rebonetime = 1;
 					}
+					console.log(this.player2.ratioX);
+					console.log(this.player2.x);
 					this.ball.velocityx = -1;
 				}
 			}
@@ -629,7 +644,6 @@ export default defineComponent({
 		},
 
 		update() {
-			//this.setvar();
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
 			else if ((this.player1.me == 1 && this.player2.ready == 1) || (this.player2.me == 1 && this.player1.ready == 1)) {
@@ -667,6 +681,8 @@ export default defineComponent({
 			this.context = canvas?.getContext('2d');
 			this.context.canvas.width = window.innerWidth - 145;
 			this.context.canvas.height = window.innerHeight - 40;
+			this.ball.xb = (window.innerWidth - 145) / 2;
+			this.ball.yb = (window.innerHeight - 40) / 2;
 			this.themecolor();
 		},
 
@@ -684,6 +700,7 @@ export default defineComponent({
 			this.player2.x = this.context.canvas.width - 20; // Update the x position of player2
 			this.player2.y = this.context.canvas.height / 2 - 25;
 			this.player2.paddley = this.player2.y + this.player2.tile;
+			this.resizeVar();
 			if (this.player1.me == 1)
 				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.gameId, width: this.context.canvas.width, height: this.context.canvas.height});
 			else
