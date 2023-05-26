@@ -21,7 +21,7 @@ import type { AlertInterface } from "@/interfaces/alert.interface";
 import type { Ball, CPU, Score, Player } from "@/interfaces/game.interface";
 import { UserStatus } from "@/interfaces/user.interface";
 import router from "@/router";
-import { endGame } from "@/services/gameServices";
+import { endGame, deleteGame } from "@/services/gameServices";
 import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
 import { defineComponent, watch } from "vue";
@@ -191,6 +191,10 @@ export default defineComponent({
 		}
 	},
 	beforeUnmount() {
+		// if we leave a waiting game -> delete
+		if (this.gameData.status === 'WAITING'){
+			deleteGame(this.gameData.id);
+		}
 		window.removeEventListener("resize", this.handleWindowResize);
 	},
 	mounted() {
