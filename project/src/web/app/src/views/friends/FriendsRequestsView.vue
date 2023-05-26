@@ -114,9 +114,7 @@ export default defineComponent({
         })) as Item[];
       })
       .catch((error) => {
-        console.log(error);
         if (axios.isAxiosError(error)) {
-          console.log(error.response?.data);
           if (error.response?.status == 401) {
             router.push({ path: "/login" });
           }

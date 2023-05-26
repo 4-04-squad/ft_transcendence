@@ -28,7 +28,6 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
 
     socket.on('shoutOnline', (data: any) => {
-      console.log(data);
 			const alert = {
 				status: 200,
 				message: data.msg,
@@ -85,7 +84,6 @@ export default defineComponent({
                 router.push({ path: `/users/${this.userStore.user.id}/edit`});
               }
               else {
-                console.log("User is logged in " + this.userStore.user.pseudo);
                 router.push({ path: "/" });
               }
             }
@@ -93,10 +91,10 @@ export default defineComponent({
           })
           .catch((error) => {
             const alert = {
-            status: error.response.data.statusCode,
-            message: error.response.data.message,
-          } as AlertInterface;
-          this.alertStore.setAlert(alert);
+              status: error.response.data.statusCode,
+              message: error.response.data.message,
+            } as AlertInterface;
+            this.alertStore.setAlert(alert);
           });
       }
 

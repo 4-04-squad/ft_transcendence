@@ -9,6 +9,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AuthGuard } from '../auth/auth.guard';
 import { BlockUserService } from './block-user.service';
+import { PrismaService } from 'src/prisma.service';
 
 @Controller('users')
 @ApiTags('Users')
@@ -16,7 +17,8 @@ import { BlockUserService } from './block-user.service';
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private blockUserService: BlockUserService
+    private blockUserService: BlockUserService,
+    private prismaService: PrismaService
   ) { }
 
   @Get()
@@ -41,17 +43,17 @@ export class UsersController {
     @Res() res: Response,
     @Next() next: NextFunction
   ) {
-    const user = req.user;
+    let user = req.user;
     if (!user) {
       res.status(401).send({ message: 'Unauthorized.' });
     } else {
       if (user.twofaenabled) {
-        //console.log("isTwoFactorEnabled: ", user.twofaenabled);
         res.status(206).send({ user });
         return;
       }
       this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
-      console.log(user);
+      user = this.prismaService.exclude(user, ['password', 'twofasecret']);
+      
       res.send({ user });
     }
   }
@@ -111,6 +113,8 @@ export class UsersController {
     } else {
       if (req.user.id === userId || req.user.role === 'ADMIN') {
         let user = await this.usersService.updateUser(userId, data);
+        delete user["password"];
+        delete user["twofasecret"];
         res.send({ user, message: 'User updated' });
       } else {
         res.status(401).send({ message: 'Unauthorized' });
@@ -143,6 +147,8 @@ export class UsersController {
     } else {
       if (req.user.id === userId || req.user.role === 'ADMIN') {
         let user = await this.usersService.updateUserAvatar(userId, file);
+        delete user["password"];
+        delete user["twofasecret"];
         res.send({ user, message: 'Avatar updated' });
       } else {
         res.status(401).send({ message: 'Unauthorized' });

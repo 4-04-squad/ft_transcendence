@@ -289,6 +289,18 @@ export class GamesService {
   }
 
   async endGame(gameId: string, userGames: UserGameDto[]): Promise<Game | void> {
+    if (userGames.length == 1){
+      const game = await this.prisma.game
+        .update({
+          where: { id: gameId },
+          data: { status: GameStatus.FINISHED },
+        })
+        .catch((err) => {
+          console.log(err);
+          throw new BadRequestException(err);
+      });
+      return game;
+    }
     if (userGames.length != 2)
       throw new BadRequestException('Invalid number of players');
     const game = await this.prisma.game

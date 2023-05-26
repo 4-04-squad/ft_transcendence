@@ -4,6 +4,7 @@ import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } fr
 import { UsersService } from 'src/users/users.service';
 import { CreateChannelDto, EditChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
 import { channel } from 'diagnostics_channel';
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class ChannelsService {
@@ -19,10 +20,15 @@ export class ChannelsService {
                 type: { not: ChatType.DIRECT }
             },
         }).catch((err) => {
-            console.log(err);
             return null;
         });
         return chat;       
+    }
+
+    async generatePasswd(passwd: string): Promise<string> {
+        const salt = await bcrypt.genSaltSync(10);
+        const hash = await bcrypt.hash(passwd, salt);
+        return hash;
     }
 
     async getChannelById(chatId: string): Promise<Chat | null> {
@@ -120,17 +126,21 @@ export class ChannelsService {
 
     async createChannel(userId: string, settings: CreateChannelDto): Promise<Chat | null> {
         if (!userId) {
-            console.log("error: userIds incorect");
-            return null;
+            throw new BadRequestException("User not found");
         }
+        if (settings.type == ChatType.RESTRICTED && !settings.password) 
+            throw new BadRequestException("Password is required for restricted channel");
+        let passwd = null;
+        if (settings.password)
+            passwd = await this.generatePasswd(settings.password);
+        
         let channel = await this.prisma.chat.create({
                 data: {
                     name: settings.name,
                     type: settings.type,
-                    passwd: settings.password,
+                    passwd: passwd,
                 },
             }).catch((err) => {
-                console.log(err);
                 return null;
             });
             await this.prisma.userChat.create({ 
@@ -140,7 +150,6 @@ export class ChannelsService {
                     status: UserChatStatus.OWNER,
                 }
             }).catch((err) => {
-                console.log(err);
                 return null;
             });
         return channel;      
@@ -152,7 +161,7 @@ export class ChannelsService {
             throw new BadRequestException("Channel not found");
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
         if (channel.type == ChatType.RESTRICTED) {
-            if (channel.passwd != data.passwd || !data.passwd)
+            if (!bcrypt.compare(data.passwd, channel.passwd) || !data.passwd)
                 throw new BadRequestException("Wrong password");
         }
         const me = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: userId } });
@@ -209,7 +218,6 @@ export class ChannelsService {
     async memberStatus(userId: string, data: memberStatusDto): Promise <UserChat | null> {
         const channel = await this.prisma.chat.findUnique({ where: { id: data.chatId } });
         const userChannel = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: userId } });
-        console.log(userChannel);
         if (userChannel.status != UserChatStatus.OWNER && userChannel.status != UserChatStatus.ADMIN)
             throw new BadRequestException("Not allowed to perform this action");
         const memberChannel = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: data.userId } });
@@ -239,13 +247,18 @@ export class ChannelsService {
         if (settings.type == ChatType.DIRECT) {
             throw new BadRequestException("Can't change direct channel");
         }
+        if (settings.type == ChatType.RESTRICTED && !settings.password) 
+            throw new BadRequestException("Password is required for restricted channel");
+        let passwd = null;
+        if (settings.password)
+            passwd = await this.generatePasswd(settings.password);
         const updated = await this.prisma.chat.update({
             where: {
                 id: chatId
             },
             data: {
                 name: settings.name,
-                passwd: settings.password,
+                passwd: passwd,
                 type: settings.type
             }
         }).catch((err) => {

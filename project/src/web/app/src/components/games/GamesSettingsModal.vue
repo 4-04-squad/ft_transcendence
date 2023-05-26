@@ -54,19 +54,6 @@
 	  const backgroundColor = ref("#000000");
 	  const scoreMax = ref(10);
 	  const createButtonHandler = () => {
-		console.log("createButtonHandler",
-		{
-			gameId: 0,
-			ballSpeed: ballSpeed.value,
-			paddleSpeed: paddleSpeed.value,
-			ballColor: ballColor.value,
-			backgroundColor: backgroundColor.value,
-			ballSize: ballSize.value,
-			paddleSize: paddleSize.value,
-			paddleColor: paddleColor.value,
-			scoreLimit: scoreMax.value,
-		}
-		)
 		emit("onCreate", {
 			gameId: 0,
 			ballSpeed: ballSpeed.value,

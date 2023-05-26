@@ -48,9 +48,9 @@ export class AuthController {
       });
       
       if (isTwoFactorEnabled) {
-		res.status(206).send({ user });
-		return;
-	  }
+        res.status(206).send({ user });
+        return;
+      }
     }
   
     // Set user as ONLINE

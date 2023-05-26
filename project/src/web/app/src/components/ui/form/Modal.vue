@@ -30,7 +30,6 @@
 	},
 	setup(props, { emit }) {
 		const closeModal = () => {
-			console.log('closeModal here');
 			emit("onClose", false);
 		};
 

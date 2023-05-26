@@ -33,28 +33,23 @@
     },
     methods: {
       async runConversation(user: string) {
-        try {
-          const response = await axios
-            .post(
-              `${import.meta.env.VITE_APP_API_URL}/chats/create`,
-              {
-                userId: user,
+        const response = await axios
+          .post(
+            `${import.meta.env.VITE_APP_API_URL}/chats/create`,
+            {
+              userId: user,
+            },
+            {
+              withCredentials: true,
+              headers: {"Content-Type": "application/json",
               },
-              {
-                withCredentials: true,
-                headers: {"Content-Type": "application/json",
-                },
-              }
-            )
-            .then((res) => {
-              router.push({name: "chat", params: {id: res.data.chat.id}})
-            })
-            .catch((err) => {
-              console.log(err);
-            });
-        } catch (error: any) {
-          console.log(error);
-        }
+            }
+          )
+          .then((res) => {
+            router.push({name: "chat", params: {id: res.data.chat.id}})
+          })
+          .catch((err) => {
+          });
       },
     },
   });
