@@ -16,7 +16,7 @@
 import { defineComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import type { GameInterface } from "@/interfaces/game.interface";
-import type { UserInterface } from "@/interfaces/user.interface";
+import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
 import FieldView from "@/components/pong/FieldView.vue";
 import axios from "axios";
 import type { Socket } from "socket.io-client";
@@ -78,6 +78,7 @@ export default defineComponent({
           });
         }
         if (gameData.value) {
+          userStore.setUserStatus(UserStatus.PLAYING);
           socket.emit("joinGame", { gameId: gameId, userId: userStore.user.id });
         }
       } catch (err: any) {
@@ -146,11 +147,13 @@ export default defineComponent({
     );
 
     onUnmounted(() => {
+      userStore.setUserStatus(UserStatus.ONLINE);
       socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.id });
     });
 
     onMounted(() => {
       // Call the function when the page is reloaded
+      userStore.setUserStatus(UserStatus.ONLINE);
       socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.id });
       fetchChatDataAndJoinGame(route.params.id as string);
     });
