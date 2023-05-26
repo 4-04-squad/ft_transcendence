@@ -163,6 +163,13 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   * Handle action
   */
 
+  @SubscribeMessage('createGame')
+  onCreateGame(@Body() data: { updatedAt: string }) {
+    // emit to all online users
+    this.server.emit('createGame', { updated: data.updatedAt });
+  }
+
+
   @SubscribeMessage('ready')
   onReady(@Body() data: { gameId: string, userId: string }) {
     const roomName = `${data.gameId}`;
