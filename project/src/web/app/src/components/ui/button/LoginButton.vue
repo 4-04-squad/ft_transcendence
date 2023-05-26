@@ -105,10 +105,10 @@ export default defineComponent({
           })
           .catch((error) => {
             const alert = {
-            status: error.response.data.statusCode,
-            message: error.response.data.message,
-          } as AlertInterface;
-          this.alertStore.setAlert(alert);
+              status: error.response.data.statusCode,
+              message: error.response.data.message,
+            } as AlertInterface;
+            this.alertStore.setAlert(alert);
           });
       }
 
