@@ -64,6 +64,7 @@ export interface Score {
   p2: number;
   color: string;
   max_score: number;
+  finish_game: number;
 }
 
 export interface Player {
@@ -77,4 +78,8 @@ export interface Player {
   ply: number;
   id: string;
   ready: number;
+  canvasX: number;
+	canvasY: number;
+  ratioY: number;
+  ratioX: number;
 }

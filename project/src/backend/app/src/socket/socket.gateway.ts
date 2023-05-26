@@ -169,6 +169,13 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.server.to(roomName).emit('sendCanvasSizeP1', { gameId: data.gameId, userId: data.userId, width: data.width, height: data.height });
   }
 
+  @SubscribeMessage('sendCanvasSizeP2')
+  sendCanvasSizeP2(client: Socket, data: { gameId: string, userId: string, width: any, height: any }) {
+    const roomName = `${data.gameId}`;
+    // emit in room
+    this.server.to(roomName).emit('sendCanvasSizeP2', { gameId: data.gameId, userId: data.userId, width: data.width, height: data.height });
+  }
+
   @SubscribeMessage('ready')
   onReady(@Body() data: { gameId: string, userId: string, ready2: any}) {
     const roomName = `${data.gameId}`;
