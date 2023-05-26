@@ -17,13 +17,13 @@
         :buttons-pagination="true" empty-message="Aucun channel trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
         rows-per-page-message="Channels par page" :body-row-class-name="bodyRowClassNameFunction">
         <template #item-name="{ name, channel, type }">
-            <span @click.stop="togglePasswdModal(type, channel)" v-if="name">{{ name }}</span>
-            <span @click.stop="togglePasswdModal(type, channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
+            <span @click.stop="joinChannelfunc(type, channel)" v-if="name">{{ name }}</span>
+            <span @click.stop="joinChannelfunc(type, channel)" v-else>Channel <span class="channel-name">#{{ channel }}</span></span>
         </template>
         <template #item-channel="{ channel, type }">
             <ul class="btns">
                 <li>
-                    <button @click="togglePasswdModal(type, channel)" class="btn btn--icon only-icon">
+                    <button @click="joinChannelfunc(type, channel)" class="btn btn--icon only-icon">
                         <MessageIcon /> 
                     </button>
                 </li>
@@ -102,13 +102,18 @@ export default defineComponent({
                     }
                 }
             });
+        
+        const joinChannelfunc = (type: string, chatId: string) => {
+            if (type == "RESTRICTED") {
+                togglePasswdModal(type, chatId);
+            } else {
+                joinChannel(chatId);
+            }
+        };
 
         const togglePasswdModal = (type: string, chatId: string) => {
             channelId.value = chatId;
-            if (type == "RESTRICTED")
-                showPasswdModal.value = !showPasswdModal.value;
-            else
-                joinChannel(chatId);
+            showPasswdModal.value = !showPasswdModal.value;
         };
 
         const toggleCreateChannelModal = () => {
@@ -152,6 +157,9 @@ export default defineComponent({
         };
 
         const joinChannel = (id: string, passwd?: string) => {
+            if (!id) {
+                return;
+            }
             const response = axios
             .post(
                 `${import.meta.env.VITE_APP_API_URL}/channels/join`,
@@ -205,6 +213,7 @@ export default defineComponent({
             headers,
             items,
             alertStore,
+            joinChannelfunc,
             bodyRowClassNameFunction,
             toggleCreateChannelModal,
             togglePasswdModal,

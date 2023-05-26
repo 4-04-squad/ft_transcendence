@@ -117,7 +117,7 @@ export class ChannelsService {
 
     async createChannel(userId: string, settings: CreateChannelDto): Promise<Chat | null> {
         if (!userId) {
-            return null;
+            throw new BadRequestException("User not found");
         }
         let channel = await this.prisma.chat.create({
                 data: {
