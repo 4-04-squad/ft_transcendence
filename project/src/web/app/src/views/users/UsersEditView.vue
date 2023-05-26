@@ -118,7 +118,7 @@ export default defineComponent({
       event.preventDefault();
 
       // Check if the user has uploaded a new avatar
-      const hasFiles = this.selectedFile !== null;
+      const hasFiles = this.selectedFile !== undefined;
       let avatarUrl = this.user?.avatar;
 
       if (hasFiles) {
@@ -126,24 +126,26 @@ export default defineComponent({
         // Update user with avatar
         const formData = new FormData();
         formData.append('avatar', this.selectedFile);
-        try {
-          const response = await axios.patch(`${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}/avatar`,
-            formData
-            , {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-              withCredentials: true,
-            })
-            .then((res) => {
-              this.userStore.user.avatar = res.data.user.avatar;
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        } catch (error) {
-          console.error('Error uploading avatar:', error);
-        }
+
+        await axios.patch(`${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}/avatar`,
+          formData
+          , {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true,
+          })
+          .then((res) => {
+            this.userStore.user.avatar = res.data.user.avatar;
+          })
+          .catch((error) => {
+            const alert = {
+              status: 400,
+              message: "Error uploading avatar",
+            } as AlertInterface;
+
+            this.alertStore.setAlert(alert);
+          });
       }
 
       // Get the form Object
@@ -190,22 +192,22 @@ export default defineComponent({
         return;
       }
       if (this.isAllowed) {
-        try {
-          await axios.delete(
-            `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}`,
-            {
-              withCredentials: true,
-            }
-          ).then(() => {
-            this.userStore.clearUser();
-            this.$router.push({ path: "/login" });
-          })
-            .catch((error) => {
-              console.log(error);
-            });
-        } catch (error) {
-          console.log(error);
-        }
+        await axios.delete(
+          `${import.meta.env.VITE_APP_API_URL}/users/${this.user?.id}`,
+          {
+            withCredentials: true,
+          }
+        ).then(() => {
+          this.userStore.clearUser();
+          this.$router.push({ path: "/login" });
+        }).catch((error) => {
+          const alert = {
+            status: error.response.data.status,
+            message: error.response.data.message,
+          } as AlertInterface;
+
+          this.alertStore.setAlert(alert);
+        });
       }
     },
   },

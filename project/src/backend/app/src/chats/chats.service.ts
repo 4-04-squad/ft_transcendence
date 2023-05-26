@@ -39,7 +39,6 @@ export class ChatsService {
         type: ChatType.DIRECT
       },
     }).catch((err) => {
-      console.log(err);
       return null;
     });
 
@@ -131,7 +130,6 @@ export class ChatsService {
 
       },
     }).catch((err) => {
-      console.log(err);
       return null;
     });
 
@@ -141,7 +139,6 @@ export class ChatsService {
         chatId: chat.id,
       }
     }).catch((err) => {
-      console.log(err);
       return null;
     });
 
@@ -151,7 +148,6 @@ export class ChatsService {
         chatId: chat.id,
       }
     }).catch((err) => {
-      console.log(err);
       return null;
     });
 

@@ -1,5 +1,5 @@
  <template>
-    <Modal :onCreate="createButtonHandler" :title="'Cree un channel'" :buttonText="'valider'" >
+    <Modal :onCreate="createButtonHandler" :title="'Edition du channel'" :buttonText="'valider'" >
         <div class="form-group">
             <label for="channel-name">Nom du channel</label>
             <input type="text" id="channel-name" v-model="channelName"/>
