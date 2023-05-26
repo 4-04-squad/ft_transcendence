@@ -49,7 +49,6 @@ export default {
   data() {
     const primaryColor = "#5061f9";
     const successColor = "#11bdb3";
-    console.log(this.gamesData);
 
     return {
       chartData: {

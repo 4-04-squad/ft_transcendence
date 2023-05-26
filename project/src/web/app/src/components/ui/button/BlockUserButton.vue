@@ -56,7 +56,7 @@ export default defineComponent({
         );
         isBlocked.value = response.data.isBlocked;
       } catch (error) {
-        console.log(error);
+        
       }
     };
 
@@ -82,7 +82,7 @@ export default defineComponent({
         // Refresh block status after blocking/unblocking
         fetchBlockedStatus();
       } catch (error) {
-        console.log(error);
+        
       }
     };
 
