@@ -70,7 +70,6 @@ export default defineComponent({
   },
   setup() {
     const searchValue = ref("");
-
     const users = ref([] as UserInterface[]);
     const headers = [
       { text: "AVATAR", value: "avatar", sortable: false },
@@ -80,6 +79,38 @@ export default defineComponent({
       { text: "", value: "profile" },
     ] as Header[];
     const items = ref([] as Item[]);
+    const updatedAt = ref("");
+    const socket = inject('socket') as Socket;
+
+    socket.on("userStatus", (data: any) => {
+        updatedAt.value = data.updatedAt;
+    });
+
+    // Watch user status to fetch
+    watch(updatedAt, () => {
+      axios
+      .get(`${import.meta.env.VITE_APP_API_URL}/users`, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        users.value = response.data.users;
+        items.value = users.value.map((user) => ({
+          avatar: user.avatar,
+          pseudo: user.pseudo,
+          email: user.email,
+          status: user.status ? user.status.toLowerCase() : "",
+          profile: user.id,
+        })) as Item[];
+      })
+      .catch((error) => {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status == 401) {
+            router.push({ path: "/login" });
+          }
+        }
+      });
+    });
+
 
     axios
       .get(`${import.meta.env.VITE_APP_API_URL}/users`, {
