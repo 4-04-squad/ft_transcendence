@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole, UserStatus } from '@prisma/client';
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class UserDto {
   @ApiProperty()
@@ -8,9 +9,11 @@ export class UserDto {
   @ApiProperty()
   fortyTwoId: number | null;
 
+  @IsString()
   @ApiProperty()
   pseudo: string;
 
+  @IsString()
   @ApiProperty()
   email: string;
 
@@ -152,6 +155,7 @@ export class UpdateUserDto {
   @ApiProperty()
   fortyTwoId?: number;
 
+  @IsNotEmpty()
   @ApiProperty()
   pseudo?: string;
 
