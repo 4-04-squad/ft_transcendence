@@ -182,7 +182,7 @@ export default defineComponent({
               user.value = response.data.user;
             })
             .catch((error) => {
-              console.log(error);
+              
             });
         } else {
           // Get current user from store
