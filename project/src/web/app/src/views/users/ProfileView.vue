@@ -199,10 +199,6 @@ export default defineComponent({
         if (!newVal) return;
         const data = await getStatsByUser(newVal.id);
         userStats.value = data.data.statistics;
-        console.log(
-          userStats.value?.allGamesStatistics,
-          userStats.value?.userGamesStatistics
-        );
       },
       { immediate: true } // Call the function immediately when the component is created
     );

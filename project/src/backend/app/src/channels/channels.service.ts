@@ -19,7 +19,6 @@ export class ChannelsService {
                 type: { not: ChatType.DIRECT }
             },
         }).catch((err) => {
-            console.log(err);
             return null;
         });
         return chat;       
