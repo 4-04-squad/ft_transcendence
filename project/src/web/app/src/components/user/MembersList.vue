@@ -46,15 +46,15 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
 
     socket.on("updateChannelMembersList", (data: any) => {
-        updatedAt.value = data.updatedAt;
+      updatedAt.value = data.updatedAt;
     });
 
     socket.on("ban", (data: any) => {
-        updatedAt.value = data.updatedAt;
+      updatedAt.value = data.updatedAt;
     });
 
     socket.on("kick", (data: any) => {
-        updatedAt.value = data.updatedAt;
+      updatedAt.value = data.updatedAt;
     });
 
     watch(

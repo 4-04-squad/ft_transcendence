@@ -215,8 +215,11 @@ export default defineComponent({
 	beforeUnmount() {
 		// if we leave a waiting game -> delete
 		if (this.gameData.status === 'WAITING'){
-			deleteGame(this.gameData.id);
+			deleteGame(this.gameData.id).then((res) => {
+				this.socket.emit('createGame', {updatedAt: new Date().toISOString()});
+			});
 		}
+		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
 		window.removeEventListener("resize", this.handleWindowResize);
 	},
 	mounted() {
