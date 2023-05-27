@@ -47,39 +47,17 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.server.emit('userStatus', { userId: data.userId, status: data.status });
   }
 
-  @SubscribeMessage('shoutOnline')
-  onShoutOnline(@MessageBody() data: { msg: string }) {
-    const roomName = `online`;
-    // emit in room
-    this.server.to(roomName).emit('shoutOnline', { msg: data.msg });
-  }
-
   @SubscribeMessage('joinOnline')
-  onJoinOnline(client: Socket, data: { user }) {
-    const roomName = `online`;
-    const userRooms = this.connectedRooms.get(data.user.id) || new Set<string>();
-
-    if (userRooms.has(roomName)) {
-      return;
-    }
-
-    client.join(roomName);
-    this.logger.log(`Client ${data.user.id} joined room ${roomName}`);
-    // emit that the user is online to room except sender
-    client.to(roomName).emit('shoutOnline', { msg: `${data.user.username} is online`});
+  onJoinOnline(client: Socket, data: { user: any }) {
+    this.logger.log(`Client ${data.user.id} joined online`);
+    this.server.emit('joinOnline', { user: data.user });
+    this.server.emit('sendNotif', { sender: data.user, type: "online" });
   }
 
   @SubscribeMessage('leaveOnline')
-  onLeaveOnline(client: Socket, data: { user }) {
-    const roomName = `online`;
-    const userRooms = this.connectedRooms.get(data.user.id) || new Set<string>();
-
-    if (!userRooms.has(roomName)) {
-      return;
-    }
-
-    client.leave(roomName);
-    this.logger.log(`Client ${data.user.id} left room ${roomName}`);
+  onLeaveOnline(client: Socket, data: { user: any }) {
+    this.logger.log(`Client ${data.user.id} left online`);
+    this.server.emit('leaveOnline', { user: data.user });
   }
 
   /*
@@ -123,9 +101,9 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   * Emit action : Notif
   */
   @SubscribeMessage('sendNotif')
-  onSendNotif(@Body() data: { userId: string, linkId: string }) {
+  onSendNotif(@Body() data: { userId: string, linkId: string, sender: any, msg: string, type: string }) {
     // emit in room
-    this.server.emit('sendNotif', { userId: data.userId, linkId: data.linkId });
+    this.server.emit('sendNotif', { userId: data.userId, linkId: data.linkId, sender: data.sender, msg: data.msg, type: data.type });
   }
 
 

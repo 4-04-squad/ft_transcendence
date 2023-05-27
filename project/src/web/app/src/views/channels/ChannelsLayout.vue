@@ -36,12 +36,6 @@ export default defineComponent({
     const route = useRoute();
     const isLayout = ref(true);
 
-    if (route.params.id) {
-      isLayout.value = false;
-    } else {
-      isLayout.value = true;
-    }
-
     // if route contains a channel id, then we are in a channel
     watch(route, () => {
       if (route.params.id) {
@@ -49,7 +43,7 @@ export default defineComponent({
       } else {
         isLayout.value = true;
       }
-    });
+    }, { immediate: true });
 
 
     return {

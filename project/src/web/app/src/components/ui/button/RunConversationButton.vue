@@ -5,10 +5,12 @@
   </template>
   
   <script lang="ts">
-  import { defineComponent } from "vue";
+  import { defineComponent, inject } from "vue";
   import { useUserStore } from "@/stores/user";
   import axios from "axios";
   import router from "@/router";
+import type { Socket } from "socket.io-client";
+  
   
   export default defineComponent({
     name: "RunConversationButton",
@@ -25,10 +27,13 @@
     },
     setup(props) {
       const userStore = useUserStore();
+      const user = props.user;
+      const socket = inject('socket') as Socket;
   
       return {
         userStore,
-        user: props.user,
+        user,
+        socket,
       };
     },
     methods: {
@@ -46,6 +51,7 @@
             }
           )
           .then((res) => {
+            this.socket.emit("sendNotif", {userId: user, linkId: res.data.chat.id, sender: this.userStore.user, msg: "Invited to chat. Click to join !", type: "chat"});
             router.push({name: "chat", params: {id: res.data.chat.id}})
           })
           .catch((err) => {

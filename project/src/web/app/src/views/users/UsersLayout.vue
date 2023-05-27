@@ -55,6 +55,8 @@ export default defineComponent({
       &__details {
         position: absolute;
         left: 100px;
+        top: -5px;
+        
         @media screen and (max-width: 768px) {
           left: 80px;
         }

@@ -1,5 +1,4 @@
 import { Controller, Get, Req, Res, UseGuards, ForbiddenException, Param, Body, Post } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { RequestWithUser } from '../interfaces/request-with-user.interface';
 import { AuthService } from './auth.service';
@@ -8,6 +7,7 @@ import { PrismaService } from '../prisma.service';
 import axios from 'axios';
 import { UserStatus } from '@prisma/client';
 import { ApiTags, ApiResponse, ApiProperty } from '@nestjs/swagger';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -142,11 +142,18 @@ export class AuthController {
     }
   }
 
-  @Get('signout/:id')
-  async logout(@Param('id') userId: string, @Req() req, @Res({ passthrough: true }) res, @Param() params: { id: string }) {
+  @UseGuards(AuthGuard)
+  @Post('signout')
+  async logout(@Req() req: RequestWithUser, @Res() res: Response) {
+    const user = req.user;
+
     // Set user as OFFLINE
-    this.usersService.updateUserStatus(params.id, UserStatus.OFFLINE);
-    res.clearCookie(process.env.JWT_NAME);
-    return this.authService.logout(req, res, params.id);
+    if (user) {
+      this.usersService.updateUserStatus(user.id, UserStatus.OFFLINE);
+      res.clearCookie(process.env.JWT_NAME);
+      return this.authService.logout(req, res, user.id);
+    } else {
+      res.status(401).send('Not logged in');
+    }
   }
 }

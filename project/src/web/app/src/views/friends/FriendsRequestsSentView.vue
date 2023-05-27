@@ -130,31 +130,7 @@ export default defineComponent({
           }
         }
       });
-    });
-
-    const response = axios
-      .get(`${import.meta.env.VITE_APP_API_URL}/friends/requests`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        users.value = response.data.friendRequests.map(
-          (friendRequest: any) => friendRequest.friend
-        );
-        items.value = users.value.map((user) => ({
-          avatar: user.avatar,
-          pseudo: user.pseudo,
-          email: user.email,
-          status: user.status ? user.status.toLowerCase() : "",
-          profile: user.id,
-        })) as Item[];
-      })
-      .catch((error) => {
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status == 401) {
-            router.push({ path: "/login" });
-          }
-        }
-      });
+    }, { immediate: true });
 
     return {
       searchValue,

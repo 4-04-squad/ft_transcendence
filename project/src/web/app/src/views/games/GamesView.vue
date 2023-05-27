@@ -100,7 +100,7 @@ export default defineComponent({
     // Fetch chat data on route change
     watch(
       () => route.params.id,
-      async (newVal, oldVal) => {
+      async (newVal, oldVal) =>{
         try {
           if (!newVal) return;
           if (oldVal) {

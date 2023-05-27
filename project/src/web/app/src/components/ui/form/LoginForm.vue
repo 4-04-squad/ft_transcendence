@@ -11,13 +11,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, inject } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import type { UserInterface } from "@/interfaces/user.interface";
 import router from "@/router";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
 	name: "LoginForm",
@@ -25,10 +26,13 @@ export default defineComponent({
 		const inputClass = "rounded-md p-2 mb-3 text-white shadow-lg focus:outline-none bg-gradient-to-br from-[#36373a] to-[#3d3f42]"
 		const userStore = useUserStore();
 		const alertStore = useAlertStore();
+		const socket = inject('socket') as Socket;
+
 		return {
 			inputClass,
 			userStore,
-			alertStore
+			alertStore,
+			socket
 		};
 	},
 	methods: {
@@ -50,6 +54,7 @@ export default defineComponent({
 				} else {
 					this.userStore.setUser(res.data.user as UserInterface);
 					if (this.userStore.user) {
+						this.socket.emit("joinOnline", { user: this.userStore.user });
 						if (this.userStore.user.createdAt === this.userStore.user.updatedAt) {
 							router.push({ path: `/users/${this.userStore.user.id}/edit`});
 						}
