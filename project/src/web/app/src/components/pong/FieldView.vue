@@ -82,7 +82,7 @@ export default defineComponent({
 			velocityy: 1,
 			rebound: 0,
 			rebonetime: 2,
-			speed: 1,
+			speed: 3,
 		};
 
 		const cpu: CPU = {
@@ -94,7 +94,7 @@ export default defineComponent({
 			p1: 0,
 			p2: 0,
 			color: 'white',
-			max_score: 105,
+			max_score: 5,
 			finish_game: 0,
 		};
 
@@ -111,8 +111,8 @@ export default defineComponent({
 			ready: 0,
 			canvasX: 0,
 			canvasY: 0,
-			ratioY: 0,
-			ratioX: 0,
+			ratioY: 1,
+			ratioX: 1,
 		};
     
 		const player2: Player = {
@@ -128,8 +128,8 @@ export default defineComponent({
 			ready: 0,
 			canvasX: 0,
 			canvasY: 0,
-			ratioY: 0,
-			ratioX: 0,
+			ratioY: 1,
+			ratioX: 1,
 		};
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data: any) => {
@@ -179,7 +179,6 @@ export default defineComponent({
 
 		props.socket.on("ready", (data: any) => {
 			isReady.value++;
-			console.log("Ready:", isReady.value);
 		});
 
 		props.socket.on("sendCanvasSizeP1", (data: any) => {
@@ -269,9 +268,9 @@ export default defineComponent({
 			}
 			this.socket.emit("ready", { gameId: this.gameData.id, userId: this.userStore.user.id });
 			if (this.player1.me == 1)
-				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.gameId, width: this.context.canvas.width, height: this.context.canvas.height});
+				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.id, width: this.context.canvas.width, height: this.context.canvas.height});
 			else
-				this.socket.emit("sendCanvasSizeP2", { gameId: this.gameData.gameId, width: this.context.canvas.width, height: this.context.canvas.height});
+				this.socket.emit("sendCanvasSizeP2", { gameId: this.gameData.id, width: this.context.canvas.width, height: this.context.canvas.height});
 		},
 
 		firstplayer(id: string) {
@@ -406,12 +405,12 @@ export default defineComponent({
 			}
 		},
 
-
 		respawnball() {
 			this.ball.x = this.ball.xb;
 			this.ball.y = this.ball.yb;
 			this.ball.rebound = 0;
 			this.ball.rebonetime = 2;
+			this.ball.speed = 3;
 		},
 
 		movePlayerFonctionOne(event: KeyboardEvent) {
@@ -427,7 +426,7 @@ export default defineComponent({
 						this.player1.y = this.player1.y + this.player1.speed;
 						this.player1.paddley = this.player1.y + this.player1.tile;
 					}
-					this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: this.player1.x, y: (this.player1.y * this.player2.ratioY), }, });
+					this.socket.emit("movePlayer", { gameId: this.gameData.id, userId: this.userStore.user.id, position: { x: this.player1.x, y: (this.player1.y * this.player2.ratioY), }, });
 					break;
 				case up:
 					if ((this.player1.y - this.player1.speed) <= 0) {
@@ -438,7 +437,7 @@ export default defineComponent({
 						this.player1.y = this.player1.y - this.player1.speed;
 						this.player1.paddley = this.player1.y + this.player1.tile;
 					}
-					this.socket.emit("movePlayer", { userId: this.gameData.userId, position: { x: this.player1.x, y: (this.player1.y * this.player2.ratioY), }, });
+					this.socket.emit("movePlayer", { gameId: this.gameData.id, userId: this.userStore.user.id, position: { x: this.player1.x, y: (this.player1.y * this.player2.ratioY), }, });
 					break;
 				default:
 					return;
@@ -459,9 +458,9 @@ export default defineComponent({
 						this.player2.paddley = this.player2.y + this.player2.tile;
 					}
 					if (this.player1.canvasY > this.context.canvas.height)
-						this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: this.player2.x, y: this.player2.y * this.player2.ratioY, }, });
+						this.socket.emit("movePlayerTwo", { gameId: this.gameData.id, userId: this.userStore.user.id, position: { x: this.player2.x, y: this.player2.y * this.player2.ratioY, }, });
 					else
-						this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: this.player2.x, y: this.player2.y * (this.player1.canvasY / this.context.canvas.height), }, });
+						this.socket.emit("movePlayerTwo", { gameId: this.gameData.id, userId: this.userStore.user.id, position: { x: this.player2.x, y: this.player2.y * (this.player1.canvasY / this.context.canvas.height), }, });
 					break;
 				case up:
 					if ((this.player2.y - this.player2.speed) <= 0) {
@@ -473,9 +472,9 @@ export default defineComponent({
 						this.player2.paddley = this.player2.y + this.player2.tile;
 					}
 					if (this.player1.canvasY > this.context.canvas.height)
-						this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: this.player2.x, y: this.player2.y * this.player2.ratioY, }, });
+						this.socket.emit("movePlayerTwo", { gameId: this.gameData.id, userId: this.userStore.user.id, position: { x: this.player2.x, y: this.player2.y * this.player2.ratioY, }, });
 					else
-						this.socket.emit("movePlayerTwo", { userId: this.gameData.userId, position: { x: this.player2.x, y: this.player2.y * (this.player1.canvasY / this.context.canvas.height), }, });
+						this.socket.emit("movePlayerTwo", { gameId: this.gameData.id, userId: this.userStore.user.id, position: { x: this.player2.x, y: this.player2.y * (this.player1.canvasY / this.context.canvas.height), }, });
 					break;
 				default:
 					return;
@@ -515,12 +514,12 @@ export default defineComponent({
 			if (this.ball.x + this.ball.velocityx + this.ball.width >= this.context.canvas.width) {
 				this.respawnball();
 				this.score.p1++;
-				this.socket.emit("updateScore", { gameId: this.gameData.gameId, score: this.score });
+				this.socket.emit("updateScore", { gameId: this.gameData.id, score: this.score });
 			}
 			else if (this.ball.x - this.ball.velocityx <= 0) {
 				this.respawnball();
 				this.score.p2++;
-				this.socket.emit("updateScore", { gameId: this.gameData.gameId, score: this.score });
+				this.socket.emit("updateScore", { gameId: this.gameData.id, score: this.score });
 			}
 			else if (this.ball.x + this.ball.velocityx + this.ball.width >= this.player2.x) {
 				if ((this.ball.y >= this.player2.y && this.ball.y <= this.player2.paddley)
@@ -563,7 +562,7 @@ export default defineComponent({
 				;
 			this.ball.x += this.ball.velocityx * this.ball.speed;
 			this.ball.y += this.ball.velocityy * this.ball.speed;
-			this.socket.emit("moveBall", { gameId: this.gameData.gameId, x: this.ball.x, y: this.ball.y });
+			this.socket.emit("moveBall", { gameId: this.gameData.id, x: (this.ball.x * this.player2.ratioX), y: (this.ball.y * this.player2.ratioY)});
 		},
 
 		redrawall() {
@@ -592,6 +591,7 @@ export default defineComponent({
 		},
 
 		calculateRatioPlayerOne() {
+			console.log(this.player2.canvasY, this.player2.canvasX);
 			if (this.player2.canvasY > this.context.canvas.height)
 			{
 				this.player1.ratioY = this.context.canvas.height / this.player2.canvasY;
@@ -640,18 +640,22 @@ export default defineComponent({
 
 		update() {
 			//this.setvar();
-			//console.log(this.settings.paddleSpeed, this.player1.tile, this.player1.speed, this.player1.y, this.player2.tile, this.player2.speed, this.player2.y);
+			if (this.isReady == 2)
+				this.cpu.enable = 0;
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
-			else if (this.isReady == 2 && (this.player1.me == 1 || this.player2.me == 1)) {
+			else if ((this.isReady == 2 || this.cpu.enable == 1) && (this.player1.me == 1 || this.player2.me == 1)) {
 				this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 				this.updatecsore();
 				if (this.player1.me == 1) {
+					this.calculateRatioPlayerOne()
 					this.movePlayerOne(this.player1);
 					this.updateball();
 				}
-				if (this.player2.me == 1)
+				if (this.player2.me == 1) {
+					this.calculateRatioPlayerTwo()
 					this.movePlayerTwo(this.player2);
+				}
 				if (this.cpu.enable == 1)
 					this.movecpu(this.player2);
 				this.redrawall();
@@ -693,11 +697,13 @@ export default defineComponent({
 			this.player2.x = this.context.canvas.width - 20; // Update the x position of player2
 			this.player2.y = this.context.canvas.height / 2 - 25;
 			this.player2.paddley = this.player2.y + this.player2.tile;
+			this.ball.x = this.ball.xb;
+			this.ball.y = this.ball.yb;
 			this.resizeVar();
 			if (this.player1.me == 1)
-				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.gameId, width: this.context.canvas.width, height: this.context.canvas.height});
+				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.id, width: this.context.canvas.width, height: this.context.canvas.height});
 			else
-				this.socket.emit("sendCanvasSizeP2", { gameId: this.gameData.gameId, width: this.context.canvas.width, height: this.context.canvas.height});
+				this.socket.emit("sendCanvasSizeP2", { gameId: this.gameData.id, width: this.context.canvas.width, height: this.context.canvas.height});
 			this.redrawPlayers();
 		},
 	},
