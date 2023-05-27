@@ -98,15 +98,9 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   @SubscribeMessage('joinWaitingGame')
   onJoinWaitingRoom(client: Socket, data: { userId: string }) {
     const roomName = `waiting`;
-    const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
-
-    if (userRooms.has(roomName)) {
-      return;
-    }
 
     client.join(roomName);
 
-	userRooms.add(roomName);
     this.logger.log(`Client ${data.userId} joined room ${roomName}`);
   }
 
@@ -118,16 +112,8 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   @SubscribeMessage('leaveWaiting')
   onLeaveWaiting(client: Socket, data: { userId: string }) {
     const roomName = `waiting`;
-	const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
-
-    if (!userRooms.has(roomName)) {
-      return;
-    }
 
     client.leave(roomName);
-
-	userRooms.delete(roomName);
-    this.connectedRooms.set(data.userId, userRooms);
 	
     this.logger.log(`Client ${data.userId} left waiting room`);
 
