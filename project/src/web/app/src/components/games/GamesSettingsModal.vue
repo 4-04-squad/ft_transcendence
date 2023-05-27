@@ -2,19 +2,19 @@
 	<Modal :onCreate="createButtonHandler" :title="'Créer une game'">
 		<div class="form-group">
 		  <label for="ball-speed">Vitesse de la balle</label>
-		  <input type="range" id="ball-speed" v-model.number="ballSpeed" min="1" max="10" />
+		  <input type="range" id="ball-speed" v-model.number="ballSpeed" min="1" max="5" />
 		</div>
 		<div class="form-group">
 		  <label for="paddle-speed">Vitesse de la raquette</label>
-		  <input type="range" id="paddle-speed" v-model.number="paddleSpeed" min="1" max="10" />
+		  <input type="range" id="paddle-speed" v-model.number="paddleSpeed" min="10" max="30" />
 		</div>
 		<div class="form-group">
 			<label for="ball-speed">Taille de la balle</label>
-			<input type="range" id="ball-size" v-model.number="ballSize" min="1" max="10" />
+			<input type="range" id="ball-size" v-model.number="ballSize" min="10" max="30" />
 		  </div>
 		  <div class="form-group">
 			<label for="paddle-speed">Taille de la raquette</label>
-			<input type="range" id="paddle-size" v-model.number="paddleSize" min="1" max="10" />
+			<input type="range" id="paddle-size" v-model.number="paddleSize" min="50" max="90" />
 		  </div>
 		<div class="form-group color">
 		  <label for="ball-color">Couleur de la balle</label>
@@ -45,10 +45,10 @@
 	  Modal,
 	},
 	setup(props, { emit }) {
-	  const ballSpeed = ref(5);
-	  const ballSize = ref(5);
-	  const paddleSpeed = ref(5);
-	  const paddleSize = ref(5);
+	  const ballSpeed = ref(1);
+	  const ballSize = ref(20);
+	  const paddleSpeed = ref(20);
+	  const paddleSize = ref(75);
 	  const ballColor = ref("#ffffff");
 	  const paddleColor = ref("#ffffff");
 	  const backgroundColor = ref("#000000");

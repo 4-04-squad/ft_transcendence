@@ -59,11 +59,13 @@ export default defineComponent({
 			() => {
 				if (props.gameData.users.length == 2) {
 					if (props.gameData.users[0].id == userStore.user.id || props.gameData.users[1].id == userStore.user.id) {
+						isReady.value = 0;
 						btnOnePlayer.value = props.gameData.users.length == 1 ? true : false
 						btnMultiPlayer.value = props.gameData.users.length == 1 ? false : true
 					}
 				} else {
 					if (props.gameData.users[0].id == userStore.user.id) {
+						isReady.value = 0;
 						btnOnePlayer.value = props.gameData.users.length == 1 ? true : false
 					}
 				}
@@ -241,6 +243,7 @@ export default defineComponent({
 			this.ball.velocityy = 1;
 
 		// watch if player is ready
+		this.setvar();
 		this.resizeVar();
 		window.requestAnimationFrame(this.update);
 		window.addEventListener("resize", this.handleWindowResize);
@@ -302,6 +305,9 @@ export default defineComponent({
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			this.updatecsore();
 			this.score.finish_game = 1;
+			this.ball.speed = this.gameData.ballSpeed;
+			this.player2.speed = this.gameData.paddleSpeed;
+			this.player1.speed = this.gameData.paddleSpeed;
 			this.context.font = '25px arial';
 			this.context.textAlign = 'center'; // Center the text horizontally
 			this.context.textBaseline = 'middle'; // Center the text vertically
@@ -365,16 +371,15 @@ export default defineComponent({
 		},
 
 		resizeVar() {
-			this.player1.tile = (this.context.canvas.height * 75) / 650;
-			this.player2.tile = (this.context.canvas.height * 75) / 650;
-			this.ball.width = (this.context.canvas.width * 15) / 650;
+			this.player1.tile = (this.context.canvas.height * this.gameData.paddleSize) / 650;
+			this.player2.tile = (this.context.canvas.height * this.gameData.paddleSize) / 650;
+			this.ball.width = (this.context.canvas.width * this.gameData.ballSize) / 650;
 		},
 
 		setvar() {
 			this.score.max_score = this.gameData.scoreLimit;
 			this.ball.width = this.gameData.ballSize;
 			this.ball.speed = this.gameData.ballSpeed;
-			this.cpu.difficulty = this.gameData.paddleSpeed;
 			this.player2.tile = this.gameData.paddleSize;
 			this.player2.speed = this.gameData.paddleSpeed;
 			this.player1.tile = this.gameData.paddleSize;
@@ -410,7 +415,9 @@ export default defineComponent({
 			this.ball.y = this.ball.yb;
 			this.ball.rebound = 0;
 			this.ball.rebonetime = 2;
-			this.ball.speed = 3;
+			this.ball.speed = this.gameData.ballSpeed;
+			this.player2.speed = this.gameData.paddleSpeed;
+			this.player1.speed = this.gameData.paddleSpeed;
 		},
 
 		movePlayerFonctionOne(event: KeyboardEvent) {
@@ -445,8 +452,8 @@ export default defineComponent({
 		},
 
 		movePlayerFonctionTwo(event: KeyboardEvent) {
-			let up = "c";
-			let down = "v";
+			let up = "w";
+			let down = "s";
 			switch (event.key) {
 				case down:
 					if ((this.player2.y + this.player2.speed) >= (this.context.canvas.height - (this.player2.tile))) {
@@ -591,7 +598,6 @@ export default defineComponent({
 		},
 
 		calculateRatioPlayerOne() {
-			console.log(this.player2.canvasY, this.player2.canvasX);
 			if (this.player2.canvasY > this.context.canvas.height)
 			{
 				this.player1.ratioY = this.context.canvas.height / this.player2.canvasY;
@@ -637,11 +643,16 @@ export default defineComponent({
 			}
 		},
 
-
 		update() {
-			//this.setvar();
-			if (this.isReady == 2)
+			console.log("ready / cpu / p1 / p2", this.isReady, this.cpu.enable, this.player1.me, this.player2.me);
+			if (this.btnMultiPlayer == true && this.cpu.enable == 1)
+			{
 				this.cpu.enable = 0;
+				this.ball.x = this.ball.xb
+				this.ball.y = this.ball.yb
+				this.score.p1 = 0;
+				this.score.p2 = 0;
+			}
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
 			else if ((this.isReady == 2 || this.cpu.enable == 1) && (this.player1.me == 1 || this.player2.me == 1)) {
