@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, inject, ref } from "vue";
 import type { PropType } from "vue";
 import type { ChatInterface } from "@/interfaces/chat.interface";
 import { XIcon } from "@/components/icons";
@@ -22,6 +22,7 @@ import axios from "axios";
 import router from "@/router";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
 
 
 type Size = "medium" | "small" | "large";
@@ -48,9 +49,11 @@ export default defineComponent({
   },
   setup() {
 		const alertStore = useAlertStore();
+    const socket = inject('socket') as Socket;
 
 		return {
-			alertStore
+			alertStore,
+      socket,
 		};
 	},
   methods: {
@@ -64,6 +67,7 @@ export default defineComponent({
               },
               }
           ).then((res) => {
+            this.socket.emit('updateChannelMembersList', {updatedAt: new Date().toISOString(), channelId: id});
             if (res.data.channel) {
               router.push(
               {
