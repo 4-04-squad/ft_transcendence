@@ -39,11 +39,11 @@ export default defineComponent({
     const userStore = useUserStore();
     const socket = inject('socket') as Socket;
     const updatedAt = ref(Date.now());
+    const gameReay = ref(false);
 
     socket.on("joinGame", (data: GameInterface) => {
       updatedAt.value = Date.now();
     });
-
 
     const fetchChatDataAndJoinGame = async (gameId: string) => {
       try {
