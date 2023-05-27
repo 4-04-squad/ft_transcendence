@@ -82,25 +82,40 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.logger.log(`Client ${data.user.id} left room ${roomName}`);
   }
 
-
+  /*
+  * Emit action : Matchmaking
+  */
   @SubscribeMessage('waiting')
-  onWaitingGame(@Body() data: { userId: string, status: string }) {
+  onWaitingRoom(@Body() data: { userId: string, gameId?: string }) {
     const roomName = `waiting`;
     // emit in room
-    this.server.to(roomName).emit('waiting', { userId: data.userId, status: data.status });
+    this.server.to(roomName).emit('waiting', { userId: data.userId, gameId: data?.gameId });
+    this.logger.log(`Client ${data.userId} waiting`);
   }
 
   @SubscribeMessage('joinWaitingGame')
-  onJoinWaitingGame(client: Socket, data: { userId: string }) {
+  onJoinWaitingRoom(client: Socket, data: { userId: string }) {
     const roomName = `waiting`;
-    const userRooms = this.connectedRooms.get(data.userId) || new Set<string>();
-
-    if (userRooms.has(roomName)) {
-      return;
-    }
 
     client.join(roomName);
+
     this.logger.log(`Client ${data.userId} joined room ${roomName}`);
+  }
+
+  leaveSocketWaiting(userId: string) {
+    const roomName = `waiting`;
+    this.server.to(roomName).emit('leaveWaiting', { userId });
+  }
+
+  @SubscribeMessage('leaveWaiting')
+  onLeaveWaiting(client: Socket, data: { userId: string }) {
+    const roomName = `waiting`;
+
+    client.leave(roomName);
+	
+    this.logger.log(`Client ${data.userId} left waiting room`);
+
+    this.leaveSocketWaiting(data.userId);
   }
 
 
