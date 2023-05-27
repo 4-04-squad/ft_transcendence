@@ -27,15 +27,6 @@ export default defineComponent({
     const alertStore = useAlertStore();
     const socket = inject('socket') as Socket;
 
-    socket.on('shoutOnline', (data: any) => {
-			const alert = {
-				status: 200,
-				message: data.msg,
-			} as AlertInterface;
-
-			alertStore.setAlert(alert);
-		});
-
     return {
       userStore,
       alertStore,
@@ -78,8 +69,8 @@ export default defineComponent({
             }
             // set the user in the store
             this.userStore.setUser(response.data.user as UserInterface);
-            this.socket.emit("joinOnline", { user: this.userStore.user });
             if (this.userStore.user) {
+              this.socket.emit("joinOnline", { user: this.userStore.user });
               if (this.userStore.user.createdAt === this.userStore.user.updatedAt) {
                 router.push({ path: `/users/${this.userStore.user.id}/edit`});
               }

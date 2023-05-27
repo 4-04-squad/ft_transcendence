@@ -30,13 +30,7 @@ export default defineComponent({
     // watch for route changes
     const route = useRoute();
     const isLayout = ref(true);
-
-    if (route.params.id) {
-      isLayout.value = false;
-    } else {
-      isLayout.value = true;
-    }
-
+    
     // if route contains a chat id, then we are in a chat
     watch(route, () => {
       if (route.params.id) {
@@ -44,8 +38,7 @@ export default defineComponent({
       } else {
         isLayout.value = true;
       }
-    });
-
+    }, { immediate: true });
 
     return {
       isLayout

@@ -104,34 +104,17 @@ export default defineComponent({
         updatedAt.value = data.updatedAt;
     });
 
-    // Watch user status to fetch
-    watch(updatedAt, () => {
-      const response = axios
-      .get(`${import.meta.env.VITE_APP_API_URL}/friends/incoming`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        users.value = response.data.friendRequests.map(
-          (friendRequest: any) => friendRequest.user
-        );
-        items.value = users.value.map((user) => ({
-          avatar: user.avatar,
-          pseudo: user.pseudo,
-          email: user.email,
-          status: user.status ? user.status.toLowerCase() : "",
-          profile: user.id,
-        })) as Item[];
-      })
-      .catch((error) => {
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status == 401) {
-            router.push({ path: "/login" });
-          }
-        }
-      });
+    socket.on("joinOnline", (data: any) => {
+        updatedAt.value = data.updatedAt;
     });
 
-    const response = axios
+    socket.on("leaveOnline", (data: any) => {
+        updatedAt.value = data.updatedAt;
+    });
+
+    // Watch user status to fetch
+    watch(updatedAt, () => {
+      axios
       .get(`${import.meta.env.VITE_APP_API_URL}/friends/incoming`, {
         withCredentials: true,
       })
@@ -154,6 +137,7 @@ export default defineComponent({
           }
         }
       });
+    }, { immediate: true });
 
     return {
       searchValue,
