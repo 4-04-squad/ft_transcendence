@@ -59,12 +59,18 @@ import axios from "axios";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 import type { Socket } from "socket.io-client";
+import {
+  ExternalLinkIcon,
+} from "@/components/icons";
+import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue";
 
 export default defineComponent({
   name: "HomeView",
   components: {
     MainLayout,
     EasyDataTable,
+    ExternalLinkIcon,
+    FriendRequestButton,
   },
   setup() {
     const alertStore = useAlertStore();
@@ -85,6 +91,8 @@ export default defineComponent({
     socket.on("userStatus", (data: any) => {
         updatedAt.value = data.updatedAt;
     });
+
+    updatedAt.value = new Date().toISOString();
 
     // Watch user status to fetch
     watch(updatedAt, () => {
@@ -119,39 +127,8 @@ export default defineComponent({
           }
         }
       });
-    });
-
-    axios
-      .get(`${import.meta.env.VITE_APP_API_URL}/users`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        users.value = response.data.users;
-        users.value.sort((a, b) => {
-          return b.elo - a.elo;
-        });
-        items.value = users.value.map((user, index) => ({
-          avatar: user.avatar,
-          pseudo: user.pseudo,
-          email: user.email,
-          elo: user.elo,
-          status: user.status ? user.status.toLowerCase() : "",
-          profile: user.id,
-          index: index + 1,
-        })) as Item[];
-      })
-      .catch((error) => {
-        const alert = {
-          status: error.response.data.statusCode,
-          message: error.response.data.message,
-        } as AlertInterface;
-        alertStore.setAlert(alert);
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status == 401) {
-            router.push({ path: "/login" });
-          }
-        }
-      });
+    },
+    { immediate: true });
 
     return {
       userStore,

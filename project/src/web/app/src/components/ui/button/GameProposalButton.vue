@@ -48,7 +48,7 @@ export default defineComponent({
     const createGameAndNavigate = () => {
       createGame(defaultGameSettings)
         .then((res) => {
-					socket.emit("sendNotif", {userId: user, linkId: res.data.game.id});
+					socket.emit("sendNotif", {userId: user, linkId: res.data.game.id, sender: userStore.user, msg: "Invited to pong duel. Click to join !", type: "game"});
           router.push({ name: "game", params: { id: res.data.game.id } });
         })
         .catch((err) => {
@@ -64,7 +64,7 @@ export default defineComponent({
     const joinGameAndNavigate = (gameId: string) => {
       joinGame(gameId)
         .then((res) => {
-					socket.emit("sendNotif", {userId: user, linkId: res.data.games.id});
+					socket.emit("sendNotif", {userId: user, linkId: res.data.games.id, sender: userStore.user, msg: "Invited to pong duel. Click to join !", type: "game"});
           router.push({ name: "game", params: { id: res.data.games.id } });
         })
         .catch((err) => {

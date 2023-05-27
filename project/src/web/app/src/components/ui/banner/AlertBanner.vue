@@ -70,19 +70,24 @@ export default defineComponent({
 	methods: {
 		handleBannerClick() {
 			if (this.alert && this.alert.link) {
-				joinGame(this.alert.link)
-				.then((res) => {
-					if (this.alert?.link)
-						router.push({ name: "game", params: { id: this.alert.link } });
-				})
-				.catch((err) => {
-					const alert = {
-						status: err.response.data.statusCode,
-						message: err.response.data.message,
-					} as AlertInterface;
+				if (this.alert.type == "game") {
+					joinGame(this.alert.link)
+					.then((res) => {
+						if (this.alert?.link)
+							router.push({ name: this.alert.socketType, params: { id: this.alert.link } });
+					})
+					.catch((err) => {
+						const alert = {
+							status: err.response.data.statusCode,
+							message: err.response.data.message,
+						} as AlertInterface;
 
-					this.alertStore.setAlert(alert);
-				});
+						this.alertStore.setAlert(alert);
+					});
+				} else {
+					if (this.alert?.link)
+						router.push({ name: this.alert.socketType, params: { id: this.alert.link } });
+				}
 			}
 		}
 	},
@@ -98,6 +103,7 @@ export default defineComponent({
 	opacity: 0;
 	z-index: -1;
 	padding: 30px;
+	cursor: pointer;
 
 	&.active {
 		opacity: 1;

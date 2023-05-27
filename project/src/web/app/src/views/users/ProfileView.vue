@@ -180,9 +180,20 @@ export default defineComponent({
             )
             .then((response) => {
               user.value = response.data.user;
+              if (user.value) {
+                getStatsByUser(user.value.id).then((data) => {
+                userStats.value = data.data.statistics;
+              });
+              }
             })
             .catch((error) => {
-              
+              const alert = {
+                status: error.response.data.statusCode,
+                message: error.response.data.message,
+              } as AlertInterface;
+
+              alertStore.setAlert(alert);
+              router.push({ name: "home" });
             });
         } else {
           // Get current user from store
