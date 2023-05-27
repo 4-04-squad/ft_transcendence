@@ -85,6 +85,7 @@ export default defineComponent({
 			rebound: 0,
 			rebonetime: 2,
 			speed: 3,
+			animation: 0,
 		};
 
 		const cpu: CPU = {
@@ -174,7 +175,7 @@ export default defineComponent({
 		});
 
 		props.socket.on("leaveGame", (data: any) => {
-			//console.log("User left game:", data);
+			console.log("User left game:", data);
 		});
 
 		props.socket.on("movePlayer", (data: any) => {
@@ -248,6 +249,7 @@ export default defineComponent({
 		if (this.gameData.status === 'WAITING') {
 			deleteGame(this.gameData.id);
 		}
+		window.cancelAnimationFrame(this.ball.number);
 		window.removeEventListener("resize", this.handleWindowResize);
 	},
 	mounted() {
@@ -275,7 +277,7 @@ export default defineComponent({
 		// watch if player is ready
 		this.setvar();
 		this.resizeVar();
-		window.requestAnimationFrame(this.update);
+		this.update();
 		window.addEventListener("resize", this.handleWindowResize);
 	},
 	methods: {
@@ -290,15 +292,6 @@ export default defineComponent({
 		multiplayer() {
 			this.btnOnePlayer = false;
 			this.btnMultiPlayer = false;
-			if (this.gameData.userGames.length == 2) {
-				if (this.gameData.userGames[0].userId == this.userStore.user.id) {
-					this.firstplayer(this.gameData.userGames[0].userId);
-					this.secondplayer(this.gameData.userGames[1].userId);
-				} else {
-					this.firstplayer(this.gameData.userGames[1].userId);
-					this.secondplayer(this.gameData.userGames[0].userId);
-				}
-			}
 			this.socket.emit("ready", { gameId: this.gameData.id, userId: this.userStore.user.id });
 			if (this.player1.me == 1)
 				this.socket.emit("sendCanvasSizeP1", { gameId: this.gameData.id, width: this.context.canvas.width, height: this.context.canvas.height });
@@ -673,7 +666,7 @@ export default defineComponent({
 				this.redrawall();
 			}
 			if (this.score.finish_game == 0)
-				window.requestAnimationFrame(this.update);
+				this.ball.number = window.requestAnimationFrame(this.update);
 		},
 
 		themecolor() {

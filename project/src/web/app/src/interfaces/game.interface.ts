@@ -52,6 +52,7 @@ export interface Ball {
   rebound: number;
   rebonetime: number;
   speed: number;
+  animation: number;
 }
 
 export interface CPU {
