@@ -1,5 +1,4 @@
 import axios from "axios";
-
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
 
@@ -74,4 +73,15 @@ export const endGame = (gameId: string, data: []) => {
         data,
         { withCredentials: true }
     );
+}
+
+/**
+ * @description Delete a game
+ * @returns {Promise<AxiosResponse<any>>}
+ */
+export const deleteGame = (gameId: string) => {
+  return axios.delete(
+    `${API_URL}/games/${gameId}`,
+    { withCredentials: true }
+  )
 }

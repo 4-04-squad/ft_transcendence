@@ -39,7 +39,9 @@ export class ChannelsService {
     async getChannelMembers(chatId: string, userId: string): Promise<User[] | null> {
         let chatUser = await this.prisma.userChat.findMany({
             where: {
-                chatId: chatId
+                chatId: chatId,
+                //exclude the user with UserChatPermission.BANNED 
+                permission: { not: UserChatPermission.BANNED }
             }
         })
 

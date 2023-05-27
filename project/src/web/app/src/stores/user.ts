@@ -27,8 +27,7 @@ export const useUserStore = defineStore("user", {
       this.user.status = UserStatus.ONLINE;
       localStorage.setItem("localUser", JSON.stringify(user));
     },
-    setUserStatus(user: UserInterface, status: UserStatus) {
-      this.user = user;
+    setUserStatus(status: UserStatus) {
       axios.patch(
         `${import.meta.env.VITE_APP_API_URL}/users/${this.user.id}/edit`,
         {

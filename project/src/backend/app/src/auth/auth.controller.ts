@@ -43,14 +43,14 @@ export class AuthController {
       res.cookie(cookieName, token, {
         httpOnly: true,
         secure: false,
-        sameSite: 'none',
+        sameSite: 'lax',
         maxAge 
       });
       
       if (isTwoFactorEnabled) {
-		res.status(206).send({ user });
-		return;
-	  }
+        res.status(206).send({ user });
+        return;
+      }
     }
   
     // Set user as ONLINE
@@ -121,7 +121,7 @@ export class AuthController {
         res.cookie(cookieName, token, {
           httpOnly: true,
           secure: false,
-          sameSite: 'none',
+          sameSite: 'lax',
           maxAge 
         });
     
@@ -145,8 +145,8 @@ export class AuthController {
   @Get('signout/:id')
   async logout(@Param('id') userId: string, @Req() req, @Res({ passthrough: true }) res, @Param() params: { id: string }) {
     // Set user as OFFLINE
-    res.clearCookie(process.env.JWT_NAME);
     this.usersService.updateUserStatus(params.id, UserStatus.OFFLINE);
+    res.clearCookie(process.env.JWT_NAME);
     return this.authService.logout(req, res, params.id);
   }
 }

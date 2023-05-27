@@ -55,11 +55,18 @@ export default defineComponent({
     align-items: center;
     list-style: none;
     padding: 0;
-    margin: 1.5rem auto 0;
+    margin: 1.5rem auto;
     font-size: 0.5rem;
     overflow-x: auto;
     width: 100%;
     justify-content: center;
+
+    -ms-overflow-style: none; /* for Internet Explorer, Edge */
+    scrollbar-width: none; /* for Firefox */
+    &::-webkit-scrollbar{
+      display: none;
+    } 
+
 
     @media screen and (max-width: 768px) {
         justify-content: flex-start;
@@ -71,6 +78,7 @@ export default defineComponent({
         font-weight: bold;
 
         .btn {
+            white-space: nowrap;
             &.active {
                 background-color: var(--primary-color);
                 color: #ffffff;

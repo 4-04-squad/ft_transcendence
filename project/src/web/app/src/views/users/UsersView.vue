@@ -27,7 +27,7 @@
         <span>{{ email }}</span>
       </template>
       <template #item-status="{ status }">
-        <span :class="`status ${status}`">{{ status }}</span>
+        <span :class="`data-table-user-status status ${status}`">{{ status }}</span>
       </template>
       <template #item-profile="{ profile, pseudo }">
         <ul class="btns">
@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
@@ -57,6 +57,7 @@ import type { UserInterface } from "@/interfaces/user.interface";
 import { SearchIcon, ExternalLinkIcon } from "@/components/icons";
 import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue";
 import UsersFilters from "@/components/user/UsersFilters.vue";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "UsersView",
@@ -69,7 +70,6 @@ export default defineComponent({
   },
   setup() {
     const searchValue = ref("");
-
     const users = ref([] as UserInterface[]);
     const headers = [
       { text: "AVATAR", value: "avatar", sortable: false },
@@ -79,6 +79,37 @@ export default defineComponent({
       { text: "", value: "profile" },
     ] as Header[];
     const items = ref([] as Item[]);
+    const updatedAt = ref("");
+    const socket = inject('socket') as Socket;
+
+    socket.on("userStatus", (data: any) => {
+        updatedAt.value = data.updatedAt;
+    });
+
+    // Watch user status to fetch
+    watch(updatedAt, () => {
+      axios
+      .get(`${import.meta.env.VITE_APP_API_URL}/users`, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        users.value = response.data.users;
+        items.value = users.value.map((user) => ({
+          avatar: user.avatar,
+          pseudo: user.pseudo,
+          email: user.email,
+          status: user.status ? user.status.toLowerCase() : "",
+          profile: user.id,
+        })) as Item[];
+      })
+      .catch((error) => {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status == 401) {
+            router.push({ path: "/login" });
+          }
+        }
+      });
+    });
 
 
     axios
@@ -112,32 +143,3 @@ export default defineComponent({
 });
 </script>
 
-
-<style lang="scss">
-
-.users-filters {
-    align-items: center;
-    margin-left: auto;
-    margin-right: 0;
-    list-style: none;
-    padding: 0;
-    margin: 1.5rem auto;
-    font-size: 0.5rem;
-    display: flex;
-    justify-content: center;
-
-    li {
-        margin-left: 1rem;
-        font-weight: bold;
-
-        .btn {
-          white-space: nowrap;
-            &.active {
-                background-color: var(--primary-color);
-                color: #ffffff;
-            }
-        }
-    }
-}
-
-</style>

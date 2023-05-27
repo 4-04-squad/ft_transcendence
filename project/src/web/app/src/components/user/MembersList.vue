@@ -15,12 +15,13 @@
 
 <script lang="ts">
 import type { UserInterface } from "@/interfaces/user.interface";
-import { defineComponent, ref, watch } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import UserCard from "./UserCard.vue";
 import axios from "axios";
 import { useRoute } from "vue-router";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "MembersList",
@@ -41,7 +42,44 @@ export default defineComponent({
     const owner = ref(Object as () => UserInterface);
     const admins = ref([] as UserInterface[]);
     const members = ref([] as UserInterface[]);
+    const updatedAt = ref("");
+    const socket = inject('socket') as Socket;
 
+    socket.on("updateChannelMembersList", (data: any) => {
+      updatedAt.value = data.updatedAt;
+    });
+
+    socket.on("ban", (data: any) => {
+      updatedAt.value = data.updatedAt;
+    });
+
+    socket.on("kick", (data: any) => {
+      updatedAt.value = data.updatedAt;
+    });
+
+    watch(
+      () => updatedAt.value,
+      async () => {
+        if (route.params.id) {
+          // Get user by pseudo from API if we are on another user profile
+          const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/channels/${route.params.id}/members`, {
+            withCredentials: true,
+          })
+          .then((response) => {
+            members.value = response.data.users;
+          })
+          .catch((error) => {
+            const alert = {
+              status: error.response.data.statusCode,
+              message: error.response.data.message,
+            } as AlertInterface;
+
+            alertStore.setAlert(alert);
+          });
+        }
+      },
+      { immediate: true } // Call the function immediately when the component is created
+    );
 
     // TODO: Add channels members API controller
     // Watch for changes to route params and fetch user data again
@@ -55,6 +93,7 @@ export default defineComponent({
           })
           .then((response) => {
             members.value = response.data.users;
+            console.log(response.data);
           })
           .catch((error) => {
             const alert = {

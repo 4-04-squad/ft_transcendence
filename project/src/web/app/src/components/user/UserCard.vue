@@ -9,7 +9,7 @@
     "
     v-if="user"
   >
-    <div :class="`user-card grid ${full}-card`">
+    <div :class="`user-card-id-${user.id} user-card grid ${full}-card`">
       <div :class="`column user-card__avatar ${size}`">
         <img :src="user.avatar" :alt="user.pseudo" />
         <div
@@ -30,8 +30,8 @@
 
 <script lang="ts">
 import { RouterLink } from "vue-router";
-import type { UserInterface } from "@/interfaces/user.interface";
-import { defineComponent, inject } from "vue";
+import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
+import { defineComponent, inject, ref, watch } from "vue";
 import type { PropType } from "vue";
 import { useUserStore } from "@/stores/user";
 import UserContextMenu from "./UserContextMenu.vue";
@@ -83,10 +83,31 @@ export default defineComponent({
   setup(props) {
     // check if current user is the same as the user in the card
     const userStore = useUserStore();
+    const userStatus = ref("");
     const socket = inject('socket') as Socket;
     const isCurrentUser = () => {
       return props.user?.pseudo === userStore.user?.pseudo ? true : false;
     };
+
+    socket.on("userStatus", (data: any) => {
+      if (props.user?.id === data.userId) {
+        userStatus.value = data.status.toLocaleLowerCase();
+      }
+    });
+
+    watch(
+      () => userStatus.value,
+      (newValue) => {
+        const userCard = document.querySelector(`.user-card-id-${props.user?.id}`);
+
+        if (userCard) {
+            userCard.querySelector(".user-card__status")?.classList.remove("online");
+            userCard.querySelector(".user-card__status")?.classList.remove("offline");
+            userCard.querySelector(".user-card__status")?.classList.remove("playing");
+            userCard.querySelector(".user-card__status")?.classList.add(newValue);
+          }
+      }
+    );
 
     // show context menu
     const showContextMenu = (event: MouseEvent) => {

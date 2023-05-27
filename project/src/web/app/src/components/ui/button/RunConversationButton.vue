@@ -49,7 +49,6 @@
             router.push({name: "chat", params: {id: res.data.chat.id}})
           })
           .catch((err) => {
-            console.log(err);
           });
       },
     },

@@ -16,7 +16,7 @@
 import { defineComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import type { GameInterface } from "@/interfaces/game.interface";
-import type { UserInterface } from "@/interfaces/user.interface";
+import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
 import FieldView from "@/components/pong/FieldView.vue";
 import axios from "axios";
 import type { Socket } from "socket.io-client";
@@ -24,6 +24,7 @@ import { useUserStore } from "@/stores/user";
 import router from "@/router";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import { getGameById } from "@/services/gameServices";
 
 export default defineComponent({
   name: "GamesView",
@@ -37,6 +38,12 @@ export default defineComponent({
     const users = ref<UserInterface[] | null>(null);
     const userStore = useUserStore();
     const socket = inject('socket') as Socket;
+    const updatedAt = ref(Date.now());
+
+    socket.on("joinGame", (data: GameInterface) => {
+      updatedAt.value = Date.now();
+    });
+
 
     const fetchChatDataAndJoinGame = async (gameId: string) => {
       try {
@@ -71,7 +78,8 @@ export default defineComponent({
           });
         }
         if (gameData.value) {
-          socket.emit("joinGame", { gameId: gameId, userId: userStore.user.pseudo });
+          userStore.setUserStatus(UserStatus.PLAYING);
+          socket.emit("joinGame", { gameId: gameId, userId: userStore.user.id });
         }
       } catch (err: any) {
         const alert = {
@@ -96,7 +104,7 @@ export default defineComponent({
         try {
           if (!newVal) return;
           if (oldVal) {
-            socket.emit("leaveGame", { gameId: oldVal, userId: userStore.user.pseudo });
+            socket.emit("leaveGame", { gameId: oldVal, userId: userStore.user.id });
           }
           await fetchChatDataAndJoinGame(newVal as string);
         } catch (err: any) {
@@ -114,13 +122,39 @@ export default defineComponent({
       { immediate: true } // Call the function immediately when the component is created
     );
 
+    // watch updatedAt to update the gameData
+    watch(
+      () => updatedAt.value,
+      async (newVal, oldVal) => {
+        try {
+          if (!newVal) return;
+          const response = await getGameById(route.params.id as string);
+          users.value = response.data.games.users;
+          gameData.value = response.data.games;
+        } catch (err: any) {
+          const alert = {
+            status: err.response.status,
+            message: err.response.data.message,
+          } as AlertInterface;
+
+          alertStore.setAlert(alert);
+          router.push({
+            name: "games",
+          });
+        }
+      },
+      { immediate: true } // Call the function immediately when the component is created
+    );
+
     onUnmounted(() => {
-      socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.pseudo });
+      userStore.setUserStatus(UserStatus.ONLINE);
+      socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.id });
     });
 
     onMounted(() => {
       // Call the function when the page is reloaded
-      socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.pseudo });
+      userStore.setUserStatus(UserStatus.ONLINE);
+      socket.emit("leaveGame", { gameId: route.params.id, userId: userStore.user.id });
       fetchChatDataAndJoinGame(route.params.id as string);
     });
 
