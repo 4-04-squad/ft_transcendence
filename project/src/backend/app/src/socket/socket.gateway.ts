@@ -5,7 +5,7 @@ import { Body, Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.WEB_URL,
+    origin: '*',
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     credentials: true,

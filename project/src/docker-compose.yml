@@ -15,10 +15,11 @@ services:
             - web
             - backend
         ports:
-            #- "443:443"
-            - "80:80"
+            - "443:443"
         volumes:
             - web_data:/usr/share/nginx/html/app/dist:ro,Z
+            - /etc/letsencrypt:/etc/nginx/ssl/
+
         networks:
             - 42Pong
 
