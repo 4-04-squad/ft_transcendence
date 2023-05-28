@@ -66,6 +66,7 @@ export interface Score {
   color: string;
   max_score: number;
   finish_game: number;
+  none_same: number,
 }
 
 export interface Player {

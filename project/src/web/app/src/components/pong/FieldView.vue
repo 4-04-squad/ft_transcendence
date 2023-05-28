@@ -99,6 +99,7 @@ export default defineComponent({
 			color: 'white',
 			max_score: 5,
 			finish_game: 0,
+			none_same: 0,
 		};
 
 		const player1: Player = {
@@ -175,7 +176,7 @@ export default defineComponent({
 		});
 
 		props.socket.on("leaveGame", (data: any) => {
-			console.log("User left game:", data);
+			//console.log("User left game:", data);
 		});
 
 		props.socket.on("movePlayer", (data: any) => {
@@ -204,8 +205,15 @@ export default defineComponent({
 
 		props.socket.on("updateScore", (data: any) => {
 			//console.log("Score updated:", data);
-			score.p1 = data.score.p1;
-			score.p2 = data.score.p2;
+			if (player2.me == 1 && (score.p1 >= data.score.p1 && score.p2 >= data.score.p2))
+			{
+				score.none_same = 1;
+			}
+			else
+			{
+				score.p1 = data.score.p1;
+				score.p2 = data.score.p2;
+			}
 		});
 
 		props.socket.on("ready", (data: any) => {
@@ -249,6 +257,7 @@ export default defineComponent({
 		if (this.gameData.status === 'WAITING') {
 			deleteGame(this.gameData.id);
 		}
+		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
 		window.cancelAnimationFrame(this.ball.number);
 		window.removeEventListener("resize", this.handleWindowResize);
 	},
@@ -370,6 +379,8 @@ export default defineComponent({
 			this.cpu.enable = 0;
 			this.score.p1 = 0;
 			this.score.p2 = 0;
+			this.isReady = 0;
+			
 			this.btnOnePlayer = false;
 			this.btnMultiPlayer = false;
 			this.btnQuitGame = true;
@@ -509,15 +520,20 @@ export default defineComponent({
 			// Putting the middle line
 			this.themecolor();
 			this.context.fillStyle = this.score.color;
+			this.context.font = '12px arial';
 			this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
+			if (this.player1.me == 1)
+				this.context.fillText("Vous jouer à gauche", this.context.canvas.width / 2 - 120, this.context.canvas.height - 10);
+			else
+				this.context.fillText("Vous jouer à droite", this.context.canvas.width / 2 + 10, this.context.canvas.height - 10);
 			// Draw score & update
 			this.context.font = '48px arial';
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
 			this.context.fillText(this.score.p2, this.context.canvas.width / 2 + 25, 50);
 			if (this.gameData.userGames.length == 2) {
 				// Set gameData
-				this.gameData.userGames[0].score = this.score.p1;
-				this.gameData.userGames[1].score = this.score.p2;
+					this.gameData.userGames[0].score = this.score.p1;
+					this.gameData.userGames[1].score = this.score.p2;
 			}
 		},
 
@@ -579,7 +595,6 @@ export default defineComponent({
 
 		redrawall() {
 			this.context.fillStyle = this.gameData.paddleColor;
-
 			if (this.player2.me == 1) {
 				this.context.fillRect(this.player1.x, this.player1.y * this.player1.ratioY, this.player1.tilewidth, this.player1.tile);
 				this.context.fillRect(this.player2.x, this.player2.y, this.player2.tilewidth, this.player2.tile);
@@ -639,13 +654,17 @@ export default defineComponent({
 		},
 
 		update() {
-			console.log("ready / cpu / p1 / p2", this.isReady, this.cpu.enable, this.player1.me, this.player2.me);
 			if (this.btnMultiPlayer == true && this.cpu.enable == 1) {
 				this.cpu.enable = 0;
 				this.ball.x = this.ball.xb
 				this.ball.y = this.ball.yb
 				this.score.p1 = 0;
 				this.score.p2 = 0;
+			}
+			if (this.player2.me == 1 && this.score.none_same == 1)
+			{
+				this.socket.emit("updateScore", { gameId: this.gameData.id, score: this.score });
+				this.none_same = 0;
 			}
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
