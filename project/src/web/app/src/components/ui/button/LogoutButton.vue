@@ -36,21 +36,18 @@ export default defineComponent({
     async logout() {
       if (this.userStore.user) {
         axios
-            .get(
-              `${import.meta.env.VITE_APP_API_URL}/auth/signout/${this.userStore.user.id
-              }`,
+            .post(
+              `${import.meta.env.VITE_APP_API_URL}/auth/signout`,
               {
                 withCredentials: true,
               }
             )
             .then((res) => {
-              
-              this.socket.emit("leaveOnline", { user: this.userStore.user });
                   const alert = {
                   status: res.data.statusCode,
                   message: res.data.message,
                 } as AlertInterface;
-
+              this.socket.emit("leaveOnline", { user: this.userStore.user });
               this.alertStore.setAlert(alert);
               this.userStore.clearUser();
               

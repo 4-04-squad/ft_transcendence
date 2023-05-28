@@ -10,8 +10,8 @@
                 <button class="btn btn--success create-game" @click="toggleCreateGameModal">
                     <p>Créer une game</p>
                 </button>
-                <button class="btn btn--success create-game" @click="searchAndJoinGame">
-                    <p>Joindre une game</p>
+                <button class="btn btn--success" @click="searchAndJoinGame">
+                    <p>Matchmaking</p>
                 </button>
             </div>
         </h1>
@@ -78,6 +78,7 @@
         </template>
     </EasyDataTable>
     <GameSettingsModal v-if="showCreateGameModal" @onClose="toggleCreateGameModal" @onCreate="onSettingReceived" />
+    <MatchmakingModal v-if="showmatchmaking" @onClose="togglematchmaking" @onCreate="togglematchmaking"/>
 </template>
   
 <script lang="ts">
@@ -94,6 +95,7 @@ import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 import type { Socket } from "socket.io-client";
+import MatchmakingModal from "@/components/games/MatchmakingModal.vue";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -102,6 +104,7 @@ export default defineComponent({
         SearchIcon,
         AirplayIcon,
         GameSettingsModal,
+        MatchmakingModal
     },
     setup() {
         const searchValue = ref("");
@@ -110,6 +113,7 @@ export default defineComponent({
         const alertStore = useAlertStore();
         const games = ref([] as GameInterface[]);
         const showCreateGameModal = ref(false);
+        const showmatchmaking = ref(false);
         const socket = inject('socket') as Socket;
 
         socket.on("createGame", (data: any) => {
@@ -126,6 +130,18 @@ export default defineComponent({
         ] as Header[];
         const items = ref([] as Item[]);
 
+        const defaultGameSettings: IGameSettings = {
+            gameId: '0',
+            ballSpeed: 5,
+            paddleSpeed: 5,
+            ballColor: "#ffffff",
+            backgroundColor: "#000000",
+            ballSize: 5,
+            paddleSize: 5,
+            paddleColor: "#ffffff",
+            scoreLimit: 10,
+        };
+
         const removeActiveClass = () => {
             document.querySelectorAll(".btn-game-filter").forEach((element) => {
                 element.classList.remove("active");
@@ -136,26 +152,48 @@ export default defineComponent({
             showCreateGameModal.value = !showCreateGameModal.value;
         };
 
+        const togglematchmaking = () => {
+            showmatchmaking.value = !showmatchmaking.value;
+        }
+
         // function to join a waiting game where the user elo is closest to the current user elo
         const searchAndJoinGame = () => {
-            const userElo = userStore.user.elo;
-            const waitingGames = games.value.filter((game) => game.status == "WAITING");
-            // if no waiting game, create one
-            if (waitingGames.length == 0) {
-                toggleCreateGameModal();
-                return;
-            }
-            const closestGame = waitingGames.reduce((prev, curr) => {
-                const prevElo = prev.users[0].elo;
-                const currElo = curr.users[0].elo;
-                // if the current game is closer to the user elo than the previous one, return it
-                if (prevElo && currElo)
-                    if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo))
-                        return curr;
-                return prev;
+            showmatchmaking.value = !showmatchmaking.value;
+            
+            socket.emit("joinWaitingGame", {
+                userId: userStore.user.id
             });
-            joinAndNavigate(closestGame.id);
+
+            socket.emit("waiting", {
+                userId: userStore.user.id,
+            });
+            return
         };
+
+        socket.on("waiting", (data: any) => {
+            console.log("data: ", data);
+            if(data.gameId !== undefined && data.userId != userStore.user.id){
+                console.log("new opponent !");
+                socket.emit("leaveWaiting", {
+                    userId: userStore.user.id,
+                })
+                joinAndNavigate(data.gameId);
+            }
+            else if (data.userId != userStore.user.id) {
+                console.log("player waiting, creating game !");
+                createGame(defaultGameSettings).then((response) => {
+                    console.log(response);
+                    socket.emit("leaveWaiting", {
+                        userId: userStore.user.id,
+                    })
+                    socket.emit("waiting", {
+                        userId: userStore.user.id,   
+                        gameId: response.data.game.id,
+                    });
+                    router.push({ name: "game", params: { id: response.data.game.id } });
+                })
+            }
+        });
 
         watch(searchValue, () => {
             items.value = filteredItems.value;
@@ -306,6 +344,9 @@ export default defineComponent({
             joinAndNavigate,
             onSettingReceived,
             searchAndJoinGame,
+            socket,
+            showmatchmaking,
+            togglematchmaking
         };
     },
 });

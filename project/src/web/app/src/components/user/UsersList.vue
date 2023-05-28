@@ -18,9 +18,12 @@
 
 <script lang="ts">
 import type { UserInterface } from "@/interfaces/user.interface";
-import { defineComponent, ref } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import UserCard from "./UserCard.vue";
 import axios from "axios";
+import type { Socket } from "socket.io-client";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 type Status = "ONLINE" | "OFFLINE" | "PLAYING";
 
@@ -43,22 +46,44 @@ export default defineComponent({
   },
   setup(props) {
     const users = ref([] as UserInterface[]);
+    const alertStore = useAlertStore();
+    const updatedAt = ref("");
+    const socket = inject('socket') as Socket;
 
-    const response = axios
-      .get(
-        `${import.meta.env.VITE_APP_API_URL}/users/${props.status}/${
-          props.limit
-        }`,
-        {
-          withCredentials: true,
-        }
-      )
-      .then((response) => {
-        users.value = response.data.users;
-      })
+    socket.on("joinOnline", (data: any) => {
+        updatedAt.value = new Date().toISOString();
+    });
+
+    socket.on("leaveOnline", (data: any) => {
+        updatedAt.value = new Date().toISOString();
+    });
+
+    watch(
+      () => updatedAt.value,
+      async () => {
+        axios
+        .get(
+          `${import.meta.env.VITE_APP_API_URL}/users/${props.status}/${
+            props.limit
+          }`,
+          {
+            withCredentials: true,
+          }
+        )
+        .then((response) => {
+          users.value = response.data.users;
+        })
       .catch((error) => {
-        
+        const alert = {
+              status: error.response.data.statusCode,
+              message: error.response.data.message,
+            } as AlertInterface;
+
+            alertStore.setAlert(alert);
       });
+      },
+      { immediate: true }
+    );
 
     return {
       users,

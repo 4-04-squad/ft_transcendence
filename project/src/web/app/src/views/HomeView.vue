@@ -49,7 +49,7 @@
 
 <script lang="ts">
 import MainLayout from "@/components/layout/layout/MainLayout.vue";
-import { defineComponent, ref } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import { useUserStore } from "@/stores/user";
 import EasyDataTable from "vue3-easy-data-table";
 import router from "@/router";
@@ -58,12 +58,19 @@ import type { Header, Item } from "vue3-easy-data-table";
 import axios from "axios";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
+import type { Socket } from "socket.io-client";
+import {
+  ExternalLinkIcon,
+} from "@/components/icons";
+import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue";
 
 export default defineComponent({
   name: "HomeView",
   components: {
     MainLayout,
     EasyDataTable,
+    ExternalLinkIcon,
+    FriendRequestButton,
   },
   setup() {
     const alertStore = useAlertStore();
@@ -78,8 +85,18 @@ export default defineComponent({
       { text: "", value: "profile" },
     ] as Header[];
     const items = ref([] as Item[]);
+    const updatedAt = ref("");
+    const socket = inject('socket') as Socket;
 
-    axios
+    socket.on("userStatus", (data: any) => {
+        updatedAt.value = data.updatedAt;
+    });
+
+    updatedAt.value = new Date().toISOString();
+
+    // Watch user status to fetch
+    watch(updatedAt, () => {
+      axios
       .get(`${import.meta.env.VITE_APP_API_URL}/users`, {
         withCredentials: true,
       })
@@ -110,6 +127,8 @@ export default defineComponent({
           }
         }
       });
+    },
+    { immediate: true });
 
     return {
       userStore,

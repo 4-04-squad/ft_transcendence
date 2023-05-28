@@ -63,7 +63,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import axios from "axios";
 import router from "@/router";
@@ -74,6 +74,7 @@ import { SearchIcon, ExternalLinkIcon } from "@/components/icons";
 import UserCard from "@/components/user/UserCard.vue";
 import FriendRequestButton from "@/components/ui/button/FriendRequestButton.vue";
 import UsersFilters from "@/components/user/UsersFilters.vue";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "FriendsRequestsView",
@@ -96,8 +97,24 @@ export default defineComponent({
       { text: "", value: "profile" },
     ] as Header[];
     const items = ref([] as Item[]);
+    const updatedAt = ref("");
+    const socket = inject('socket') as Socket;
 
-    const response = axios
+    socket.on("userStatus", (data: any) => {
+        updatedAt.value = data.updatedAt;
+    });
+
+    socket.on("joinOnline", (data: any) => {
+        updatedAt.value = data.updatedAt;
+    });
+
+    socket.on("leaveOnline", (data: any) => {
+        updatedAt.value = data.updatedAt;
+    });
+
+    // Watch user status to fetch
+    watch(updatedAt, () => {
+      axios
       .get(`${import.meta.env.VITE_APP_API_URL}/friends/incoming`, {
         withCredentials: true,
       })
@@ -120,6 +137,7 @@ export default defineComponent({
           }
         }
       });
+    }, { immediate: true });
 
     return {
       searchValue,
