@@ -4,7 +4,7 @@
 			<div class="game-buttons">
 				<button v-if="btnOnePlayer" @click="oneplayer" class="btn">partie solo</button>
 
-				<button v-if="btnMultiPlayer" @click="multiplayer" class="btn">partie multijoueur</button>
+				<button v-if="btnMultiPlayer" @click="multiplayer" class="btn">{{ buttonText }}</button>
 
 				<button v-if="btnQuitGame" class="btn">
 					<RouterLink :to="{ name: 'games' }">retour au lobby</RouterLink>
@@ -43,6 +43,11 @@ export default defineComponent({
 			type: Object,
 			required: true,
 		},
+	},
+	data() {
+		return {
+			buttonText: 'Partie Multijoueur'
+		}
 	},
 	setup(props) {
 		const userStore = useUserStore();
@@ -254,13 +259,13 @@ export default defineComponent({
 	},
 	beforeUnmount() {
 		// if we leave a waiting game -> delete
-		if (this.gameData.status === 'WAITING'){
+		if (this.gameData.status === 'WAITING') {
 			deleteGame(this.gameData.id).then((res) => {
 				this.socket.emit('createGame', {updatedAt: new Date().toISOString()});
 			});
 		}
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
-    window.cancelAnimationFrame(this.ball.number);
+   		window.cancelAnimationFrame(this.ball.number);
 		window.removeEventListener("resize", this.handleWindowResize);
 	},
 	mounted() {
@@ -301,6 +306,7 @@ export default defineComponent({
 		},
 
 		multiplayer() {
+			this.buttonText = 'Relancer la partie';
 			this.btnOnePlayer = false;
 			this.btnMultiPlayer = false;
 			this.socket.emit("ready", { gameId: this.gameData.id, userId: this.userStore.user.id });
@@ -340,29 +346,35 @@ export default defineComponent({
 			}
 
 			if (this.gameData.userGames.length == 2) {
-				if (this.score.p1 == this.score.max_score && this.player1.me == 1) {
-					this.gameData.userGames[0].status = userGameStatus.WINNER;
-					this.gameData.userGames[1].status = userGameStatus.LOSER;
-				}
-				else if (this.score.p2 == this.score.max_score && this.player2.me == 1) {
-					this.gameData.userGames[0].status = userGameStatus.LOSER;
-					this.gameData.userGames[1].status = userGameStatus.WINNER;
-				}
-				else {
-					this.gameData.userGames[0].status = userGameStatus.DRAW;
-					this.gameData.userGames[1].status = userGameStatus.DRAW;
-				}
-				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
-					const alert = {
-						status: err.response.status,
-						message: err.response.data.message,
-					} as AlertInterface;
+				console.log(this.gameData.userGames[0], this.gameData.userGames[1]);
+				console.log(this.score.max_score, this.score.p1);
+				console.log(this.player1.me, this.player2.me);
+				if (this.player1.me == 1)
+				{
+					if (this.score.p1 == this.score.max_score) {
+						this.gameData.userGames[0].status = userGameStatus.WINNER;
+						this.gameData.userGames[1].status = userGameStatus.LOSER;
+					}
+					else if (this.score.p2 == this.score.max_score) {
+						this.gameData.userGames[0].status = userGameStatus.LOSER;
+						this.gameData.userGames[1].status = userGameStatus.WINNER;
+					}
+					else {
+						this.gameData.userGames[0].status = userGameStatus.DRAW;
+						this.gameData.userGames[1].status = userGameStatus.DRAW;
+					}
+					endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
+						const alert = {
+							status: err.response.status,
+							message: err.response.data.message,
+						} as AlertInterface;
 
-					this.alertStore.setAlert(alert);
-					router.push({
-						name: "games",
+						this.alertStore.setAlert(alert);
+						router.push({
+							name: "games",
+						});
 					});
-				});
+				}
 			} else if (this.gameData.userGames.length == 1) {
 				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
 					const alert = {
@@ -374,7 +386,7 @@ export default defineComponent({
 					router.push({
 						name: "games",
 					});
-				});
+				});	
 			}
 			this.player1.me = 0;
 			this.player2.me = 0;

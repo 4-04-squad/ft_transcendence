@@ -45,7 +45,7 @@
 	  Modal,
 	},
 	setup(props, { emit }) {
-	  const ballSpeed = ref(1);
+	  const ballSpeed = ref(3);
 	  const ballSize = ref(20);
 	  const paddleSpeed = ref(20);
 	  const paddleSize = ref(75);
