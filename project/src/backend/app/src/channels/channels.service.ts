@@ -160,8 +160,9 @@ export class ChannelsService {
         if (!channel)
             throw new BadRequestException("Channel not found");
         const userChannel = await this.prisma.userChat.findMany({ where: { chatId: data.chatId, userId: userId } });
+        console.log(channel.type, data.passwd, await bcrypt.compare(data.passwd, channel.passwd));
         if (channel.type == ChatType.RESTRICTED) {
-            if (!bcrypt.compare(data.passwd, channel.passwd) || !data.passwd)
+            if (await bcrypt.compare(data.passwd, channel.passwd) == false || data.passwd == "")
                 throw new BadRequestException("Wrong password");
         }
         const me = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: userId } });
