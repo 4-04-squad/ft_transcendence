@@ -127,8 +127,8 @@ export default defineComponent({
           })
           .catch((error) => {
             const alert = {
-              status: 400,
-              message: "Error uploading avatar",
+              status: error.response.status,
+              message: error.response.data.message,
             } as AlertInterface;
 
             this.alertStore.setAlert(alert);
@@ -155,7 +155,6 @@ export default defineComponent({
           }
         )
           .then((res) => {
-            console.log("response: ", res);
             // Update the user in the store
             this.userStore.updateUser(res.data.user);
             this.$router.push({ path: "/profile" });
@@ -186,7 +185,7 @@ export default defineComponent({
           this.$router.push({ path: "/login" });
         }).catch((error) => {
           const alert = {
-            status: error.response.data.status,
+            status: error.response.status,
             message: error.response.data.message,
           } as AlertInterface;
 

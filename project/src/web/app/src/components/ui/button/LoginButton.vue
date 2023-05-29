@@ -61,12 +61,15 @@ export default defineComponent({
               // set the user in the store
               this.userStore.setUser(response.data.user as UserInterface);
               if (this.userStore.user) {
-                console.log("User is logged in " + this.userStore.user.pseudo);
                 router.push({ path: "/" });
               }
             }
           } catch (error) {
-            console.log(error);
+            const alert = {
+              status: 400,
+              message: "Error while trying to login",
+            } as AlertInterface;
+            this.alertStore.setAlert(alert);
           }
         }
         
