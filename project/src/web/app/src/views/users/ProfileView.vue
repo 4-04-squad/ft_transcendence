@@ -90,7 +90,7 @@
 import type { UserInterface } from "@/interfaces/user.interface";
 import type { GameInterface, IUserStats } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
-import { defineComponent, ref, watch } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import UserCard from "@/components/user/UserCard.vue";
@@ -101,11 +101,12 @@ import LineChartCard from "@/components/ui/chart/LineChartCard.vue";
 import EasyDataTable, { type Header, type Item } from "vue3-easy-data-table";
 
 import { EditIcon } from "@/components/icons";
-import { getGames, getStatsByUser } from "@/services/gameServices";
+import { getGames, getGamesByUser, getStatsByUser } from "@/services/gameServices";
 import BlockUserButton from "@/components/ui/button/BlockUserButton.vue";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 import router from "@/router";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "ProfileView",
@@ -135,44 +136,26 @@ export default defineComponent({
             { text: "", value: "game" } // game id
         ] as Header[];
     const items = ref([] as Item[]);
-
-    getGames().then((response) => {
-            games.value = response.data.games;
-            games.value = games.value.filter((game) => {
-              if (game.status === "FINISHED") {
-                return game;
-              }
-            });
-            items.value = games.value.map((game) => {
-                return {
-                    id: game.id,
-                    players: game.users,
-                    status: game.status,
-                    result: game.userGames? game.userGames.find((userGame) => userGame.userId === userStore.user?.id)?.status: "",
-                    date: game.updatedAt,
-                } as Item;
-            });
-        })
-            .catch((error) => {
-                const alert = {
-                    status: error.response.data.statusCode,
-                    message: error.response.data.message,
-                } as AlertInterface;
-
-                alertStore.setAlert(alert);
-        });
+    const params = ref("");
 
 
     // Watch for changes to route params and fetch user data again
     watch(
       () => route.params,
-      async () => {
-        if (route.params.pseudo) {
+      async (newVal, oldVal) => {
+
+          if (route.params.pseudo) {
+            params.value = route.params.pseudo as string;
+          }
+          else
+          {
+            params.value = userStore.user?.pseudo as string;
+          }   
           // Get user by pseudo from API if we are on another user profile
           const response = await axios
             .get(
               `${import.meta.env.VITE_APP_API_URL}/users/${
-                route.params.pseudo
+                params.value
               }`,
               {
                 withCredentials: true,
@@ -195,21 +178,49 @@ export default defineComponent({
               alertStore.setAlert(alert);
               router.push({ name: "home" });
             });
-        } else {
-          // Get current user from store
-          user.value = userStore.user;
-        }
-      },
-      { immediate: true } // Call the function immediately when the component is created
-    );
+            if (!user.value) return;
+            getGamesByUser(user.value.id).then((response) => {
+            games.value = response.data.games;
+            games.value = games.value.filter((game) => {
+              if (game.status === "FINISHED") {
+                return game;
+              }
+            });
+            items.value = games.value.map((game) => {
+                return {
+                    id: game.id,
+                    players: game.users,
+                    status: game.status,
+                    result: game.userGames? game.userGames.find((userGame) => userGame.userId === user.value.id)?.status: "",
+                    date: game.updatedAt,
+                } as Item;
+            });
+        })
+            .catch((error) => {
+                const alert = {
+                    status: error.response.data.statusCode,
+                    message: error.response.data.message,
+                } as AlertInterface;
 
-    // fatch settings data when user is set
-    watch(
-      () => user.value,
-      async (newVal, oldVal) => {
-        if (!newVal) return;
-        const data = await getStatsByUser(newVal.id);
-        userStats.value = data.data.statistics;
+                alertStore.setAlert(alert);
+        });
+        if (!user.value) return;
+        const data = await getStatsByUser(user.value.id as string).then((data) => {
+          userStats.value = data.data.statistics;
+        }).catch(
+          (error) => {
+            const alert = {
+              status: error.response.data.statusCode,
+              message: error.response.data.message,
+            } as AlertInterface;
+
+            alertStore.setAlert(alert);
+          }
+        );
+        // reload component when router param changes
+        if (oldVal) {
+          router.go(0);
+        }
       },
       { immediate: true } // Call the function immediately when the component is created
     );

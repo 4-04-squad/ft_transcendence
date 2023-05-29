@@ -68,8 +68,8 @@ export class GamesService {
     return { ...game, userGames: userGames, users: users };
   }
 
-  async getGameByUserId(userId: string): Promise<Game[] | void> {
-    const userGames = await this.prisma.userGame
+  async getGameByUserId(userId: string): Promise<GameWithUsers[]> {
+    let userGames = await this.prisma.userGame
       .findMany({ where: { userId: userId } })
       .catch((err) => {
         throw new BadRequestException(err);
@@ -81,7 +81,31 @@ export class GamesService {
       .catch((err) => {
         throw new BadRequestException(err);
       });
-    return games;
+      userGames = await this.prisma.userGame
+      .findMany({ where: { gameId: { in: games.map((game) => game.id) }  } })
+      .catch((err) => {
+        throw new BadRequestException(err);
+      });
+      const users = await this.prisma.user
+      .findMany({
+        where: { id: { in: userGames.map((userGame) => userGame.userId) } },
+      })
+      .catch((err) => {
+        throw new BadRequestException(err);
+      });
+      const gamesWithUsers = games.map((game) => {
+        return {
+          ...game,
+          userGames: userGames.filter((userGame) => userGame.gameId == game.id),
+          users: users.filter((user) =>
+            userGames.some(
+              (userGame) =>
+                userGame.userId == user.id && userGame.gameId == game.id,
+            ),
+          ),
+        };
+      });
+      return gamesWithUsers;
   }
 
   async getGameByStatus(status: string): Promise<GameWithUsers[]> {
