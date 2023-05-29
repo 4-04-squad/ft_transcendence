@@ -89,13 +89,13 @@ export default defineComponent({
 			velocityy: 1,
 			rebound: 0,
 			rebonetime: 2,
-			speed: 3,
+			speed: 8,
 			animation: 0,
 		};
 
 		const cpu: CPU = {
 			enable: 0,
-			difficulty: 3,
+			difficulty: 8,
 		};
 
 		const score: Score = {
@@ -658,6 +658,7 @@ export default defineComponent({
 		},
 
 		update() {
+			console.log(this.ball.speed, this.ball.width, this.player1.speed, this.player1.tile);
 			if (this.btnMultiPlayer == true && this.cpu.enable == 1) {
 				this.cpu.enable = 0;
 				this.ball.x = this.ball.xb
