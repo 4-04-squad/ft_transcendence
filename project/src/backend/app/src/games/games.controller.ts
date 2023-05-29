@@ -18,7 +18,7 @@ import { AuthMiddleware } from 'src/users/users.middleware';
 import { Response } from 'express';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ApiTags, ApiBody, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
-import { GameDto, UserGameDto, gameSettingsDto } from './dto/game.dto';
+import { GameDto, UserGameDto, gameSettingsDto, gameStatusDto } from './dto/game.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('games')
@@ -177,6 +177,26 @@ export class GamesController {
       res.send({ game, message: 'Game Ended' });
     }
   }
+
+  @Patch(':gameId/updatestatus')
+  @UsePipes(ValidationPipe)
+  @ApiOkResponse({ description: 'Returns a game', type: GameDto })
+  async updateGameStatus(
+    @Req() req: RequestWithUser,
+    @Body() data: gameStatusDto,
+    @Res() res: Response,
+    @Param('gameId') gameId: string,
+  ) {
+    await new Promise((resolve) => this.authMiddleware.use(req, res, resolve));
+    const user = req.user;
+    if (!user) {
+      res.status(401).send({ message: 'Unauthorized' });
+    } else {
+      const game = await this.gamesService.updateGameStatus(gameId, data);
+      res.send({ game, message: 'Game Ended' });
+    }
+  }
+
 
   @Delete(':gameId')
   @UseGuards(AuthGuard)

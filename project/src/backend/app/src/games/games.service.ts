@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Game, GameStatus, UserGame } from '@prisma/client';
 import { GameWithUsers } from './gamesExtraInterfaces';
-import { GamesStatisticsDto, UserGameDto, gameSettingsDto } from './dto/game.dto';
+import { GamesStatisticsDto, UserGameDto, gameSettingsDto, gameStatusDto } from './dto/game.dto';
 
 @Injectable()
 export class GamesService {
@@ -230,6 +230,19 @@ export class GamesService {
       .catch((err) => {
         throw new BadRequestException(err);
       });
+  }
+
+  async updateGameStatus(gameId: string, data: gameStatusDto): Promise<Game | void>{
+    const game = await this.prisma.game
+      .update({
+        where: { id: gameId },
+        data: { status: data.status },
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new BadRequestException(err);
+      });
+      return game;
   }
 
   async updateUserExperience(userId: string, status: string, score: number): Promise<void> {

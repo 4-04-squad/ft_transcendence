@@ -135,7 +135,7 @@ export default defineComponent({
             ballSpeed: 3,
             paddleSpeed: 20,
             ballColor: "#ffffff",
-            backgroundColor: "#000000",
+            backgroundColor: "#36373a",
             ballSize: 20,
             paddleSize: 75,
             paddleColor: "#ffffff",
@@ -156,7 +156,6 @@ export default defineComponent({
             showmatchmaking.value = !showmatchmaking.value;
         }
 
-        // function to join a waiting game where the user elo is closest to the current user elo
         const searchAndJoinGame = () => {
             showmatchmaking.value = !showmatchmaking.value;
             
