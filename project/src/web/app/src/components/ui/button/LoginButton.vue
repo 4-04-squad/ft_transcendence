@@ -35,57 +35,42 @@ export default defineComponent({
   },
   methods: {
     async login() {
-      const loading = ref(0);
       const loginUrl = `${import.meta.env.VITE_APP_API_URL}/users/@me`;
+      const callback = `${import.meta.env.VITE_APP_WEB_URL}/login`;
       const token = import.meta.env.VITE_APP_FORTY_TWO_CLIENT_ID;
       const callbackUrl = `${
         import.meta.env.VITE_APP_API_URL
       }/auth/login/callback`;
       const redirectUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${token}&redirect_uri=${callbackUrl}&response_type=code`;
       
-      const logUser = async () => {
-        await axios.get(loginUrl, {
-            withCredentials: true,
-          }).then((response) => {
-          // check if the user is logged in
-          if (response.status === 206) {
-						router.push({ path: "/login_2fa" });
-					}
-          else if (response.status === 200) {
-            // set the user in the store
-            this.userStore.setUser(response.data.user as UserInterface);
-            if (this.userStore.user) {
-              this.socket.emit("joinOnline", { user: this.userStore.user });
-              if (this.userStore.user.createdAt === this.userStore.user.updatedAt) {
-                router.push({ path: `/users/${this.userStore.user.id}/edit`});
-              }
-              else {
+      const popup = parent.window.open(redirectUrl, "_blank", "height=600,width=600");
+
+      // wait for the user to complete the login process
+      const interval = setInterval(async () => {
+        if (popup?.window.location.href === callback) {
+          popup?.close();
+          try {
+            const response = await axios.get(loginUrl, {
+              withCredentials: true,
+            });
+            // check if the user is logged in
+            if (response.status === 200) {
+              // clear the interval and close the popup
+              clearInterval(interval);
+              popup?.close();
+              // set the user in the store
+              this.userStore.setUser(response.data.user as UserInterface);
+              if (this.userStore.user) {
+                console.log("User is logged in " + this.userStore.user.pseudo);
                 router.push({ path: "/" });
               }
             }
+          } catch (error) {
+            console.log(error);
           }
-          })
-          .catch((error) => {
-            const alert = {
-              status: error.response.data.statusCode,
-              message: error.response.data.message,
-            } as AlertInterface;
-            this.alertStore.setAlert(alert);
-          });
-      }
-
-        const popup = window.open(redirectUrl, "_blank", "height=600,width=600");
-        popup?.addEventListener("load", () => {
-          setTimeout(function(){
-            if (popup?.location.href === loginUrl && loading.value === 0) {
-              loading.value = 1;
-            } else {
-              loading.value = 0;
-            }
-          }, 100);
-          logUser();
-          popup?.close();
-        });
+        }
+        
+      }, 1000);
     },
   },
 });
