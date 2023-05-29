@@ -5,7 +5,7 @@
 		  <input type="range" id="ball-speed" v-model.number="ballSpeed" min="1" max="5" />
 		</div>
 		<div class="form-group">
-		  <label for="paddle-speed">Vitesse de la raquette</label>
+		  <label for="paddle-speed">Vitesse des raquettes</label>
 		  <input type="range" id="paddle-speed" v-model.number="paddleSpeed" min="10" max="30" />
 		</div>
 		<div class="form-group">
@@ -13,7 +13,7 @@
 			<input type="range" id="ball-size" v-model.number="ballSize" min="10" max="30" />
 		  </div>
 		  <div class="form-group">
-			<label for="paddle-speed">Taille de la raquette</label>
+			<label for="paddle-speed">Taille des raquettes</label>
 			<input type="range" id="paddle-size" v-model.number="paddleSize" min="50" max="90" />
 		  </div>
 		<div class="form-group color">
