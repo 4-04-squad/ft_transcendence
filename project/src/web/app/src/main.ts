@@ -9,7 +9,11 @@ import { io } from 'socket.io-client'
 
 import "./assets/stylesheets/main.scss";
 
-const socket = io(`${import.meta.env.VITE_APP_API_HOST}:${import.meta.env.VITE_APP_API_PORT}`);
+const socket = io(`${import.meta.env.VITE_APP_API_HOST}:${import.meta.env.VITE_APP_API_PORT}`,
+{
+    // send cookies to server
+    withCredentials: true,
+});
 
 const app = createApp(App).provide("socket", socket);
 const pinia = createPinia();
