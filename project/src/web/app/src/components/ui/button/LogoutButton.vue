@@ -57,7 +57,7 @@ export default defineComponent({
             })
             .catch((err) => {
               const alert = {
-                status: err.response.data.statusCode,
+                status: err.response.status,
                 message: err.response.data.message,
               } as AlertInterface;
 

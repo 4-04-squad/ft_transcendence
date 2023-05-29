@@ -263,7 +263,6 @@ export class GamesService {
         data: { status: data.status },
       })
       .catch((err) => {
-        console.log(err);
         throw new BadRequestException(err);
       });
       return game;

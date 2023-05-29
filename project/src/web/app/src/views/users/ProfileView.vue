@@ -138,6 +138,32 @@ export default defineComponent({
     const items = ref([] as Item[]);
     const params = ref("");
 
+    getGames().then((response) => {
+            games.value = response.data.games;
+            games.value = games.value.filter((game) => {
+              if (game.status === "FINISHED") {
+                return game;
+              }
+            });
+            items.value = games.value.map((game) => {
+                return {
+                    id: game.id,
+                    players: game.users,
+                    status: game.status,
+                    result: game.userGames? game.userGames.find((userGame) => userGame.userId === userStore.user?.id)?.status: "",
+                    date: game.updatedAt,
+                } as Item;
+            });
+        })
+            .catch((error) => {
+                const alert = {
+                    status: error.response.status,
+                    message: error.response.data.message,
+                } as AlertInterface;
+
+                alertStore.setAlert(alert);
+        });
+
 
     // Watch for changes to route params and fetch user data again
     watch(
@@ -171,7 +197,7 @@ export default defineComponent({
             })
             .catch((error) => {
               const alert = {
-                status: error.response.data.statusCode,
+                status: error.response.status,
                 message: error.response.data.message,
               } as AlertInterface;
 

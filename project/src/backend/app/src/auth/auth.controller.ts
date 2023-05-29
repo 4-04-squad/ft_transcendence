@@ -66,7 +66,6 @@ export class AuthController {
   @Get('login')
   @ApiResponse({ status: 302, description: 'Redirect to 42 API'})
   async loginWithFortyTwo(@Req() req: RequestWithUser, @Res() res: Response) {
-    console.log(res)
   };
 
   @Get('login/callback')

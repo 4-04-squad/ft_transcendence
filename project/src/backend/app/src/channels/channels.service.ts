@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma.service';
 import { Chat, ChatType, User, UserChat, UserChatPermission, UserChatStatus } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { CreateChannelDto, EditChannelDto, JoinChannelDto, memberStatusDto } from './dto/channels.dto';
-import { channel } from 'diagnostics_channel';
 import * as bcrypt from "bcrypt";
 
 @Injectable()

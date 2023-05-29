@@ -83,7 +83,7 @@ export default defineComponent({
                 myUserChatStatus.value = response.data.chat.status;
             }).catch((error) => {
                 const alert = {
-                    status: error.response.data.statusCode,
+                    status: error.response.status,
                     message: error.response.data.message,
                 } as AlertInterface;
 
