@@ -52,21 +52,6 @@ export default defineComponent({
 						router.push({ path: "/login_2fa" });
 					}
           else if (response.status === 200) {
-            // set the default image
-            if (!response.data.user.avatar) {
-              axios.patch(
-                  `${import.meta.env.VITE_APP_API_URL}/users/${response.data.user.id}/edit`,
-                  {
-                    avatar: "/public/img/marvin.png"
-                  },
-                  {
-                    withCredentials: true,
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  }
-                );
-            }
             // set the user in the store
             this.userStore.setUser(response.data.user as UserInterface);
             if (this.userStore.user) {
@@ -101,7 +86,6 @@ export default defineComponent({
           logUser();
           popup?.close();
         });
-
     },
   },
 });

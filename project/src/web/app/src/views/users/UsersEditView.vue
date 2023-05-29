@@ -16,7 +16,7 @@
           </div>
           <div class="user-card__upload">
             <label for="avatar">Changer l'avatar</label>
-            <input type="file" id="avatar" name="avatar" ref="avatarRef" @change="handleFileChange" />
+            <input type="file" id="avatar" accept="image/png, image/jpeg, image/gif" name="avatar" ref="avatarRef" @change="handleFileChange" />
           </div>
         </div>
         <div class="form-field">
@@ -88,6 +88,16 @@ export default defineComponent({
   },
   methods: {
     handleFileChange(event: any) {
+      if (event.target.files[0] > 1024 * 3) {
+        event.preventDefault();
+        const alert = {
+              status: 400,
+              message: "File too big (> 3MB)",
+            } as AlertInterface;
+
+            this.alertStore.setAlert(alert);
+        return;
+      }
       this.selectedFile = event.target.files[0];
       this.previewUrl = URL.createObjectURL(this.selectedFile);
     },

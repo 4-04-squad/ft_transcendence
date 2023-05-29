@@ -2,6 +2,8 @@ import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
 import { defineStore } from "pinia";
 import axios from "axios";
 import router from "@/router";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "./alert";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -13,25 +15,15 @@ export const useUserStore = defineStore("user", {
     updateUser(user: UserInterface ) {
       this.user = user;
     },
-    setUser(user: UserInterface | undefined) {
+    async setUser(user: UserInterface | undefined) {
+      const alertStore = useAlertStore();
       this.user = user;
-      axios.patch(
-        `${import.meta.env.VITE_APP_API_URL}/users/${this.user.id}/edit`,
-        {
-          status: UserStatus.ONLINE
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
       this.user.status = UserStatus.ONLINE;
       localStorage.setItem("localUser", JSON.stringify(user));
     },
-    setUserStatus(status: UserStatus) {
-      axios.patch(
+    async setUserStatus(status: UserStatus) {
+      const alertStore = useAlertStore();
+     await axios.patch(
         `${import.meta.env.VITE_APP_API_URL}/users/${this.user.id}/edit`,
         {
           status: status
@@ -40,10 +32,17 @@ export const useUserStore = defineStore("user", {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
-          },
+          }, 
         }
-      );
-      this.user.status = status;
+      ).then((res) => {
+        this.user.status = status;
+      }).catch((err) => {
+        const alert = {
+          status: 400,
+          message: "Cannot set user status",
+        } as AlertInterface;
+        alertStore.setAlert(alert);
+      });
     },
     clearUser() {
       this.user = undefined;
