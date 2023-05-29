@@ -109,6 +109,8 @@ export class FriendsService {
     
       async acceptFriendRequest(userId: string, friendId: string) {
         // Check if friendId exists
+        if (!friendId)
+          throw new BadRequestException('User not found.');
         const friend = await this.prisma.user.findUnique({
           where: {
             id: friendId,
@@ -137,8 +139,9 @@ export class FriendsService {
           data: {
             accepted: true,
           },
+        }).catch((err) => {
+          throw new BadRequestException('Friend request not found.');
         });
-
         // Accept friend request
         await this.prisma.friendship.create({
           data: {

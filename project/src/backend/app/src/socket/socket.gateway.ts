@@ -61,6 +61,15 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   }
 
   /*
+  * Emit action : FriendRequest
+  */
+  @SubscribeMessage('updateFriends')
+  onUpdateFriends(@Body() data: { updatedAt: string }) {
+    this.server.emit('updateFriends', { updatedAt: data.updatedAt });
+  }
+
+
+  /*
   * Emit action : Matchmaking
   */
   @SubscribeMessage('waiting')
