@@ -93,7 +93,6 @@ export default defineComponent({
           })
           .then((response) => {
             members.value = response.data.users;
-            console.log(response.data);
           })
           .catch((error) => {
             const alert = {

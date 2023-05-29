@@ -199,7 +199,6 @@ export class GamesService {
         return game;
       })
       .catch((err) => {
-        console.log(err);
         throw new BadRequestException(err);
       });
     return game;
@@ -229,7 +228,6 @@ export class GamesService {
         data: { status: GameStatus.INPROGRESS },
       })
       .catch((err) => {
-        console.log(err);
         throw new BadRequestException(err);
       });
   }
@@ -283,7 +281,6 @@ export class GamesService {
         data: { elo: newElo },
       })
       .catch((err) => {
-        console.log(err, 'error');
         throw new BadRequestException(err);
       });
   }
@@ -296,7 +293,6 @@ export class GamesService {
           data: { status: GameStatus.FINISHED },
         })
         .catch((err) => {
-          console.log(err);
           throw new BadRequestException(err);
       });
       return game;
@@ -309,7 +305,6 @@ export class GamesService {
         data: { status: GameStatus.FINISHED },
       })
       .catch((err) => {
-        console.log(err);
         throw new BadRequestException(err);
       });
 
@@ -345,7 +340,6 @@ export class GamesService {
         },
       })
       .catch((err) => {
-        console.log(err);
         throw new BadRequestException(err);
       });
   }
