@@ -2,6 +2,9 @@ import { MessageBody, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Body, Logger } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { User, UserStatus, Prisma } from '@prisma/client';
+import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway({
   cors: {
@@ -12,7 +15,12 @@ import { Body, Logger } from '@nestjs/common';
   },
 })
 export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-
+  [x: string]: any;
+  constructor(
+    private prisma: PrismaService,
+    private usersService: UsersService,
+  ) {}
+  
   private logger: Logger = new Logger('SocketGateway');
 
   private connectedRooms = new Map<string, Set<string>>();
@@ -196,6 +204,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
     userRooms.add(roomName);
     this.connectedRooms.set(data.userId, userRooms);
+    this.usersService.updateUserStatus(data.userId, UserStatus.PLAYING);
     this.server.emit('userStatus', { userId: data.userId, status: 'PLAYING' });
     this.server.to(roomName).emit('joinGame', { gameId: data.gameId, userId: data.userId });
   }
@@ -220,6 +229,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     }
 
     this.leaveSocketGame(data.gameId, data.userId);
+    this.usersService.updateUserStatus(data.userId, UserStatus.ONLINE);
     this.server.emit('userStatus', { userId: data.userId, status: 'ONLINE' });
   }
 

@@ -70,7 +70,7 @@ export default defineComponent({
 	methods: {
 		handleBannerClick() {
 			if (this.alert && this.alert.link) {
-				if (this.alert.type == "game") {
+				if (this.alert.socketType == "game") {
 					joinGame(this.alert.link)
 					.then((res) => {
 						if (this.alert?.link)
@@ -78,7 +78,7 @@ export default defineComponent({
 					})
 					.catch((err) => {
 						const alert = {
-							status: err.response.data.statusCode,
+							status: err.response.status,
 							message: err.response.data.message,
 						} as AlertInterface;
 
@@ -86,21 +86,8 @@ export default defineComponent({
 					});
 				} else {
 					if (this.alert?.link) {
-						joinGame(this.alert.link)
-						.then((res) => {
-							if (this.alert?.link)
-								router.push({ name: this.alert.socketType, params: { id: this.alert.link } });
-						})
-						.catch((err) => {
-							const alert = {
-								status: err.response.data.statusCode,
-								message: err.response.data.message,
-							} as AlertInterface;
-	
-							this.alertStore.setAlert(alert);
-						});
+						router.push({ name: this.alert.socketType, params: { id: this.alert.link } });
 					}
-					
 				}
 			}
 		}

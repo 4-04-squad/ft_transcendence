@@ -70,7 +70,7 @@ export default defineComponent({
           })
           .catch((error) => {
             const alert = {
-              status: error.response.data.statusCode,
+              status: error.response.status,
               message: error.response.data.message,
             } as AlertInterface;
 
@@ -96,7 +96,7 @@ export default defineComponent({
           })
           .catch((error) => {
             const alert = {
-              status: error.response.data.statusCode,
+              status: error.response.status,
               message: error.response.data.message,
             } as AlertInterface;
 

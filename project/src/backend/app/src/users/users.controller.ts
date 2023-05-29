@@ -11,6 +11,13 @@ import { AuthGuard } from '../auth/auth.guard';
 import { BlockUserService } from './block-user.service';
 import { PrismaService } from 'src/prisma.service';
 
+const MIME_TYPE_MAP = {
+  'image/png': 'png',
+  'image/jpeg': 'jpeg',
+  'image/jpg': 'jpg',
+  'image/gif': 'gif'
+};
+
 @Controller('users')
 @ApiTags('Users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -125,6 +132,12 @@ export class UsersController {
   @Patch(':id/avatar')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('avatar', {
+    limits: { fileSize: 1 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const isValid = !!MIME_TYPE_MAP[file.mimetype];
+      let error = isValid ? null : new Error('Invalid mime type!');
+      cb(error, isValid);
+    },
     storage: diskStorage({
       destination: './uploads/avatars',
       filename: (req, file, cb) => {

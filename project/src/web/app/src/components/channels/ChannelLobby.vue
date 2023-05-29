@@ -47,7 +47,6 @@ import { SearchIcon, MessageIcon, XIcon } from "@/components/icons";
 import type { ChatInterface, IChannelSettings } from "@/interfaces/chat.interface";
 import ChannelSettingsModal from "@/components/channels/ChannelSettingsModal.vue";
 import ChannelPasswdModal from "@/components/channels/ChannelPasswdModal.vue";
-import { channel } from "diagnostics_channel";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 import type { Socket } from "socket.io-client";
@@ -120,7 +119,7 @@ export default defineComponent({
                 })
                 .catch((error) => {
                     const alert = {
-                    status: error.response.data.statusCode,
+                    status: error.response.status,
                     message: error.response.data.message,
                     } as AlertInterface;
 
@@ -159,7 +158,7 @@ export default defineComponent({
             })
             .catch((error) => {
                 const alert = {
-                status: error.response.data.statusCode,
+                status: error.response.status,
                 message: error.response.data.message,
                 } as AlertInterface;
 
@@ -213,7 +212,7 @@ export default defineComponent({
                     });
                 }).catch((error) => {
                     const alert = {
-                    status: error.response.data.statusCode,
+                    status: error.response.status,
                     message: error.response.data.message,
                     } as AlertInterface;
 
@@ -253,7 +252,7 @@ export default defineComponent({
                 });
             }).catch((err) => {
                 const alert = {
-                    status: err.response.data.statusCode,
+                    status: err.response.status,
                     message: err.response.data.message,
                   } as AlertInterface;
 
@@ -319,7 +318,7 @@ export default defineComponent({
                 this.alertStore.setAlert(alert);
             }).catch((error) => {
                 const alert = {
-                status: error.response.data.statusCode,
+                status: error.response.status,
                 message: error.response.data.message,
                 } as AlertInterface;
 
