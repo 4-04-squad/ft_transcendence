@@ -1,10 +1,11 @@
 import { MessageBody, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Body, Logger } from '@nestjs/common';
+import { Body, Logger, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { User, UserStatus, Prisma } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
+import { AuthService } from 'src/auth/auth.service';
 
 @WebSocketGateway({
   cors: {
@@ -15,10 +16,11 @@ import { UsersService } from 'src/users/users.service';
   },
 })
 export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  [x: string]: any;
+
   constructor(
     private prisma: PrismaService,
     private usersService: UsersService,
+    private authService: AuthService,
   ) {}
   
   private logger: Logger = new Logger('SocketGateway');
@@ -28,9 +30,44 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
   @WebSocketServer() server;
 
+
   afterInit(server: any) {
+    server.use(async (socket, next) => {
+      const jwtName = process.env.JWT_NAME;
+      const cookie = socket.handshake.headers.cookie.split(';').find(cookie => cookie.trim().startsWith(jwtName));
+  
+      if (!cookie) {
+        return next(new Error('Missing authorization token'));
+      }
+  
+      let token = cookie.split('=')[1];
+      // Decode the token
+      token = decodeURIComponent(token);
+      // Ignore the first two characters ("j:") before parsing JSON
+      try {
+        token = JSON.parse(token.slice(2)).access_token;
+      } catch (err) {
+        return next(new Error('Failed to parse token'));
+      }
+  
+      const decodedToken = this.authService.verifyToken(token, false)
+      
+      if (!decodedToken) {
+        return next(new Error('Invalid authorization token'));
+      }
+
+      const user = await this.usersService.findUserById(decodedToken.sub);
+      if (!user) {
+        return next(new Error('Invalid authorization token'));
+      }
+
+      socket.user = user;
+      next();
+    });
     this.logger.log('WebSocket server initialized');
   }
+  
+  
 
   async handleConnection(client: Socket) {
     if (!this.connectedClients.has(client.id)) {
