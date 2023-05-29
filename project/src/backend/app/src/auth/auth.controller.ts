@@ -66,7 +66,6 @@ export class AuthController {
   @Get('login')
   @ApiResponse({ status: 302, description: 'Redirect to 42 API'})
   async loginWithFortyTwo(@Req() req: RequestWithUser, @Res() res: Response) {
-    
   };
 
   @Get('login/callback')
@@ -136,7 +135,7 @@ export class AuthController {
         }  
       }
 
-      const redirectUrl = `${process.env.WEB_URL}/login`
+      const redirectUrl = `${process.env.WEB_URL}/profile`
       res.status(302).redirect(redirectUrl);
     } catch (error) {
       console.error(error);

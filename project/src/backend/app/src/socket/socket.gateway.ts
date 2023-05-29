@@ -76,7 +76,6 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.server.emit('updateFriends', { updatedAt: data.updatedAt });
   }
 
-
   /*
   * Emit action : Matchmaking
   */

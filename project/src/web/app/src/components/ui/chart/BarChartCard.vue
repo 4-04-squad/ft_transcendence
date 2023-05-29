@@ -16,7 +16,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
-import type { PropType } from "vue";
+import { defineComponent, type PropType } from "vue";
 
 ChartJS.register(
   Title,
@@ -28,7 +28,7 @@ ChartJS.register(
   LinearScale
 );
 
-export default {
+export default defineComponent({
   name: "BarChartCard",
   components: { Bar },
   props: {
@@ -88,7 +88,7 @@ export default {
       },
     };
   },
-};
+});
 </script>
 
 <style lang="scss" scoped>
