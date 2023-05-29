@@ -53,8 +53,10 @@ export default defineComponent({
             const response = await axios.get(loginUrl, {
               withCredentials: true,
             });
-            // check if the user is logged in
-            if (response.status === 200) {
+            if (response.status === 206) {
+						  router.push({ path: "/login_2fa" });
+					  }
+            else if (response.status === 200) {
               // clear the interval and close the popup
               clearInterval(interval);
               popup?.close();
