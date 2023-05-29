@@ -220,6 +220,8 @@ export class ChannelsService {
         if (userChannel.status != UserChatStatus.OWNER && userChannel.status != UserChatStatus.ADMIN)
             throw new BadRequestException("Not allowed to perform this action");
         const memberChannel = await this.prisma.userChat.findFirst({ where: { chatId: data.chatId, userId: data.userId } });
+        if (!memberChannel)
+            throw new BadRequestException("User not found");
         if (userChannel.status == UserChatStatus.OWNER) {           
             if (data.status == UserChatStatus.ADMIN || data.status == UserChatStatus.MEMBER || !data.status) {    
                 if (data.permission == UserChatPermission.KICKED)
