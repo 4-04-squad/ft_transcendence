@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+import { defineComponent, inject, ref, watch } from "vue";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
 import {
@@ -64,6 +64,7 @@ import {
 
 } from "@/components/icons";
 import { FriendsRequestStatus } from "@/interfaces/friend.interface";
+import type { Socket } from "socket.io-client";
 
 export default defineComponent({
   name: "FriendRequestButton",
@@ -85,29 +86,39 @@ export default defineComponent({
   },
   setup(props) {
     const userStore = useUserStore();
+    const updatedAt = ref("" as string);
     let isFriend = ref(FriendsRequestStatus.FALSE as FriendsRequestStatus);
     let requester = ref("" as string);
     let receiver = ref("" as string);
     let friendshipId = ref("" as string);
+    const socket = inject('socket') as Socket;
+
+    socket.on("updateFriends", (data: any) => {
+      updatedAt.value = data.updatedAt;
+    });
 
     watch(
-      () => isFriend.value,
+      () => [isFriend.value, updatedAt.value],
       async () => {
-        const response = await axios
+        await axios
           .get(`${import.meta.env.VITE_APP_API_URL}/friends/${props.friendId}`, {
             withCredentials: true,
           })
           .then((response) => {
+            if (response.data.friendship == null) {
+              isFriend.value = FriendsRequestStatus.FALSE;
+              return;
+            }
             requester.value = response.data.friendship.userId;
             receiver.value = response.data.friendship.friendId;
             friendshipId.value = response.data.friendship.id;
-
-            if (response.data.friendship.accepted == true)
+            if (response.data.friendship.accepted == true) {
               isFriend.value = FriendsRequestStatus.TRUE;
-            else if (response.data.friendship.accepted == false)
+            } else if (response.data.friendship.accepted == false) {
               isFriend.value = FriendsRequestStatus.PENDING;
-            else 
+            } else  {
               isFriend.value = FriendsRequestStatus.FALSE;
+            }
           })
           .catch((error) => {
             if (error.response?.status == 400) {
@@ -126,6 +137,8 @@ export default defineComponent({
       receiver,
       friendshipId,
       friendId: props.friendId,
+      socket,
+      updatedAt,
     };
   },
   methods: {
@@ -143,8 +156,12 @@ export default defineComponent({
         )
         .then((response) => {
           this.isFriend = FriendsRequestStatus.PENDING;
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
         })
         .catch((error) => {
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
           if (error.response?.status == 400) {
             this.isFriend = FriendsRequestStatus.TRUE;
           }
@@ -164,8 +181,12 @@ export default defineComponent({
         .then((response) => {
           // update the `isFriend` ref variable
           this.isFriend = FriendsRequestStatus.FALSE;
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
         })
         .catch((error) => {
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
           if (error.response?.status == 400) {
             this.isFriend = FriendsRequestStatus.FALSE;
           }
@@ -183,8 +204,12 @@ export default defineComponent({
         )
         .then((response) => {
           this.isFriend = FriendsRequestStatus.FALSE;
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
         })
         .catch((error) => {
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
           if (error.response?.status == 400) {
             this.isFriend = FriendsRequestStatus.FALSE;
           }
@@ -206,8 +231,12 @@ export default defineComponent({
         )
         .then((response) => {
           this.isFriend = FriendsRequestStatus.TRUE;
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
         })
         .catch((error) => {
+          this.updatedAt = new Date().toISOString();
+          this.socket.emit('updateFriends', { updatedAt: this.updatedAt });
           if (error.response?.status == 400) {
             this.isFriend = FriendsRequestStatus.TRUE;
           }
