@@ -135,13 +135,6 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.server.to(roomName).emit('leaveGame', { gameId, userId });
   }
 
-  // move player
-  movePlayer(gameId: string, userId: string, position: any) {
-    const roomName = `${gameId}`;
-    // emit in room
-    this.server.to(roomName).emit('movePlayer', { gameId, userId, position });
-  }
-
   // move ball
   moveBall(gameId: string, x: number, y: number) {
     const roomName = `${gameId}`;
@@ -172,7 +165,6 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     // emit to all online users
     this.server.emit('createGame', { updatedAt: data.updatedAt });
   }
-
 
   @SubscribeMessage('ready')
   onReady(@Body() data: { gameId: string, userId: string }) {

@@ -52,6 +52,7 @@ export interface Ball {
   rebound: number;
   rebonetime: number;
   speed: number;
+  animation: number;
 }
 
 export interface CPU {
@@ -65,6 +66,7 @@ export interface Score {
   color: string;
   max_score: number;
   finish_game: number;
+  none_same: number,
 }
 
 export interface Player {
