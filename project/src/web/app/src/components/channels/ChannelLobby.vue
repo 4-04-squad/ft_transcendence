@@ -309,6 +309,7 @@ export default defineComponent({
                 },
                 }
             ).then((res) => {
+                this.socket.emit('updateChannelMembersList', {updatedAt: new Date().toISOString(), channelId: id});
                 const alert = {
                     status: 200,
                     message: "Successfully left channel",
