@@ -17,6 +17,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
+import { defineComponent } from "vue";
 
 ChartJS.register(
   Title,
@@ -29,7 +30,7 @@ ChartJS.register(
   LinearScale
 );
 
-export default {
+export default defineComponent({
   name: "LineChartCard",
   // eslint-disable-next-line vue/no-reserved-component-names
   components: { Line },
@@ -83,7 +84,7 @@ export default {
       },
     };
   },
-};
+});
 </script>
 
 <style lang="scss" scoped>
