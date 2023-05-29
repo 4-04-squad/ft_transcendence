@@ -30,6 +30,11 @@ export class GameDto {
   ownerId: string;
 }
 
+export class gameStatusDto {
+  @ApiProperty()
+  status: GameStatus;
+}
+
 export class gameSettingsDto {
   @ApiProperty()
   ballSize: number;
@@ -50,7 +55,6 @@ export class gameSettingsDto {
   @ApiProperty()
   ownerId: string;
 }
-
 
 export class UserGameDto {
   @ApiProperty()

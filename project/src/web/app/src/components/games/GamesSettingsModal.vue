@@ -51,7 +51,7 @@
 	  const paddleSize = ref(75);
 	  const ballColor = ref("#ffffff");
 	  const paddleColor = ref("#ffffff");
-	  const backgroundColor = ref("#000000");
+	  const backgroundColor = ref("#36373a");
 	  const scoreMax = ref(10);
 	  const createButtonHandler = () => {
 		emit("onCreate", {
