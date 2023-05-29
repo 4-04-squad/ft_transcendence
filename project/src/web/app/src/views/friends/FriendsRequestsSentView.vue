@@ -105,6 +105,14 @@ export default defineComponent({
         updatedAt.value = data.updatedAt;
     });
 
+    watch(searchValue, (newVal, oldVal) => {
+      const lastChar = newVal.at(-1);
+      const regexSpecialChars = /[\/\\^$*+?.()|[\]{}]/g;
+      if (regexSpecialChars.test(newVal)) {
+              searchValue.value = newVal.replace(regexSpecialChars, '');
+      }
+    });
+
     // Watch user status to fetch
     watch(updatedAt, () => {
       const response = axios

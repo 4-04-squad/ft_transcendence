@@ -85,6 +85,14 @@ export default defineComponent({
             updatedAt.value = data.updatedAt;
         });
 
+        watch(searchValue, (newVal, oldVal) => {
+            const lastChar = newVal.at(-1);
+            const regexSpecialChars = /[\/\\^$*+?.()|[\]{}]/g;
+            if (regexSpecialChars.test(newVal)) {
+                    searchValue.value = newVal.replace(regexSpecialChars, '');
+                }
+        });
+
          // watch updatedAt to update the channels list every new created game
         watch(updatedAt, () => {
             axios
