@@ -89,7 +89,7 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
 
     socket.on("userStatus", (data: any) => {
-        updatedAt.value = data.updatedAt;
+        updatedAt.value = new Date().toISOString();
     });
 
     updatedAt.value = new Date().toISOString();
@@ -117,7 +117,7 @@ export default defineComponent({
       })
       .catch((error) => {
         const alert = {
-          status: error.response.data.statusCode,
+          status: error.response.status,
           message: error.response.data.message,
         } as AlertInterface;
         alertStore.setAlert(alert);

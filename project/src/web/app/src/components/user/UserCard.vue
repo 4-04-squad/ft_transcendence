@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import { RouterLink } from "vue-router";
-import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
+import type { UserStatus, UserInterface } from "@/interfaces/user.interface";
 import { defineComponent, inject, ref, watch } from "vue";
 import type { PropType } from "vue";
 import { useUserStore } from "@/stores/user";
@@ -92,6 +92,7 @@ export default defineComponent({
     socket.on("userStatus", (data: any) => {
       if (props.user?.id === data.userId) {
         userStatus.value = data.status.toLocaleLowerCase();
+        userStore.setUserStatus(data.status.toLocaleLowerCase());
       }
     });
 

@@ -16,33 +16,13 @@
           </div>
           <div class="user-card__upload">
             <label for="avatar">Changer l'avatar</label>
-            <input type="file" id="avatar" name="avatar" ref="avatarRef" @change="handleFileChange" />
-          </div>
-        </div>
-        <div class="form-fields">
-          <div class="form-field">
-            <label for="pseudo">Pseudo</label>
-            <input type="text" id="pseudo" name="pseudo" ref="pseudo" :value="user.pseudo" required/>
-          </div>
-          <div class="form-field">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" ref="email" :value="user.email" />
-          </div>
-        </div>
-        <div class="form-fields">
-          <div class="form-field">
-            <label for="firstname">Nom</label>
-            <input type="text" id="firstname" name="firstname" ref="firstName" :value="user.firstName" />
-          </div>
-          <div class="form-field">
-            <label for="lastname">Prénom</label>
-            <input type="text" id="lastname" name="lastname" ref="lastName" :value="user.lastName" />
+            <input type="file" id="avatar" accept="image/png, image/jpeg, image/gif" name="avatar" ref="avatarRef" @change="handleFileChange" />
           </div>
         </div>
         <div class="form-field">
-          <label for="about">Bio</label>
-          <textarea name="about" id="about" cols="30" rows="4" ref="about" :value="user.about"></textarea>
-        </div>
+            <label for="pseudo">Pseudo</label>
+            <input type="text" id="pseudo" name="pseudo" ref="pseudo" :value="user.pseudo" required/>
+          </div>
         <div class="form-field" v-if="user?.role === 'ADMIN'">
           <label for="role">Role</label>
           <select name="role" id="role">
@@ -54,9 +34,6 @@
           <button class="btn">2FA</button>
         </RouterLink>
         <div class="form-fields form-fields--btns">
-          <button class="btn btn--delete" @click.prevent="deleteUser" v-if="isAllowed">
-            Supprimer le compte
-          </button>
           <input class="btn btn--submit" type="submit" value="Modifier" @click.prevent="updateUser" />
         </div>
       </form>
@@ -111,6 +88,16 @@ export default defineComponent({
   },
   methods: {
     handleFileChange(event: any) {
+      if (event.target.files[0] > 1024 * 3) {
+        event.preventDefault();
+        const alert = {
+              status: 400,
+              message: "File too big (> 3MB)",
+            } as AlertInterface;
+
+            this.alertStore.setAlert(alert);
+        return;
+      }
       this.selectedFile = event.target.files[0];
       this.previewUrl = URL.createObjectURL(this.selectedFile);
     },
@@ -140,8 +127,8 @@ export default defineComponent({
           })
           .catch((error) => {
             const alert = {
-              status: 400,
-              message: "Error uploading avatar",
+              status: error.response.status,
+              message: error.response.data.message,
             } as AlertInterface;
 
             this.alertStore.setAlert(alert);
@@ -152,10 +139,6 @@ export default defineComponent({
 
       const formObject = {
         pseudo: (this.$refs.pseudo as any).value,
-        email: (this.$refs.email as any).value,
-        firstName: (this.$refs.firstName as any).value,
-        lastName: (this.$refs.lastName as any).value,
-        about: (this.$refs.about as any).value,
         role: this.user.role || "USER",
       };
 
@@ -173,7 +156,7 @@ export default defineComponent({
         )
           .then((res) => {
             // Update the user in the store
-            this.userStore.setUser(res.data.user);
+            this.userStore.updateUser(res.data.user);
             this.$router.push({ path: "/profile" });
           })
       } catch (error: any) {
@@ -202,7 +185,7 @@ export default defineComponent({
           this.$router.push({ path: "/login" });
         }).catch((error) => {
           const alert = {
-            status: error.response.data.status,
+            status: error.response.status,
             message: error.response.data.message,
           } as AlertInterface;
 

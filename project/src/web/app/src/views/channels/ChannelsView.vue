@@ -62,7 +62,7 @@ export default defineComponent({
             socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
           }).catch((err) => {
             const alert = {
-                    status: err.response.data.statusCode,
+                    status: err.response.status,
                     message: err.response.data.message,
                   } as AlertInterface;
 

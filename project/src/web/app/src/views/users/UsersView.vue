@@ -83,7 +83,15 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
 
     socket.on("userStatus", (data: any) => {
-        updatedAt.value = data.updatedAt;
+        updatedAt.value = new Date().toISOString();
+    });
+
+    watch(searchValue, (newVal, oldVal) => {
+      const lastChar = newVal.at(-1);
+      const regexSpecialChars = /[\/\\^$*+?.()|[\]{}]/g;
+      if (regexSpecialChars.test(newVal)) {
+              searchValue.value = newVal.replace(regexSpecialChars, '');
+      }
     });
 
     // Watch user status to fetch

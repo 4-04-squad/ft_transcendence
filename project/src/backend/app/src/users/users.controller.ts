@@ -4,12 +4,19 @@ import { User, UserStatus } from '@prisma/client';
 import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { NextFunction, Response } from 'express';
 import { ApiTags, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
-import { UserDto } from './dto/user.dto';
+import { UpdateUserDto, UserDto } from './dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AuthGuard } from '../auth/auth.guard';
 import { BlockUserService } from './block-user.service';
 import { PrismaService } from 'src/prisma.service';
+
+const MIME_TYPE_MAP = {
+  'image/png': 'png',
+  'image/jpeg': 'jpeg',
+  'image/jpg': 'jpg',
+  'image/gif': 'gif'
+};
 
 @Controller('users')
 @ApiTags('Users')
@@ -100,10 +107,10 @@ export class UsersController {
 
   @Patch(':id/edit')
   @UseGuards(AuthGuard)
-  @ApiOkResponse({ type: UserDto })
+  @ApiOkResponse({ type: UpdateUserDto })
   async updateUser(
     @Param('id', ParseUUIDPipe) userId: string,
-    @Body() data: UserDto,
+    @Body() data: UpdateUserDto,
     @Req() req: RequestWithUser,
     @Res() res: Response,
     @Next() next: NextFunction
@@ -125,6 +132,12 @@ export class UsersController {
   @Patch(':id/avatar')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('avatar', {
+    limits: { fileSize: 1 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const isValid = !!MIME_TYPE_MAP[file.mimetype];
+      let error = isValid ? null : new Error('Invalid mime type!');
+      cb(error, isValid);
+    },
     storage: diskStorage({
       destination: './uploads/avatars',
       filename: (req, file, cb) => {
