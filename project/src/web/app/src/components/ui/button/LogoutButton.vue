@@ -49,10 +49,10 @@ export default defineComponent({
                 } as AlertInterface;
               this.socket.emit("leaveOnline", { user: this.userStore.user });
               this.alertStore.setAlert(alert);
-              this.userStore.clearUser();
               
               if (!this.userStore.user) {
                 router.push({ path: "/login" });
+                this.userStore.clearUser();
               }
             })
             .catch((err) => {

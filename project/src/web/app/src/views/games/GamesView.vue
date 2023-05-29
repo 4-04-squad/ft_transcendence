@@ -67,10 +67,13 @@ export default defineComponent({
             name: "games",
           });
         }
-        if (!users.value.some((u) => u.id === userStore.user.id))
-          router.push({
-            name: "games",
-        });
+        if (users && users.value) {
+          if (!users.value.some((u) => u.id === userStore.user.id))
+            router.push({
+              name: "games",
+          });
+        }
+        
         if (gameData.value?.status === "FINISHED") {
           const alert = {
             status: 401,
