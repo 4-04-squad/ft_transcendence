@@ -658,7 +658,6 @@ export default defineComponent({
 		},
 
 		update() {
-			console.log(this.ball.speed, this.ball.width, this.player1.speed, this.player1.tile);
 			if (this.btnMultiPlayer == true && this.cpu.enable == 1) {
 				this.cpu.enable = 0;
 				this.ball.x = this.ball.xb
