@@ -154,38 +154,32 @@ export default defineComponent({
         }
 
         const searchAndJoinGame = () => {
-            showmatchmaking.value = !showmatchmaking.value;
+            //showmatchmaking.value = !showmatchmaking.value;
             
-            socket.emit("joinWaitingGame", {
-                userId: userStore.user.id
-            });
+            const userElo = userStore.user.elo;
+            const waitingGames = games.value.filter((game) => game.status == "WAITING");
+            // if no waiting game, create one
 
-            socket.emit("waiting", {
-                userId: userStore.user.id,
-            });
-            return
-        };
-
-        socket.on("waiting", (data: any) => {
-            if(data.gameId !== undefined && data.userId != userStore.user.id){
-                socket.emit("leaveWaiting", {
-                    userId: userStore.user.id,
-                })
-                joinAndNavigate(data.gameId);
-            }
-            else if (data.userId != userStore.user.id) {
+            console.log(waitingGames);
+            if (waitingGames.length == 0) {
                 createGame(defaultGameSettings).then((response) => {
-                    socket.emit("leaveWaiting", {
-                        userId: userStore.user.id,
-                    })
-                    socket.emit("waiting", {
-                        userId: userStore.user.id,   
-                        gameId: response.data.game.id,
-                    });
                     router.push({ name: "game", params: { id: response.data.game.id } });
                 })
+                return;
             }
-        });
+            const closestGame = waitingGames.reduce((prev, curr) => {
+                const prevElo = prev.users[0].elo;
+                const currElo = curr.users[0].elo;
+                // if the current game is closer to the user elo than the previous one, return it
+                if (prevElo && currElo)
+                    if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo))
+                        return curr;
+                return prev;
+            });
+            joinAndNavigate(closestGame.id);
+        };
+
+        
 
         watch(searchValue, () => {
             items.value = filteredItems.value;
