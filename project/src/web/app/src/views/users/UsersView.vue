@@ -83,7 +83,7 @@ export default defineComponent({
     const socket = inject('socket') as Socket;
 
     socket.on("userStatus", (data: any) => {
-        updatedAt.value = data.updatedAt;
+        updatedAt.value = new Date().toISOString();
     });
 
     // Watch user status to fetch

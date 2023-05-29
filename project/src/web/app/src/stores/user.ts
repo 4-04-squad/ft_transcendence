@@ -15,34 +15,14 @@ export const useUserStore = defineStore("user", {
     updateUser(user: UserInterface ) {
       this.user = user;
     },
-    async setUser(user: UserInterface | undefined) {
+    setUser(user: UserInterface | undefined) {
       const alertStore = useAlertStore();
       this.user = user;
       this.user.status = UserStatus.ONLINE;
       localStorage.setItem("localUser", JSON.stringify(user));
     },
-    async setUserStatus(status: UserStatus) {
-      const alertStore = useAlertStore();
-     await axios.patch(
-        `${import.meta.env.VITE_APP_API_URL}/users/${this.user.id}/edit`,
-        {
-          status: status
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          }, 
-        }
-      ).then((res) => {
-        this.user.status = status;
-      }).catch((err) => {
-        const alert = {
-          status: 400,
-          message: "Cannot set user status",
-        } as AlertInterface;
-        alertStore.setAlert(alert);
-      });
+    setUserStatus(status: UserStatus) {
+      this.user.status = status;
     },
     clearUser() {
       this.user = undefined;
