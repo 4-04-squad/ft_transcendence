@@ -42,7 +42,7 @@
 </template>
   
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, watch } from "vue";
 import axios from "axios";
 import router from "@/router";
 import type { Header, Item } from "vue3-easy-data-table";
@@ -83,7 +83,13 @@ export default defineComponent({
                 return chat.users[0].user;
             }
         };
-
+        watch(searchValue, (newVal, oldVal) => {
+            const lastChar = newVal.at(-1);
+            const regexSpecialChars = /[\/\\^$*+?.()|[\]{}]/g;
+            if (regexSpecialChars.test(newVal)) {
+                    searchValue.value = newVal.replace(regexSpecialChars, '');
+                }
+        });
         axios
             .get(`${import.meta.env.VITE_APP_API_URL}/chats/@me`, {
                 withCredentials: true,
