@@ -526,9 +526,9 @@ export default defineComponent({
 			this.context.font = '12px arial';
 			this.context.fillRect(this.context.canvas.width / 2, 0, 1, this.context.canvas.height);
 			if (this.player1.me == 1)
-				this.context.fillText("Vous jouer à gauche", this.context.canvas.width / 2 - 120, this.context.canvas.height - 10);
+				this.context.fillText("Vous jouez à gauche", this.context.canvas.width / 2 - 120, this.context.canvas.height - 10);
 			else
-				this.context.fillText("Vous jouer à droite", this.context.canvas.width / 2 + 10, this.context.canvas.height - 10);
+				this.context.fillText("Vous jouez à droite", this.context.canvas.width / 2 + 10, this.context.canvas.height - 10);
 			this.context.fillText("Commande : W = haut | S = en bas", 20, 20);
 			// Draw score & update
 			this.context.font = '48px arial';
