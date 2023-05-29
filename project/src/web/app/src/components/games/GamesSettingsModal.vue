@@ -2,7 +2,7 @@
 	<Modal :onCreate="createButtonHandler" :title="'Créer une game'">
 		<div class="form-group">
 		  <label for="ball-speed">Vitesse de la balle</label>
-		  <input type="range" id="ball-speed" v-model.number="ballSpeed" min="1" max="5" />
+		  <input type="range" id="ball-speed" v-model.number="ballSpeed" min="1" max="15" />
 		</div>
 		<div class="form-group">
 		  <label for="paddle-speed">Vitesse de la raquette</label>
@@ -30,7 +30,7 @@
 		</div>
 		<div class="form-group color">
 			<label for="score-max">Score maximum</label>
-			<input type="number" id="score-max" v-model="scoreMax" />
+			<input type="number" id="score-max" v-model="scoreMax" min="1" max="30" />
 		  </div>
 	</Modal>
   </template>
@@ -45,7 +45,7 @@
 	  Modal,
 	},
 	setup(props, { emit }) {
-	  const ballSpeed = ref(3);
+	  const ballSpeed = ref(8);
 	  const ballSize = ref(20);
 	  const paddleSpeed = ref(20);
 	  const paddleSize = ref(75);

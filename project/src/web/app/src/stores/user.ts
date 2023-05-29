@@ -10,6 +10,9 @@ export const useUserStore = defineStore("user", {
       : undefined,
   }),
   actions: {
+    updateUser(user: UserInterface ) {
+      this.user = user;
+    },
     setUser(user: UserInterface | undefined) {
       this.user = user;
       axios.patch(
@@ -65,7 +68,3 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-function inject(arg0: string): Socket {
-  throw new Error("Function not implemented.");
-}
-

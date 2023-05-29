@@ -184,14 +184,14 @@ export class GamesService {
         data: {
           status: GameStatus.WAITING,
           ownerId: userId,
-          ballSize: data.ballSize,
-          ballSpeed: data.ballSpeed,
-          paddleSize: data.paddleSize,
-          paddleSpeed: data.paddleSpeed,
+          ballSize: Math.max(Math.min(data.ballSize, 30), 10),
+          ballSpeed: Math.max(Math.min(data.ballSpeed, 15), 1),
+          paddleSize: Math.max(Math.min(data.paddleSize, 50), 90),
+          paddleSpeed: Math.max(Math.min(data.paddleSpeed, 30), 10),
           paddleColor: data.paddleColor,
           backgroundColor: data.backgroundColor,
           ballColor: data.ballColor,
-          scoreLimit: data.scoreLimit,
+          scoreLimit: Math.max(Math.min(data.scoreLimit, 30), 1),
         },
       })
       .then((game) => {
