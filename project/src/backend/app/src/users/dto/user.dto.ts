@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole, UserStatus } from '@prisma/client';
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsAlphanumeric, IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator";
 
 export class UserDto {
   @ApiProperty()
@@ -143,21 +143,13 @@ export class GetUserByIdDto {
 
 
 export class UpdateUserDto {
-  @ApiProperty()
-  firstName?: string;
-
-  @ApiProperty()
-  lastName?: string;
-
-  @ApiProperty()
-  email?: string;
-
-  @ApiProperty()
-  fortyTwoId?: number;
-
   @IsNotEmpty()
+  @IsString()
+  @IsAlphanumeric()
+  @MaxLength(20)
+  @MinLength(3)
   @ApiProperty()
-  pseudo?: string;
+  pseudo: string;
 
   @ApiProperty()
   avatar?: string;

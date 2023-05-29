@@ -30,7 +30,7 @@
 		</div>
 		<div class="form-group color">
 			<label for="score-max">Score maximum</label>
-			<input type="number" id="score-max" v-model="scoreMax" />
+			<input type="number" id="score-max" min="1" v-model="scoreMax" />
 		  </div>
 	</Modal>
   </template>
