@@ -85,8 +85,22 @@ export default defineComponent({
 						this.alertStore.setAlert(alert);
 					});
 				} else {
-					if (this.alert?.link)
-						router.push({ name: this.alert.socketType, params: { id: this.alert.link } });
+					if (this.alert?.link) {
+						joinGame(this.alert.link)
+						.then((res) => {
+							if (this.alert?.link)
+								router.push({ name: this.alert.socketType, params: { id: this.alert.link } });
+						})
+						.catch((err) => {
+							const alert = {
+								status: err.response.data.statusCode,
+								message: err.response.data.message,
+							} as AlertInterface;
+	
+							this.alertStore.setAlert(alert);
+						});
+					}
+					
 				}
 			}
 		}
