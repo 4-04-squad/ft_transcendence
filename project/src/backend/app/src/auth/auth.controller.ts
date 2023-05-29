@@ -138,7 +138,6 @@ export class AuthController {
       const redirectUrl = `${process.env.WEB_URL}/profile`
       res.status(302).redirect(redirectUrl);
     } catch (error) {
-      console.error(error);
       res.status(401).send('Error authenticating with 42 API');
     }
   }

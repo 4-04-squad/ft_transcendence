@@ -29,7 +29,7 @@ export default defineComponent({
         chatData.value = response.data.data;
         socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
       } catch (err) {
-        console.error(err);
+
       }
     }
 
