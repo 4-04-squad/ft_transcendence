@@ -35,12 +35,12 @@ export default defineComponent({
 		const alertStore = useAlertStore();
     const defaultGameSettings: IGameSettings = {
       gameId: '0',
-      ballSpeed: 5,
-      paddleSpeed: 5,
+      ballSpeed: 3,
+      paddleSpeed: 20,
       ballColor: "#ffffff",
       backgroundColor: "#000000",
-      ballSize: 5,
-      paddleSize: 5,
+      ballSize: 20,
+      paddleSize: 75,
       paddleColor: "#ffffff",
       scoreLimit: 10,
     };
