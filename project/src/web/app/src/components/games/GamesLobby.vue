@@ -47,10 +47,7 @@
         empty-message="Aucun game trouvé" :rows-items="[10, 15, 20]" :rows-per-page="5"
         rows-per-page-message="Games par page">
         <template #item-id="{ id, status }">
-            <RouterLink :to="{ name: 'game', params: { id: id } }" v-if="status != 'FINISHED'">
                 <span>Game <span class="game-name">#{{ id }}</span></span>
-            </RouterLink>
-            <span v-else>Game <span class="game-name not-allowed">#{{ id }}</span></span>
         </template>
         <template #item-users="{ users }">
             <span>{{ users }} / 2</span>
@@ -269,7 +266,7 @@ export default defineComponent({
         })
             .catch((error) => {
                 const alert = {
-                    status: error.response.data.statusCode,
+                    status: error.response.status,
                     message: error.response.data.message,
                 } as AlertInterface;
 
@@ -293,7 +290,7 @@ export default defineComponent({
             })
                 .catch((error) => {
                     const alert = {
-                        status: error.response.data.statusCode,
+                        status: error.response.status,
                         message: error.response.data.message,
                     } as AlertInterface;
 
@@ -317,7 +314,7 @@ export default defineComponent({
             })
                 .catch((error) => {
                     const alert = {
-                        status: error.response.data.statusCode,
+                        status: error.response.status,
                         message: error.response.data.message,
                     } as AlertInterface;
 

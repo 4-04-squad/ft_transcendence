@@ -92,6 +92,7 @@ export default defineComponent({
     socket.on("userStatus", (data: any) => {
       if (props.user?.id === data.userId) {
         userStatus.value = data.status.toLocaleLowerCase();
+        userStore.setUserStatus(data.status.toLocaleLowerCase());
       }
     });
 
