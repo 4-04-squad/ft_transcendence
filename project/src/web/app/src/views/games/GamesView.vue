@@ -45,6 +45,7 @@ export default defineComponent({
       updatedAt.value = Date.now();
     });
 
+
     const fetchChatDataAndJoinGame = async (gameId: string) => {
       try {
         const response = await axios.get(
@@ -66,6 +67,10 @@ export default defineComponent({
             name: "games",
           });
         }
+        if (!users.value.some((u) => u.id === userStore.user.id))
+          router.push({
+            name: "games",
+        });
         if (gameData.value?.status === "FINISHED") {
           const alert = {
             status: 401,
