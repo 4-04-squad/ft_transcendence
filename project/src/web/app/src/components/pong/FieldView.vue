@@ -21,10 +21,11 @@ import type { AlertInterface } from "@/interfaces/alert.interface";
 import type { Ball, CPU, Score, Player } from "@/interfaces/game.interface";
 import { UserStatus } from "@/interfaces/user.interface";
 import router from "@/router";
-import { endGame, deleteGame, updateGameStatus } from "@/services/gameServices";
+import { endGame, deleteGame, updateGameStatus, getGameById } from "@/services/gameServices";
 import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
 import { defineComponent, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 enum userGameStatus {
 	WINNER = "WINNER",
@@ -51,13 +52,27 @@ export default defineComponent({
 	},
 	setup(props) {
 		const userStore = useUserStore();
+		const route = useRoute();
 		const alertStore = useAlertStore();
 		let context = {} as any;
 
 		const btnOnePlayer = ref(true);
 		const btnMultiPlayer = ref(false);
 		const btnQuitGame = ref(false);
+		const gameDataUpdated = ref({});
 		const isReady = ref(0);
+
+		getGameById(route.params.id as string).then((data) =>{
+			console.log('--------------',data)
+			gameDataUpdated.value = data.data;
+			if (data.data.games.status == "FINISHED")
+			{
+				router.push({
+					name: "games",
+				});
+			}
+		}
+		);
 
 		watch(
 			() => props.gameData.users,
@@ -180,6 +195,15 @@ export default defineComponent({
 		});
 
 		props.socket.on("leaveGame", (data: any) => {
+			getGameById(route.params.id as string).then((data) =>{
+			console.log('--------------',data)
+			gameDataUpdated.value = data.data;
+			}
+			);
+			if (props.gameData.userGames[0].userId != data.id)
+				score.p1 = score.max_score;
+			else
+				score.p2 = score.max_score;
 		});
 
 		props.socket.on("movePlayer", (data: any) => {
@@ -246,12 +270,18 @@ export default defineComponent({
 			btnMultiPlayer,
 			btnQuitGame,
 			isReady,
+			gameDataUpdated,
 			firstplayer,
 			secondplayer,
 		}
 	},
 	beforeUnmount() {
 		// if we leave a waiting game -> delete
+		if (this.gameData.userGames.length == 1)
+		{
+			console.log("234124234234");
+			this.menuOfEnd();
+		}
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
    		window.cancelAnimationFrame(this.ball.number);
 		window.removeEventListener("resize", this.handleWindowResize);
@@ -341,36 +371,37 @@ export default defineComponent({
 			else {
 				this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
 			}
-			if (this.gameData.userGames.length == 2) {
-				if (this.score.p1 == this.score.max_score) {
-					this.gameData.userGames[0].status = userGameStatus.WINNER;
-					this.gameData.userGames[1].status = userGameStatus.LOSER;
-				}
-				else if (this.score.p2 == this.score.max_score) {
-					this.gameData.userGames[0].status = userGameStatus.LOSER;
-					this.gameData.userGames[1].status = userGameStatus.WINNER;
-				}
-				else {
-					this.gameData.userGames[0].status = userGameStatus.DRAW;
-					this.gameData.userGames[1].status = userGameStatus.DRAW;
-				}
-				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
-					const alert = {
-						status: err.response.status,
-						message: err.response.data.message,
-					} as AlertInterface;
-					this.alertStore.setAlert(alert);
-					router.push({
-						name: "games",
+			console.log(this.gameDataUpdated.games);
+			if (this.gameDataUpdated.games.userGames.length == 2) {
+				console.log("ihsbeibveisbiuesibesiubiuewb");
+					if (this.score.p1 == this.score.max_score) {
+						this.gameDataUpdated.games.userGames[0].status = userGameStatus.WINNER;
+						this.gameDataUpdated.games.userGames[1].status = userGameStatus.LOSER;
+					}
+					else if (this.score.p2 == this.score.max_score) {
+						this.gameDataUpdated.games.userGames[0].status = userGameStatus.LOSER;
+						this.gameDataUpdated.games.userGames[1].status = userGameStatus.WINNER;
+					}
+					else {
+						this.gameDataUpdated.games.userGames[0].status = userGameStatus.DRAW;
+						this.gameDataUpdated.games.userGames[1].status = userGameStatus.DRAW;
+					}
+					endGame(this.gameDataUpdated.games.id, this.gameDataUpdated.games.userGames).catch((err) => {
+						const alert = {
+							status: err.response.status,
+							message: err.response.data.message,
+						} as AlertInterface;
+						this.alertStore.setAlert(alert);
+						router.push({
+							name: "games",
+						});
 					});
-				});
 			} else if (this.gameData.userGames.length == 1) {
 				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
 					const alert = {
 						status: err.response.status,
 						message: err.response.data.message,
-					} as AlertInterface;
-
+					} as AlertInterface;f
 					this.alertStore.setAlert(alert);
 					router.push({
 						name: "games",
