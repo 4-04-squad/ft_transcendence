@@ -65,7 +65,3 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-function inject(arg0: string): Socket {
-  throw new Error("Function not implemented.");
-}
-

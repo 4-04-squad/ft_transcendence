@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import { RouterLink } from "vue-router";
-import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
+import type { UserStatus, type UserInterface } from "@/interfaces/user.interface";
 import { defineComponent, inject, ref, watch } from "vue";
 import type { PropType } from "vue";
 import { useUserStore } from "@/stores/user";
