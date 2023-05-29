@@ -63,7 +63,6 @@ export default defineComponent({
 		const isReady = ref(0);
 
 		getGameById(route.params.id as string).then((data) =>{
-			console.log('--------------',data)
 			gameDataUpdated.value = data.data;
 			if (data.data.games.status == "FINISHED")
 			{
@@ -188,19 +187,16 @@ export default defineComponent({
 				secondplayer(props.gameData.userGames[0].userId);
 			}
 			if (props.gameData.userGames.length == 2) {
-
 				btnOnePlayer.value = false;
 				btnMultiPlayer.value = true;
 			}
 		});
 
 		props.socket.on("leaveGame", (data: any) => {
-			getGameById(route.params.id as string).then((data) =>{
-			console.log('--------------',data)
-			gameDataUpdated.value = data.data;
-			}
-			);
-			if (props.gameData.userGames[0].userId != data.id)
+			getGameById(route.params.id as string).then((res) =>{
+				gameDataUpdated.value = res.data;
+			});
+			if (props.gameData.userGames[0].userId != data.userId)
 				score.p1 = score.max_score;
 			else
 				score.p2 = score.max_score;
@@ -228,7 +224,6 @@ export default defineComponent({
 		});
 
 		props.socket.on("updateScore", (data: any) => {
-			//console.log("Score updated:", data);
 			if (player2.me == 1 && (score.p1 > data.score.p1 || score.p2 > data.score.p2))
 			{
 				score.none_same = 1;
@@ -277,11 +272,8 @@ export default defineComponent({
 	},
 	beforeUnmount() {
 		// if we leave a waiting game -> delete
-		if (this.gameData.userGames.length == 1)
-		{
-			console.log("234124234234");
+		if (this.gameDataUpdated.games.userGames.length == 1)
 			this.menuOfEnd();
-		}
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
    		window.cancelAnimationFrame(this.ball.number);
 		window.removeEventListener("resize", this.handleWindowResize);
@@ -333,7 +325,7 @@ export default defineComponent({
 		},
 
 		multiplayer() {
-			this.buttonText = 'Relancer la partie';
+			this.buttonText = 'Partie multijouer';
 			this.btnOnePlayer = false;
 			this.btnMultiPlayer = false;
 			this.socket.emit("ready", { gameId: this.gameData.id, userId: this.userStore.user.id });
@@ -371,9 +363,7 @@ export default defineComponent({
 			else {
 				this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
 			}
-			console.log(this.gameDataUpdated.games);
 			if (this.gameDataUpdated.games.userGames.length == 2) {
-				console.log("ihsbeibveisbiuesibesiubiuewb");
 					if (this.score.p1 == this.score.max_score) {
 						this.gameDataUpdated.games.userGames[0].status = userGameStatus.WINNER;
 						this.gameDataUpdated.games.userGames[1].status = userGameStatus.LOSER;
@@ -396,8 +386,8 @@ export default defineComponent({
 							name: "games",
 						});
 					});
-			} else if (this.gameData.userGames.length == 1) {
-				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
+			} else if (this.gameDataUpdated.games.userGames.length == 1) {
+				endGame(this.gameDataUpdated.games.id, this.gameDataUpdated.games.userGames).catch((err) => {
 					const alert = {
 						status: err.response.status,
 						message: err.response.data.message,
@@ -418,6 +408,9 @@ export default defineComponent({
 			this.btnOnePlayer = false;
 			this.btnMultiPlayer = false;
 			this.btnQuitGame = true;
+			router.push({
+					name: "games",
+			});
 		},
 
 		resizeVar() {
