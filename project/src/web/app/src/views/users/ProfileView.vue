@@ -217,7 +217,7 @@ export default defineComponent({
                     id: game.id,
                     players: game.users,
                     status: game.status,
-                    result: game.userGames? game.userGames.find((userGame) => userGame.userId === user.value.id)?.status: "",
+                    result: game.userGames? game.userGames.find((userGame) => userGame.userId === user.value?.id)?.status: "",
                     date: game.updatedAt,
                 } as Item;
             });
