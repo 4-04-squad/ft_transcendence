@@ -38,7 +38,7 @@ export default defineComponent({
       ballSpeed: 3,
       paddleSpeed: 20,
       ballColor: "#ffffff",
-      backgroundColor: "#000000",
+      backgroundColor: "#36373a",
       ballSize: 20,
       paddleSize: 75,
       paddleColor: "#ffffff",

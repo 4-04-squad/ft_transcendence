@@ -210,7 +210,7 @@ export default defineComponent({
 
 		props.socket.on("updateScore", (data: any) => {
 			//console.log("Score updated:", data);
-			if (player2.me == 1 && (score.p1 >= data.score.p1 && score.p2 >= data.score.p2))
+			if (player2.me == 1 && (score.p1 > data.score.p1 || score.p2 > data.score.p2))
 			{
 				score.none_same = 1;
 			}
@@ -259,11 +259,6 @@ export default defineComponent({
 	},
 	beforeUnmount() {
 		// if we leave a waiting game -> delete
-		if (this.gameData.status === 'WAITING') {
-			deleteGame(this.gameData.id).then((res) => {
-				this.socket.emit('createGame', {updatedAt: new Date().toISOString()});
-			});
-		}
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
    		window.cancelAnimationFrame(this.ball.number);
 		window.removeEventListener("resize", this.handleWindowResize);
@@ -344,37 +339,29 @@ export default defineComponent({
 			else {
 				this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
 			}
-
 			if (this.gameData.userGames.length == 2) {
-				console.log(this.gameData.userGames[0], this.gameData.userGames[1]);
-				console.log(this.score.max_score, this.score.p1);
-				console.log(this.player1.me, this.player2.me);
-				if (this.player1.me == 1)
-				{
-					if (this.score.p1 == this.score.max_score) {
-						this.gameData.userGames[0].status = userGameStatus.WINNER;
-						this.gameData.userGames[1].status = userGameStatus.LOSER;
-					}
-					else if (this.score.p2 == this.score.max_score) {
-						this.gameData.userGames[0].status = userGameStatus.LOSER;
-						this.gameData.userGames[1].status = userGameStatus.WINNER;
-					}
-					else {
-						this.gameData.userGames[0].status = userGameStatus.DRAW;
-						this.gameData.userGames[1].status = userGameStatus.DRAW;
-					}
-					endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
-						const alert = {
-							status: err.response.status,
-							message: err.response.data.message,
-						} as AlertInterface;
-
-						this.alertStore.setAlert(alert);
-						router.push({
-							name: "games",
-						});
-					});
+				if (this.score.p1 == this.score.max_score) {
+					this.gameData.userGames[0].status = userGameStatus.WINNER;
+					this.gameData.userGames[1].status = userGameStatus.LOSER;
 				}
+				else if (this.score.p2 == this.score.max_score) {
+					this.gameData.userGames[0].status = userGameStatus.LOSER;
+					this.gameData.userGames[1].status = userGameStatus.WINNER;
+				}
+				else {
+					this.gameData.userGames[0].status = userGameStatus.DRAW;
+					this.gameData.userGames[1].status = userGameStatus.DRAW;
+				}
+				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
+					const alert = {
+						status: err.response.status,
+						message: err.response.data.message,
+					} as AlertInterface;
+					this.alertStore.setAlert(alert);
+					router.push({
+						name: "games",
+					});
+				});
 			} else if (this.gameData.userGames.length == 1) {
 				endGame(this.gameData.id, this.gameData.userGames).catch((err) => {
 					const alert = {
@@ -540,6 +527,7 @@ export default defineComponent({
 				this.context.fillText("Vous jouer à gauche", this.context.canvas.width / 2 - 120, this.context.canvas.height - 10);
 			else
 				this.context.fillText("Vous jouer à droite", this.context.canvas.width / 2 + 10, this.context.canvas.height - 10);
+			this.context.fillText("Commande : W = haut | S = en bas", 20, 20);
 			// Draw score & update
 			this.context.font = '48px arial';
 			this.context.fillText(this.score.p1, this.context.canvas.width / 2 - 41 - 10, 50);
