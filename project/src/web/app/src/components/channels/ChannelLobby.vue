@@ -302,7 +302,13 @@ export default defineComponent({
                 },
                 }
             ).then((res) => {
-                document.querySelector(`.channel-${ id }`)?.remove();
+                const alert = {
+                    status: 200,
+                    message: "Successfully left channel",
+                }
+                this.updatedAt = new Date().toISOString();
+                this.socket.emit('createChannel', {updatedAt: this.updatedAt});
+                this.alertStore.setAlert(alert);
             }).catch((error) => {
                 const alert = {
                 status: error.response.data.statusCode,
