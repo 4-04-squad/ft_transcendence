@@ -28,6 +28,7 @@ window.addEventListener("resize", () => {
 });
 
 socket.on("sendNotif", (data: any) => {
+    if (userStore.user) {
       if (data.type == "game") {
         if (data.userId == userStore.user.id)
         {
@@ -68,7 +69,8 @@ socket.on("sendNotif", (data: any) => {
         } as AlertInterface;
         alertStore.setAlert(alert);
       }
-    });
+    }
+  });
 
 </script>
 

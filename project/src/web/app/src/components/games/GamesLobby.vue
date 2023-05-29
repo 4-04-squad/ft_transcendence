@@ -170,18 +170,14 @@ export default defineComponent({
         };
 
         socket.on("waiting", (data: any) => {
-            console.log("data: ", data);
             if(data.gameId !== undefined && data.userId != userStore.user.id){
-                console.log("new opponent !");
                 socket.emit("leaveWaiting", {
                     userId: userStore.user.id,
                 })
                 joinAndNavigate(data.gameId);
             }
             else if (data.userId != userStore.user.id) {
-                console.log("player waiting, creating game !");
                 createGame(defaultGameSettings).then((response) => {
-                    console.log(response);
                     socket.emit("leaveWaiting", {
                         userId: userStore.user.id,
                     })

@@ -161,7 +161,6 @@ export default defineComponent({
 
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data: any) => {
-			//console.log("User joined game:", data);
 			if (props.gameData.userGames[0].userId == userStore.user.id) {
 				firstplayer(props.gameData.userGames[0].userId);
 				if (props.gameData.userGames.length == 2) {
@@ -181,11 +180,9 @@ export default defineComponent({
 		});
 
 		props.socket.on("leaveGame", (data: any) => {
-			//console.log("User left game:", data);
 		});
 
 		props.socket.on("movePlayer", (data: any) => {
-			//console.log("Player moved:", data);
 			if (player1.me == 0) {
 				player1.y = data.position.y;
 				player1.paddley = data.position.y + player1.tile;
@@ -193,7 +190,6 @@ export default defineComponent({
 		});
 
 		props.socket.on("movePlayerTwo", (data: any) => {
-			//console.log("Player Two moved:", data);
 			if (player2.me == 0) {
 				player2.y = data.position.y;
 				player2.paddley = data.position.y + player2.tile;
@@ -201,7 +197,6 @@ export default defineComponent({
 		});
 
 		props.socket.on("moveBall", (data: any) => {
-			//console.log("Ball moved:", data);
 			if (player1.me == 0) {
 				ball.x = data.x;
 				ball.y = data.y;
@@ -226,13 +221,11 @@ export default defineComponent({
 		});
 
 		props.socket.on("sendCanvasSizeP1", (data: any) => {
-			//console.log("data:", data.width, data.height);
 			player1.canvasX = data.width;
 			player1.canvasY = data.height;
 		});
 
 		props.socket.on("sendCanvasSizeP2", (data: any) => {
-			//console.log("data:", data.width, data.height);
 			player2.canvasX = data.width;
 			player2.canvasY = data.height;
 		});

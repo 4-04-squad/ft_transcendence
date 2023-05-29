@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject } from "vue";
+import { defineComponent, inject, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 import { createGame, joinGame, getGamesByUser } from "@/services/gameServices";
 import type { IGameSettings } from "@/interfaces/game.interface";
@@ -33,6 +33,7 @@ export default defineComponent({
     const user = props.user;
 		const socket = inject('socket') as Socket;
 		const alertStore = useAlertStore();
+    const updatedAt = ref("");
     const defaultGameSettings: IGameSettings = {
       gameId: '0',
       ballSpeed: 3,
@@ -50,6 +51,8 @@ export default defineComponent({
         .then((res) => {
 					socket.emit("sendNotif", {userId: user, linkId: res.data.game.id, sender: userStore.user, msg: "Invited to pong duel. Click to join !", type: "game"});
           router.push({ name: "game", params: { id: res.data.game.id } });
+          updatedAt.value = new Date().toISOString();
+          socket.emit('createGame', {updatedAt: updatedAt});
         })
         .catch((err) => {
 			const alert = {
