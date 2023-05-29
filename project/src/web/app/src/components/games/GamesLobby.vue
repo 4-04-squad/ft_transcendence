@@ -155,8 +155,13 @@ export default defineComponent({
 
         const searchAndJoinGame = () => {
             //showmatchmaking.value = !showmatchmaking.value;
-            
-            const userElo = userStore.user.elo;
+            getGames().then((res) => {
+                games.value = res.data.games;
+                items.value = filteredItems.value;
+
+                // filter games by default
+                filterGames("all");
+            });
             const waitingGames = games.value.filter((game) => game.status == "WAITING");
             // if no waiting game, create one
 
@@ -166,17 +171,10 @@ export default defineComponent({
                     router.push({ name: "game", params: { id: response.data.game.id } });
                 })
                 return;
+            }else {
+                joinAndNavigate(waitingGames[0].id);
             }
-            const closestGame = waitingGames.reduce((prev, curr) => {
-                const prevElo = prev.users[0].elo;
-                const currElo = curr.users[0].elo;
-                // if the current game is closer to the user elo than the previous one, return it
-                if (prevElo && currElo)
-                    if (Math.abs(userElo - currElo) < Math.abs(userElo - prevElo))
-                        return curr;
-                return prev;
-            });
-            joinAndNavigate(closestGame.id);
+            
         };
 
         
