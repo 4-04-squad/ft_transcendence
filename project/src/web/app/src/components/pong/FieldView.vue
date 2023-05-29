@@ -89,13 +89,13 @@ export default defineComponent({
 			velocityy: 1,
 			rebound: 0,
 			rebonetime: 2,
-			speed: 3,
+			speed: 8,
 			animation: 0,
 		};
 
 		const cpu: CPU = {
 			enable: 0,
-			difficulty: 3,
+			difficulty: 8,
 		};
 
 		const score: Score = {

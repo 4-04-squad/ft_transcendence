@@ -36,7 +36,7 @@ export default defineComponent({
     const updatedAt = ref("");
     const defaultGameSettings: IGameSettings = {
       gameId: '0',
-      ballSpeed: 3,
+      ballSpeed: 8,
       paddleSpeed: 20,
       ballColor: "#ffffff",
       backgroundColor: "#36373a",
