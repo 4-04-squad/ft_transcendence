@@ -253,7 +253,7 @@ export default defineComponent({
 	beforeUnmount() {
 		// if we leave a waiting game -> delete
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
-   		window.cancelAnimationFrame(this.ball.number);
+   		window.cancelAnimationFrame(this.ball.animation);
 		window.removeEventListener("resize", this.handleWindowResize);
 	},
 	mounted() {
@@ -668,7 +668,7 @@ export default defineComponent({
 			if (this.player2.me == 1 && this.score.none_same == 1)
 			{
 				this.socket.emit("updateScore", { gameId: this.gameData.id, score: this.score });
-				this.none_same = 0;
+				this.score.none_same = 0;
 			}
 			if (this.score.max_score == this.score.p1 || this.score.max_score == this.score.p2)
 				this.menuOfEnd();
@@ -689,7 +689,7 @@ export default defineComponent({
 				this.redrawall();
 			}
 			if (this.score.finish_game == 0)
-				this.ball.number = window.requestAnimationFrame(this.update);
+				this.ball.animation = window.requestAnimationFrame(this.update);
 		},
 
 		themecolor() {
