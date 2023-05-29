@@ -85,3 +85,15 @@ export const deleteGame = (gameId: string) => {
     { withCredentials: true }
   )
 }
+
+/**
+ * @description update a game status
+ * @returns {Promise<AxiosResponse<any>>}
+ */
+export const updateGameStatus = (gameId: string, status: string) => {
+  return axios.patch(
+    `${API_URL}/games/${gameId}/updatestatus`,
+    {status: status},
+    { withCredentials: true }
+  );
+}

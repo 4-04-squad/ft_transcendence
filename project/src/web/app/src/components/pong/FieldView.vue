@@ -21,7 +21,7 @@ import type { AlertInterface } from "@/interfaces/alert.interface";
 import type { Ball, CPU, Score, Player } from "@/interfaces/game.interface";
 import { UserStatus } from "@/interfaces/user.interface";
 import router from "@/router";
-import { endGame, deleteGame } from "@/services/gameServices";
+import { endGame, deleteGame, updateGameStatus } from "@/services/gameServices";
 import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
 import { defineComponent, ref, watch } from "vue";
@@ -298,6 +298,15 @@ export default defineComponent({
 			this.player1.me = 1;
 			this.cpu.enable = 1;
 			this.player2.ready = 1;
+			updateGameStatus(this.gameData.id, 'INPROGRESS')
+			.catch((e) => {
+				const alert = {
+                status: e.response.data.statusCode,
+                message: e.response.data.message,
+              } as AlertInterface;
+
+             	this.alertStore.setAlert(alert);
+			})
 		},
 
 		multiplayer() {
