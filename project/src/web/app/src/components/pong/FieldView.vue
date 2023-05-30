@@ -183,10 +183,10 @@ export default defineComponent({
 					secondplayer(props.gameData.userGames[1].userId);
 				}
 			} else {
+				secondplayer(props.gameData.userGames[0].userId);
 				if (props.gameData.userGames.length == 2) {
 					firstplayer(props.gameData.userGames[1].userId);
 				}
-				secondplayer(props.gameData.userGames[0].userId);
 			}
 			if (props.gameData.userGames.length == 2) {
 				btnOnePlayer.value = false;
@@ -279,6 +279,14 @@ export default defineComponent({
 			return;
 		if (this.gameDataUpdated.games.userGames.length == 1)
 			this.menuOfEnd();
+		if (this.score.noWinner == 1 && this.gameDataUpdated.games.userGames.length == 1)
+		{
+			if (this.gameDataUpdated.games)
+			{
+				this.gameDataUpdated.games.userGames[0].status = userGameStatus.DRAW;
+				this.gameDataUpdated.games.userGames[1].status = userGameStatus.DRAW;
+			}
+		}
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
    		window.cancelAnimationFrame(this.ball.animation);
 		window.removeEventListener("resize", this.handleWindowResize);
@@ -340,13 +348,6 @@ export default defineComponent({
 				this.socket.emit("sendCanvasSizeP2", { gameId: this.gameData.id, width: this.context.canvas.width, height: this.context.canvas.height });
 		},
 
-		replay() {
-			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-			this.btnOnePlayer = true;
-			this.btnMultiPlayer = true;
-			this.btnQuitGame = false;
-		},
-
 		menuOfEnd() {
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			this.updatecsore();
@@ -393,7 +394,7 @@ export default defineComponent({
 							name: "games",
 						});
 					});
-			} else if (this.gameDataUpdated.games.userGames.length == 1) {
+			} else if (this.score.noWinner == 0 && this.gameDataUpdated.games.userGames.length == 1) {
 				endGame(this.gameDataUpdated.games.id, this.gameDataUpdated.games.userGames).catch((err) => {
 					const alert = {
 						status: err.response.status,
@@ -403,10 +404,15 @@ export default defineComponent({
 					router.push({
 						name: "games",
 					});
-				});	
+				});
 			}
 			if (this.score.noWinner == 1 && this.gameDataUpdated.games.userGames.length == 2)
 			{
+				if (this.gameDataUpdated.games)
+				{
+					this.gameDataUpdated.games.userGames[0].status = userGameStatus.DRAW;
+					this.gameDataUpdated.games.userGames[1].status = userGameStatus.DRAW;
+				}
 				endGame(this.gameDataUpdated.games.id, this.gameDataUpdated.games.userGames).catch((err) => {
 					const alert = {
 						status: err.response.status,
