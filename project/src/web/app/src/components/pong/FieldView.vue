@@ -273,6 +273,8 @@ export default defineComponent({
 	},
 	beforeUnmount() {
 		// if we leave a waiting game -> delete
+		if (!this.gameDataUpdated.games)
+			return;
 		if (this.gameDataUpdated.games.userGames.length == 1)
 			this.menuOfEnd();
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
@@ -364,6 +366,8 @@ export default defineComponent({
 			else {
 				this.context.fillText("Vous avez perdu", this.context.canvas.width / 2, textY);
 			}
+			if (!this.gameDataUpdated.games)
+				return ;
 			if (this.gameDataUpdated.games.userGames.length == 2) {
 					if (this.score.p1 == this.score.max_score) {
 						this.gameDataUpdated.games.userGames[0].status = userGameStatus.WINNER;

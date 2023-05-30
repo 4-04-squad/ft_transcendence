@@ -47,59 +47,60 @@ export default defineComponent({
 
 
     const fetchChatDataAndJoinGame = async (gameId: string) => {
-      try {
-        const response = await axios.get(
+        await axios.get(
           `${import.meta.env.VITE_APP_API_URL}/games/${gameId}`,
           {
             withCredentials: true,
           }
-        );
-        users.value = response.data.games.users;
-        gameData.value = response.data.games;
-        if (!gameData.value?.id) {
-          const alert = {
-            status: 401,
-            message: "The game doesn't exist",
-          } as AlertInterface;
+        ).then((response) => {
+          users.value = response.data.games.users;
+          gameData.value = response.data.games;
+          if (!gameData.value?.id) {
+            const alert = {
+              status: 401,
+              message: "The game doesn't exist",
+            } as AlertInterface;
 
-          alertStore.setAlert(alert);
-          router.push({
-            name: "games",
-          });
-        }
-        if (users && users.value) {
-          if (!users.value.some((u) => u.id === userStore.user.id))
+            alertStore.setAlert(alert);
             router.push({
               name: "games",
-          });
-        }
-        
-        if (gameData.value?.status === "FINISHED") {
-          const alert = {
-            status: 401,
-            message: "The game is finished",
-          } as AlertInterface;
+            });
+          }
+          if (users && users.value) {
+            if (!users.value.some((u) => u.id === userStore.user.id))
+              router.push({
+                name: "games",
+            });
+          }
+          
+          if (gameData.value?.status === "FINISHED") {
+            const alert = {
+              status: 401,
+              message: "The game is finished",
+            } as AlertInterface;
 
-          alertStore.setAlert(alert);
-          router.push({
-            name: "games",
-          });
-        }
-        if (gameData.value) {
-          userStore.setUserStatus(UserStatus.PLAYING);
-          socket.emit("joinGame", { gameId: gameId, userId: userStore.user.id });
-        }
-      } catch (err: any) {
-        const alert = {
-          status: err.response?.status,
-          message: err.response?.data.message,
-        } as AlertInterface;
+            alertStore.setAlert(alert);
+            router.push({
+              name: "games",
+            });
+          }
+          if (gameData.value) {
+            userStore.setUserStatus(UserStatus.PLAYING);
+            if (response.data.games.users.some((u) => u.id === userStore.user.id))
+              socket.emit("joinGame", { gameId: gameId, userId: userStore.user.id });
+          }
 
-        alertStore.setAlert(alert);
-        router.push({
-          name: "games",
-        });
-      }
+          }).catch (err => {
+            const alert = {
+              status: err.response.status,
+              message: err.response.data.message,
+            } as AlertInterface;
+
+            alertStore.setAlert(alert);
+            router.push({
+              name: "games",
+            });
+          });
     };
 
 
