@@ -47,6 +47,16 @@ export default defineComponent({
 
       // wait for the user to complete the login process
       const interval = setInterval(async () => {
+        if (!popup || popup.closed) {
+          clearInterval(interval);
+          const alert = {
+            status: 400,
+            message: "Login popup closed",
+          } as AlertInterface;
+          this.alertStore.setAlert(alert);
+          return;
+        }
+
         const alert = {
                 status: 100,
                 message: "Waiting for login",
