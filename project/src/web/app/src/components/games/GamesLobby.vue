@@ -154,27 +154,37 @@ export default defineComponent({
         }
 
         const searchAndJoinGame = () => {
-            //showmatchmaking.value = !showmatchmaking.value;
+            showmatchmaking.value = !showmatchmaking.value;
+            socket.emit("createGame", {gameId: 0});
             getGames().then((res) => {
                 games.value = res.data.games;
                 items.value = filteredItems.value;
 
                 // filter games by default
                 filterGames("all");
-            });
-            const waitingGames = games.value.filter((game) => game.status == "WAITING");
-            // if no waiting game, create one
 
-            console.log(waitingGames);
-            if (waitingGames.length == 0) {
-                createGame(defaultGameSettings).then((response) => {
-                    router.push({ name: "game", params: { id: response.data.game.id } });
-                })
-                return;
-            }else {
-                joinAndNavigate(waitingGames[0].id);
-            }
-            
+                // remove all items not WAITING or INPROGRESS
+                let waitingGames = games.value.filter((game) => {
+                    return game.status == "WAITING" || game.status == "INPROGRESS";
+                });
+
+                // remove all waitingGames with 2 players inside users
+                waitingGames.forEach((game) => {
+                    if (game.users.length == 2) {
+                        waitingGames.splice(waitingGames.indexOf(game), 1);
+                    }
+                });
+
+                // if no waiting game, create one
+                if (waitingGames.length == 0) {
+                    createGame(defaultGameSettings).then((response) => {
+                        router.push({ name: "game", params: { id: response.data.game.id } });
+                    })
+                    return;
+                } else {
+                    joinAndNavigate(waitingGames[0].id);
+                }
+            });            
         };
 
         
