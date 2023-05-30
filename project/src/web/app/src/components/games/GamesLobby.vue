@@ -87,7 +87,7 @@ import EasyDataTable from "vue3-easy-data-table";
 import { SearchIcon, AirplayIcon } from "@/components/icons";
 import type { GameInterface, IGameSettings } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
-import { joinGame, getGames, createGame } from "@/services/gameServices";
+import { joinGame, getGames, createGame, getGameById } from "@/services/gameServices";
 import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
@@ -310,6 +310,13 @@ export default defineComponent({
             }
             // else join the game and navigate to it
             joinGame(gameId).then((response) => {
+                getGameById(response.data.games.id).then((res) => {
+                    res.data.games.users.some((u) => {
+                        if (u.id == userStore.user.id) {
+                            socket.emit("joinGame", { gameId: response.data.games.id, userId: userStore.user.id });
+                        }
+                    });
+                })
                 router.push({ name: "game", params: { id: gameId } });
             })
                 .catch((error) => {
