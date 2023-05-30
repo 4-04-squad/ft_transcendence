@@ -153,6 +153,11 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.server.to(roomName).emit('ready', { gameId: data.gameId, userId: data.userId });
   }
 
+  @SubscribeMessage('redirectToGameRoom')
+  onRedirectToGameRoom(client: Socket, data: { gameId: string, userId: string }) {
+    this.server.emit('redirectToGameRoom', { gameId: data.gameId, userId: data.userId });
+  }
+
   @SubscribeMessage('joinGame')
   onJoinGame(client: Socket, data: { gameId: string, userId: string }) {
     const roomName = `${data.gameId}`;
