@@ -372,6 +372,8 @@ export default defineComponent({
 						this.gameDataUpdated.games.userGames[0].status = userGameStatus.DRAW;
 						this.gameDataUpdated.games.userGames[1].status = userGameStatus.DRAW;
 					}
+					this.gameDataUpdated.games.userGames[0].score = this.score.p1
+					this.gameDataUpdated.games.userGames[1].score = this.score.p2
 					endGame(this.gameDataUpdated.games.id, this.gameDataUpdated.games.userGames).catch((err) => {
 						const alert = {
 							status: err.response.status,
