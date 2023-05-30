@@ -117,6 +117,11 @@ export default defineComponent({
             updatedAt.value = data.updatedAt;
         });
 
+        socket.on("redirectToGameRoom", (data: any) => {
+            if (data.userId == userStore.user.id)
+                router.push({ name: "game", params: { id: data.gameId } });
+        });
+
         const headers = [
             { text: "ID", value: "id", sortable: true },
             { text: "USERS", value: "players" },
@@ -155,6 +160,7 @@ export default defineComponent({
 
         const searchAndJoinGame = () => {
             showmatchmaking.value = !showmatchmaking.value;
+
             socket.emit("createGame", {gameId: 0});
             getGames().then((res) => {
                 games.value = res.data.games;
@@ -178,10 +184,11 @@ export default defineComponent({
                 // if no waiting game, create one
                 if (waitingGames.length == 0) {
                     createGame(defaultGameSettings).then((response) => {
-                        router.push({ name: "game", params: { id: response.data.game.id } });
                     })
                     return;
                 } else {
+                    // redirect the player one
+                    socket.emit("redirectToGameRoom", { gameId: waitingGames[0].id, userId: waitingGames[0].users[0].id});
                     joinAndNavigate(waitingGames[0].id);
                 }
             });            
