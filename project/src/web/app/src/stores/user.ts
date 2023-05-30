@@ -2,8 +2,6 @@ import { UserStatus, type UserInterface } from "@/interfaces/user.interface";
 import { defineStore } from "pinia";
 import axios from "axios";
 import router from "@/router";
-import type { AlertInterface } from "@/interfaces/alert.interface";
-import { useAlertStore } from "./alert";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -14,15 +12,16 @@ export const useUserStore = defineStore("user", {
   actions: {
     updateUser(user: UserInterface ) {
       this.user = user;
+      localStorage.setItem("localUser", JSON.stringify(user));
     },
     setUser(user: UserInterface | undefined) {
-      const alertStore = useAlertStore();
       this.user = user;
       this.user.status = UserStatus.ONLINE;
       localStorage.setItem("localUser", JSON.stringify(user));
     },
     setUserStatus(status: UserStatus) {
       this.user.status = status;
+      localStorage.setItem("localUser", JSON.stringify(this.user));
     },
     clearUser() {
       this.user = undefined;
