@@ -21,6 +21,12 @@
           <QDIcon />
           profile 42
         </LoginButton>
+        <div class="or">
+          <span></span>
+          <h3>OR</h3>
+          <span></span>
+        </div>
+        <LoginForm />
       </div>
     </div>
   </div>

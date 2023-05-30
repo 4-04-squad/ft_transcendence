@@ -117,6 +117,11 @@ export default defineComponent({
             updatedAt.value = data.updatedAt;
         });
 
+        socket.on("redirectToGameRoom", (data: any) => {
+            if (data.userId == userStore.user.id)
+                router.push({ name: "game", params: { id: data.gameId } });
+        });
+
         const headers = [
             { text: "ID", value: "id", sortable: true },
             { text: "USERS", value: "players" },
@@ -155,37 +160,41 @@ export default defineComponent({
 
         const searchAndJoinGame = () => {
             showmatchmaking.value = !showmatchmaking.value;
-            
-            socket.emit("joinWaitingGame", {
-                userId: userStore.user.id
-            });
 
-            socket.emit("waiting", {
-                userId: userStore.user.id,
-            });
-            return
+            socket.emit("createGame", {gameId: 0});
+            getGames().then((res) => {
+                games.value = res.data.games;
+                items.value = filteredItems.value;
+
+                // filter games by default
+                filterGames("all");
+
+                // remove all items not WAITING or INPROGRESS
+                let waitingGames = games.value.filter((game) => {
+                    return game.status == "WAITING" || game.status == "INPROGRESS";
+                });
+
+                // remove all waitingGames with 2 players inside users
+                waitingGames.forEach((game) => {
+                    if (game.users.length == 2) {
+                        waitingGames.splice(waitingGames.indexOf(game), 1);
+                    }
+                });
+
+                // if no waiting game, create one
+                if (waitingGames.length == 0) {
+                    createGame(defaultGameSettings).then((response) => {
+                    })
+                    return;
+                } else {
+                    // redirect the player one
+                    socket.emit("redirectToGameRoom", { gameId: waitingGames[0].id, userId: waitingGames[0].users[0].id});
+                    joinAndNavigate(waitingGames[0].id);
+                }
+            });            
         };
 
-        socket.on("waiting", (data: any) => {
-            if(data.gameId !== undefined && data.userId != userStore.user.id){
-                socket.emit("leaveWaiting", {
-                    userId: userStore.user.id,
-                })
-                joinAndNavigate(data.gameId);
-            }
-            else if (data.userId != userStore.user.id) {
-                createGame(defaultGameSettings).then((response) => {
-                    socket.emit("leaveWaiting", {
-                        userId: userStore.user.id,
-                    })
-                    socket.emit("waiting", {
-                        userId: userStore.user.id,   
-                        gameId: response.data.game.id,
-                    });
-                    router.push({ name: "game", params: { id: response.data.game.id } });
-                })
-            }
-        });
+        
 
         watch(searchValue, () => {
             items.value = filteredItems.value;

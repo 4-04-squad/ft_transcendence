@@ -108,7 +108,7 @@ export class AuthService {
       sameSite: 'lax',
       maxAge: 0,
     });
-    return res.status(200).send('Sign out succes!');
+    return res.status(200).send({ message: 'Logout successful.'});
   }
 
   verifyToken(token: string, tmp: boolean) {

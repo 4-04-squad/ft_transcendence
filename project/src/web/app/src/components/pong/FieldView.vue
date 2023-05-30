@@ -21,6 +21,7 @@ import type { AlertInterface } from "@/interfaces/alert.interface";
 import type { Ball, CPU, Score, Player } from "@/interfaces/game.interface";
 import { UserStatus } from "@/interfaces/user.interface";
 import router from "@/router";
+import type { GameInterface } from "@/interfaces/game.interface";
 import { endGame, deleteGame, updateGameStatus, getGameById } from "@/services/gameServices";
 import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
@@ -59,7 +60,7 @@ export default defineComponent({
 		const btnOnePlayer = ref(true);
 		const btnMultiPlayer = ref(false);
 		const btnQuitGame = ref(false);
-		const gameDataUpdated = ref({});
+		const gameDataUpdated = ref({} as any);
 		const isReady = ref(0);
 
 		getGameById(route.params.id as string).then((data) =>{
@@ -383,7 +384,7 @@ export default defineComponent({
 					const alert = {
 						status: err.response.status,
 						message: err.response.data.message,
-					} as AlertInterface;f
+					} as AlertInterface;
 					this.alertStore.setAlert(alert);
 					router.push({
 						name: "games",

@@ -1,10 +1,12 @@
 import { MessageBody, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Body, Logger } from '@nestjs/common';
+import { Body, Logger, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { User, UserStatus, Prisma } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
+import { AuthService } from 'src/auth/auth.service';
+import { clear } from 'console';
 
 @WebSocketGateway({
   cors: {
@@ -15,10 +17,11 @@ import { UsersService } from 'src/users/users.service';
   },
 })
 export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  [x: string]: any;
+
   constructor(
     private prisma: PrismaService,
     private usersService: UsersService,
+    private authService: AuthService,
   ) {}
   
   private logger: Logger = new Logger('SocketGateway');
@@ -28,9 +31,62 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
   @WebSocketServer() server;
 
+
   afterInit(server: any) {
+    server.use(async (socket, next) => {
+      const jwtName = process.env.JWT_NAME;
+      
+      if (!socket.handshake.headers.cookie) {
+        return next(new Error('Missing authorization token'));
+      }
+
+      const cookie = socket.handshake.headers.cookie.split(';').find(cookie => cookie.trim().startsWith(jwtName));
+  
+      if (!cookie) {
+        return next(new Error('Missing authorization token'));
+      }
+  
+      let token = cookie.split('=')[1];
+      // Decode the token
+      token = decodeURIComponent(token);
+      // Ignore the first two characters ("j:") before parsing JSON
+      try {
+        token = JSON.parse(token.slice(2)).access_token;
+      } catch (err) {
+        return next(new Error('Failed to parse token'));
+      }
+  
+      const decodedToken = this.authService.verifyToken(token, false);
+
+      // clear token if expired and send to client
+      if (decodedToken.exp < Date.now() / 1000) {
+        socket.emit('clearToken');
+        return next(new Error('Invalid authorization token'));
+      }
+      
+      if (!decodedToken) {
+        return next(new Error('Invalid authorization token'));
+      }
+
+      try {
+        const user = await this.usersService.findUserById(decodedToken.sub);
+        if (!user) {
+          return next(new Error('Invalid authorization token'));
+        }
+  
+        socket.user = user;
+      } catch (err) {
+        //send response to client to clear token
+        socket.emit('clearToken');
+        return next(new Error('Invalid authorization token'));
+      }
+      
+      next();
+    });
     this.logger.log('WebSocket server initialized');
   }
+  
+  
 
   async handleConnection(client: Socket) {
     if (!this.connectedClients.has(client.id)) {
@@ -74,42 +130,6 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   @SubscribeMessage('updateFriends')
   onUpdateFriends(@Body() data: { updatedAt: string }) {
     this.server.emit('updateFriends', { updatedAt: data.updatedAt });
-  }
-
-  /*
-  * Emit action : Matchmaking
-  */
-  @SubscribeMessage('waiting')
-  onWaitingRoom(@Body() data: { userId: string, gameId?: string }) {
-    const roomName = `waiting`;
-    // emit in room
-    this.server.to(roomName).emit('waiting', { userId: data.userId, gameId: data?.gameId });
-    this.logger.log(`Client ${data.userId} waiting`);
-  }
-
-  @SubscribeMessage('joinWaitingGame')
-  onJoinWaitingRoom(client: Socket, data: { userId: string }) {
-    const roomName = `waiting`;
-
-    client.join(roomName);
-
-    this.logger.log(`Client ${data.userId} joined room ${roomName}`);
-  }
-
-  leaveSocketWaiting(userId: string) {
-    const roomName = `waiting`;
-    this.server.to(roomName).emit('leaveWaiting', { userId });
-  }
-
-  @SubscribeMessage('leaveWaiting')
-  onLeaveWaiting(client: Socket, data: { userId: string }) {
-    const roomName = `waiting`;
-
-    client.leave(roomName);
-	
-    this.logger.log(`Client ${data.userId} left waiting room`);
-
-    this.leaveSocketWaiting(data.userId);
   }
 
 
@@ -187,6 +207,11 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     const roomName = `${data.gameId}`;
     // emit in room
     this.server.to(roomName).emit('ready', { gameId: data.gameId, userId: data.userId });
+  }
+
+  @SubscribeMessage('redirectToGameRoom')
+  onRedirectToGameRoom(client: Socket, data: { gameId: string, userId: string }) {
+    this.server.emit('redirectToGameRoom', { gameId: data.gameId, userId: data.userId });
   }
 
   @SubscribeMessage('joinGame')
