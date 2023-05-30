@@ -138,7 +138,7 @@ export class AuthController {
       const redirectUrl = `${process.env.WEB_URL}/profile`
       res.status(302).redirect(redirectUrl);
     } catch (error) {
-      res.status(401).send('Error authenticating with 42 API');
+      res.status(401).send({ message: 'Error authenticating with 42 API'});
     }
   }
 
@@ -153,7 +153,7 @@ export class AuthController {
       res.clearCookie(process.env.JWT_NAME);
       return this.authService.logout(req, res, user.id);
     } else {
-      res.status(401).send('Not logged in');
+      res.status(401).send({ message: 'Not logged in'});
     }
   }
 }

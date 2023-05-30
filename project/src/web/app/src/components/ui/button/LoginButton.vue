@@ -47,6 +47,11 @@ export default defineComponent({
 
       // wait for the user to complete the login process
       const interval = setInterval(async () => {
+        const alert = {
+                status: 100,
+                message: "Waiting for login",
+              } as AlertInterface;
+              this.alertStore.setAlert(alert);
         if (popup?.window.location.href === callback) {
           popup?.close();
           try {
@@ -54,10 +59,20 @@ export default defineComponent({
               withCredentials: true,
             });
             if (response.status === 206) {
+              const alert = {
+                status: response.status,
+                message: "2Fa is enabled",
+              } as AlertInterface;
+              this.alertStore.setAlert(alert);
 						  router.push({ path: "/login_2fa" });
 					  }
             else if (response.status === 200) {
               // clear the interval and close the popup
+              const alert = {
+                status: response.status,
+                message: "Successfully logged in",
+              } as AlertInterface;
+              this.alertStore.setAlert(alert);
               clearInterval(interval);
               popup?.close();
               // set the user in the store
@@ -75,7 +90,7 @@ export default defineComponent({
           }
         }
         
-      }, 1000);
+      }, 100);
     },
   },
 });
