@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma.service';
 import { User, UserStatus, Prisma } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from 'src/auth/auth.service';
+import { clear } from 'console';
 
 @WebSocketGateway({
   cors: {
@@ -34,6 +35,11 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   afterInit(server: any) {
     server.use(async (socket, next) => {
       const jwtName = process.env.JWT_NAME;
+      
+      if (!socket.handshake.headers.cookie) {
+        return next(new Error('Missing authorization token'));
+      }
+
       const cookie = socket.handshake.headers.cookie.split(';').find(cookie => cookie.trim().startsWith(jwtName));
   
       if (!cookie) {
@@ -50,18 +56,31 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
         return next(new Error('Failed to parse token'));
       }
   
-      const decodedToken = this.authService.verifyToken(token, false)
+      const decodedToken = this.authService.verifyToken(token, false);
+
+      // clear token if expired and send to client
+      if (decodedToken.exp < Date.now() / 1000) {
+        socket.emit('clearToken');
+        return next(new Error('Invalid authorization token'));
+      }
       
       if (!decodedToken) {
         return next(new Error('Invalid authorization token'));
       }
 
-      const user = await this.usersService.findUserById(decodedToken.sub);
-      if (!user) {
+      try {
+        const user = await this.usersService.findUserById(decodedToken.sub);
+        if (!user) {
+          return next(new Error('Invalid authorization token'));
+        }
+  
+        socket.user = user;
+      } catch (err) {
+        //send response to client to clear token
+        socket.emit('clearToken');
         return next(new Error('Invalid authorization token'));
       }
-
-      socket.user = user;
+      
       next();
     });
     this.logger.log('WebSocket server initialized');
