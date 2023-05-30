@@ -44,16 +44,13 @@ export default defineComponent({
             )
             .then((res) => {
                   const alert = {
-                  status: res.data.statusCode,
+                  status: res.status,
                   message: res.data.message,
                 } as AlertInterface;
               this.socket.emit("leaveOnline", { user: this.userStore.user });
               this.alertStore.setAlert(alert);
-              
-              if (!this.userStore.user) {
-                router.push({ path: "/login" });
-                this.userStore.clearUser();
-              }
+              this.userStore.clearUser();
+              router.push({ path: "/login" });
             })
             .catch((err) => {
               const alert = {
