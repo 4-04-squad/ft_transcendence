@@ -27,6 +27,12 @@ window.addEventListener("resize", () => {
   document.documentElement.style.setProperty("--vh", `${vh}px`);
 });
 
+socket.on("clearToken", () => {
+  if (userStore.user) {
+    userStore.clearUser();
+  }
+});
+
 socket.on("sendNotif", (data: any) => {
     if (userStore.user) {
       if (data.type == "game") {
