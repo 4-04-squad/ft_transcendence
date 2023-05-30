@@ -67,6 +67,7 @@ export interface Score {
   max_score: number;
   finish_game: number;
   none_same: number,
+  noWinner: number,
 }
 
 export interface Player {
