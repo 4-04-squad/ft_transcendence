@@ -14,54 +14,54 @@ import { AuthGuard } from './auth.guard';
 export class AuthController {
   constructor(private authService: AuthService, private prisma: PrismaService, private usersService: UsersService) {}
 
-  // @Post('signin')
-  // async loginWithUsername(@Body() body: {pseudo: string, password: string}, @Req() req: RequestWithUser, @Res() res: Response) {
+  @Post('signin')
+  async loginWithUsername(@Body() body: {pseudo: string, password: string}, @Req() req: RequestWithUser, @Res() res: Response) {
     
-  //   const { pseudo, password } = body;
-  //   const jwtName = process.env.JWT_NAME;
-  //   const jwtTmpName = process.env.JWT_TMP_NAME;
-  //   const user = await this.authService.findUserByName(pseudo, password);
+    const { pseudo, password } = body;
+    const jwtName = process.env.JWT_NAME;
+    const jwtTmpName = process.env.JWT_TMP_NAME;
+    const user = await this.authService.findUserByName(pseudo, password);
   
-  //   // Check if user has a JWT token
-  //   if (!req.cookies[jwtName]) {
-  //     const isTwoFactorEnabled = user.twofaenabled;
+    // Check if user has a JWT token
+    if (!req.cookies[jwtName]) {
+      const isTwoFactorEnabled = user.twofaenabled;
   
-  //     // Create a token
-  //     const token = isTwoFactorEnabled
-  //       ? this.authService.createTempToken(user)
-  //       : this.authService.createToken(user);
+      // Create a token
+      const token = isTwoFactorEnabled
+        ? this.authService.createTempToken(user)
+        : this.authService.createToken(user);
   
-  //     // Check token
-  //     if (!token) {
-  //       throw new ForbiddenException('Forbidden, token is missing.');
-  //     }
+      // Check token
+      if (!token) {
+        throw new ForbiddenException('Forbidden, token is missing.');
+      }
   
-  //     // Set the JWT cookie
+      // Set the JWT cookie
 
-  //     const maxAge = isTwoFactorEnabled ? 600000 : 86400000;
-  //     const cookieName = isTwoFactorEnabled ? jwtTmpName : jwtName;
-  //     res.cookie(cookieName, token, {
-  //       httpOnly: true,
-  //       secure: false,
-  //       sameSite: 'lax',
-  //       maxAge 
-  //     });
+      const maxAge = isTwoFactorEnabled ? 600000 : 86400000;
+      const cookieName = isTwoFactorEnabled ? jwtTmpName : jwtName;
+      res.cookie(cookieName, token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge 
+      });
       
-  //     if (isTwoFactorEnabled) {
-  //       res.status(206).send({ user });
-  //       return;
-  //     }
-  //   }
+      if (isTwoFactorEnabled) {
+        res.status(206).send({ user });
+        return;
+      }
+    }
   
-  //   // Set user as ONLINE
-  //   if (user) {
-  //     this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
-  //   }
+    // Set user as ONLINE
+    if (user) {
+      this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
+    }
   
-  //   // Send the response
-  //   res.status(200).send({ user });
+    // Send the response
+    res.status(200).send({ user });
   
-  // }
+  }
 
   @Get('login')
   @ApiResponse({ status: 302, description: 'Redirect to 42 API'})
