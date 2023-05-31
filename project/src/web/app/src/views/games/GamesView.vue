@@ -86,7 +86,7 @@ export default defineComponent({
           }
           if (gameData.value) {
             userStore.setUserStatus(UserStatus.PLAYING);
-            if (response.data.games.users.some((u) => u.id === userStore.user.id))
+            if (response.data.games.users.some((u: any) => u.id === userStore.user.id))
               socket.emit("joinGame", { gameId: gameId, userId: userStore.user.id });
           }
 

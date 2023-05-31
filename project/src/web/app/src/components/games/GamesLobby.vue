@@ -320,7 +320,7 @@ export default defineComponent({
             // else join the game and navigate to it
             joinGame(gameId).then((response) => {
                 getGameById(response.data.games.id).then((res) => {
-                    res.data.games.users.some((u) => {
+                    res.data.games.users.some((u: any) => {
                         if (u.id == userStore.user.id) {
                             socket.emit("joinGame", { gameId: response.data.games.id, userId: userStore.user.id });
                         }
