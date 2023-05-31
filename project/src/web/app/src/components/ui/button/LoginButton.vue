@@ -5,14 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref, watch } from "vue";
-import { useUserStore } from "@/stores/user";
-import axios from "axios";
-import router from "@/router";
-import type { UserInterface } from "@/interfaces/user.interface";
-import type { AlertInterface } from "@/interfaces/alert.interface";
-import { useAlertStore } from "@/stores/alert";
-import type { Socket } from "socket.io-client";
+import { defineComponent} from "vue";
 
 export default defineComponent({
   name: "LoginButton",
@@ -22,85 +15,15 @@ export default defineComponent({
       default: "",
     },
   },
-  setup() {
-    const userStore = useUserStore();
-    const alertStore = useAlertStore();
-    const socket = inject('socket') as Socket;
-
-    return {
-      userStore,
-      alertStore,
-      socket
-    };
-  },
   methods: {
     async login() {
-      const loginUrl = `${import.meta.env.VITE_APP_API_URL}/users/@me`;
-      const callback = `${import.meta.env.VITE_APP_WEB_URL}/login`;
       const token = import.meta.env.VITE_APP_FORTY_TWO_CLIENT_ID;
       const callbackUrl = `${
-        import.meta.env.VITE_APP_API_URL
-      }/auth/login/callback`;
+        import.meta.env.VITE_APP_WEB_URL
+      }/login/callback`;
       const redirectUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${token}&redirect_uri=${callbackUrl}&response_type=code`;
       
-      const popup = parent.window.open(redirectUrl, "_blank", "height=600,width=600");
-
-      // wait for the user to complete the login process
-      const interval = setInterval(async () => {
-        if (!popup || popup.closed) {
-          clearInterval(interval);
-          const alert = {
-            status: 400,
-            message: "Login popup closed",
-          } as AlertInterface;
-          this.alertStore.setAlert(alert);
-          return;
-        }
-
-        const alert = {
-                status: 100,
-                message: "Waiting for login",
-              } as AlertInterface;
-              this.alertStore.setAlert(alert);
-        if (popup?.window.location.href === callback) {
-          popup?.close();
-          try {
-            const response = await axios.get(loginUrl, {
-              withCredentials: true,
-            });
-            if (response.status === 206) {
-              const alert = {
-                status: response.status,
-                message: "2Fa is enabled",
-              } as AlertInterface;
-              this.alertStore.setAlert(alert);
-						  router.push({ path: "/login_2fa" });
-					  }
-            else if (response.status === 200) {
-              // clear the interval and close the popup
-              const alert = {
-                status: response.status,
-                message: "Successfully logged in",
-              } as AlertInterface;
-              this.alertStore.setAlert(alert);
-              clearInterval(interval);
-              popup?.close();
-              // set the user in the store
-              this.userStore.setUser(response.data.user as UserInterface);
-              if (this.userStore.user) {
-                router.push({ path: "/" });
-              }
-            }
-          } catch (error) {
-            const alert = {
-              status: 400,
-              message: "Error while trying to login",
-            } as AlertInterface;
-            this.alertStore.setAlert(alert);
-          }
-        }
-        
-      }, 100);
+      window.location.href = redirectUrl;
     },
   },
 });
