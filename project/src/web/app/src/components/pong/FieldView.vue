@@ -156,36 +156,26 @@ export default defineComponent({
 			ratioX: 1,
 		};
 
-		const firstplayer = (id: string) => {
-			if (props.gameData.userGames[0].userId == id) {
+		if (props.gameData.userGames[0].userId == userStore.user.id) {
 				player1.me = 1;
-			} else {
-				player1.me = 0;
-			}
-			player1.id = id;
-		};
-
-		const secondplayer = (id: string) => {
-			if (props.gameData.userGames[1].userId == id) {
-				player2.me = 0;
-			} else {
+				player2.id = props.gameData.userGames[0].userId;
+			} else if (props.gameData.userGames[1].userId == userStore.user.id) {
 				player2.me = 1;
+				player2.id = props.gameData.userGames[1].userId;
 			}
-			player2.id = id;
-		};
+			if (props.gameData.userGames.length == 2) {
+				btnOnePlayer.value = false;
+				btnMultiPlayer.value = true;
+			}
 
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data: any) => {
 			if (props.gameData.userGames[0].userId == userStore.user.id) {
-				firstplayer(props.gameData.userGames[0].userId);
-				if (props.gameData.userGames.length == 2) {
-					secondplayer(props.gameData.userGames[1].userId);
-				}
-			} else {
-				if (props.gameData.userGames.length == 2) {
-					firstplayer(props.gameData.userGames[1].userId);
-				}
-				secondplayer(props.gameData.userGames[0].userId);
+				player1.me = 1;
+				player2.id = props.gameData.userGames[0].userId;
+			} else if (props.gameData.userGames[1].userId == userStore.user.id) {
+				player2.me = 1;
+				player2.id = props.gameData.userGames[1].userId;
 			}
 			if (props.gameData.userGames.length == 2) {
 				btnOnePlayer.value = false;
@@ -267,8 +257,6 @@ export default defineComponent({
 			btnQuitGame,
 			isReady,
 			gameDataUpdated,
-			firstplayer,
-			secondplayer,
 		}
 	},
 	beforeUnmount() {

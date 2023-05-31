@@ -11,6 +11,8 @@ import type { Socket } from "socket.io-client";
 import axios from "axios";
 import ChatConversation from "@/components/chats/ChatConversation.vue";
 import { useUserStore } from "@/stores/user";
+import type { AlertInterface } from "@/interfaces/alert.interface";
+import { useAlertStore } from "@/stores/alert";
 
 export default defineComponent({
   name: "ChatsView",
@@ -19,18 +21,22 @@ export default defineComponent({
     const route = useRoute();
     let chatData = ref(null);
     const userStore = useUserStore();
+    const alertStore = useAlertStore();
     const socket = inject('socket') as Socket;
 
     const fetchChatDataAndJoinChat = async (chatId: string) => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/chats/${chatId}`, {
+        await axios.get(`${import.meta.env.VITE_APP_API_URL}/chats/${chatId}`, {
           withCredentials: true,
-        });
-        chatData.value = response.data.data;
-        socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
-      } catch (err) {
-
-      }
+        }).then((response) =>{
+          chatData.value = response.data.data;
+          socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
+        }).catch((err) {
+          const alert = {
+						status: err.response.status,
+						message: err.response.data.message,
+					} as AlertInterface;
+					alertStore.setAlert(alert);
+      });
     }
 
     // Fetch chat data on route change
