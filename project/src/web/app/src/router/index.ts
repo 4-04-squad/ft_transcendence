@@ -23,6 +23,14 @@ const router = createRouter({
           component: () => import("@/views/auth/LoginView.vue"),
         },
         {
+          path: "/login/callback",
+          name: "login-callback",
+          meta: {
+            title: "Login Callback",
+          },
+          component: () => import("@/views/auth/LoginCallbackView.vue"),
+        },
+        {
           path: "/signout/:id",
           name: "signout",
           meta: {

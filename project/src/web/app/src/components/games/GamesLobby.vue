@@ -93,6 +93,7 @@ import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
 import type { Socket } from "socket.io-client";
 import MatchmakingModal from "@/components/games/MatchmakingModal.vue";
+import type { UserInterface } from "@/interfaces/user.interface";
 
 export default defineComponent({
     name: "GamesLobby",
@@ -320,7 +321,7 @@ export default defineComponent({
             // else join the game and navigate to it
             joinGame(gameId).then((response) => {
                 getGameById(response.data.games.id).then((res) => {
-                    res.data.games.users.some((u) => {
+                    res.data.games.users.some((u: UserInterface) => {
                         if (u.id == userStore.user.id) {
                             socket.emit("joinGame", { gameId: response.data.games.id, userId: userStore.user.id });
                         }

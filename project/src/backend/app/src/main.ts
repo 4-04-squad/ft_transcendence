@@ -31,7 +31,7 @@ async function bootstrap() {
   }
 
   app.enableCors({
-    origin: process.env.WEB_URL,
+    origin: [process.env.WEB_URL, "https://api.intra.42.fr"],
     credentials: true,
     allowedHeaders: 'Content-Type, Authorization, Cookie',
     methods: 'GET,PUT,POST,DELETE',
