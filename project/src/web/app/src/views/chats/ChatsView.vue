@@ -25,12 +25,25 @@ export default defineComponent({
       try {
         const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/chats/${chatId}`, {
           withCredentials: true,
+<<<<<<< Updated upstream
         });
         chatData.value = response.data.data;
         socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
       } catch (err) {
         console.error(err);
       }
+=======
+        }).then((response) =>{
+          chatData.value = response.data.data;
+          socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
+        }).catch((err) => {
+          const alert = {
+						status: err.response.status,
+						message: err.response.data.message,
+					} as AlertInterface;
+					alertStore.setAlert(alert);
+      });
+>>>>>>> Stashed changes
     }
 
     // Fetch chat data on route change

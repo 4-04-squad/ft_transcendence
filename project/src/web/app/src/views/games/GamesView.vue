@@ -54,9 +54,51 @@ export default defineComponent({
             message: "The game doesn't exist",
           } as AlertInterface;
 
+<<<<<<< Updated upstream
           alertStore.setAlert(alert);
           router.push({
             name: "games",
+=======
+            alertStore.setAlert(alert);
+            router.push({
+              name: "games",
+            });
+          }
+          if (users && users.value) {
+            if (!users.value.some((u) => u.id === userStore.user.id))
+              router.push({
+                name: "games",
+            });
+          }
+          
+          if (gameData.value?.status === "FINISHED") {
+            const alert = {
+              status: 401,
+              message: "The game is finished",
+            } as AlertInterface;
+
+            alertStore.setAlert(alert);
+            router.push({
+              name: "games",
+            });
+          }
+          if (gameData.value) {
+            userStore.setUserStatus(UserStatus.PLAYING);
+            if (response.data.games.users.some((u: any) => u.id === userStore.user.id))
+              socket.emit("joinGame", { gameId: gameId, userId: userStore.user.id });
+          }
+
+          }).catch (err => {
+            const alert = {
+              status: err.response.status,
+              message: err.response.data.message,
+            } as AlertInterface;
+
+            alertStore.setAlert(alert);
+            router.push({
+              name: "games",
+            });
+>>>>>>> Stashed changes
           });
         }
         if (gameData.value?.status === "FINISHED") {
