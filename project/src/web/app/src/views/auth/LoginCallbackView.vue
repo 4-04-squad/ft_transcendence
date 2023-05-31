@@ -13,7 +13,8 @@ import router from "@/router";
 import { useAlertStore } from "@/stores/alert";
 import { useUserStore } from "@/stores/user";
 import axios from "axios";
-import { defineComponent } from "vue";
+import type { Socket } from "socket.io-client";
+import { defineComponent, inject } from "vue";
 
 export default defineComponent({
     name: "LoginCallbackView",
@@ -31,6 +32,7 @@ export default defineComponent({
         // detect if url has code=
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get("code");
+        const socket = inject("socket") as Socket;
 
         if (code) {
             const loginUrl = `${import.meta.env.VITE_APP_API_URL}/auth/login/callback`;
@@ -61,6 +63,7 @@ export default defineComponent({
                     // set the user in the store
                     userStore.setUser(response.data.user as UserInterface);
                     if (userStore.user) {
+                        socket.emit("joinOnline", {user: userStore.user});
                         if (response.data.redirect === "user-edit")
                             router.push({ name: "user-edit", params: { id: userStore.user.id } });
                         else
