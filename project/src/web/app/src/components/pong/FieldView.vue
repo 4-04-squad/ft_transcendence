@@ -120,6 +120,7 @@ export default defineComponent({
 			max_score: 5,
 			finish_game: 0,
 			none_same: 0,
+			noWinner: 0,
 		};
 
 		const player1: Player = {
@@ -156,36 +157,26 @@ export default defineComponent({
 			ratioX: 1,
 		};
 
-		const firstplayer = (id: string) => {
-			if (props.gameData.userGames[0].userId == id) {
+		if (props.gameData.userGames[0].userId == userStore.user.id) {
 				player1.me = 1;
-			} else {
-				player1.me = 0;
-			}
-			player1.id = id;
-		};
-
-		const secondplayer = (id: string) => {
-			if (props.gameData.userGames[1].userId == id) {
-				player2.me = 0;
-			} else {
+				player2.id = props.gameData.userGames[0].userId;
+			} else if (props.gameData.userGames[1].userId == userStore.user.id) {
 				player2.me = 1;
+				player2.id = props.gameData.userGames[1].userId;
 			}
-			player2.id = id;
-		};
+			if (props.gameData.userGames.length == 2) {
+				btnOnePlayer.value = false;
+				btnMultiPlayer.value = true;
+			}
 
 		// Socket event listeners envoyer les infos au serveur
 		props.socket.on("joinGame", (data: any) => {
 			if (props.gameData.userGames[0].userId == userStore.user.id) {
-				firstplayer(props.gameData.userGames[0].userId);
-				if (props.gameData.userGames.length == 2) {
-					secondplayer(props.gameData.userGames[1].userId);
-				}
-			} else {
-				if (props.gameData.userGames.length == 2) {
-					firstplayer(props.gameData.userGames[1].userId);
-				}
-				secondplayer(props.gameData.userGames[0].userId);
+				player1.me = 1;
+				player2.id = props.gameData.userGames[0].userId;
+			} else if (props.gameData.userGames[1].userId == userStore.user.id) {
+				player2.me = 1;
+				player2.id = props.gameData.userGames[1].userId;
 			}
 			if (props.gameData.userGames.length == 2) {
 				btnOnePlayer.value = false;
@@ -197,6 +188,7 @@ export default defineComponent({
 			getGameById(route.params.id as string).then((res) =>{
 				gameDataUpdated.value = res.data;
 			});
+			score.noWinner = 1;
 			if (props.gameData.userGames[0].userId != data.userId)
 				score.p1 = score.max_score;
 			else
@@ -267,8 +259,6 @@ export default defineComponent({
 			btnQuitGame,
 			isReady,
 			gameDataUpdated,
-			firstplayer,
-			secondplayer,
 		}
 	},
 	beforeUnmount() {
@@ -277,6 +267,14 @@ export default defineComponent({
 			return;
 		if (this.gameDataUpdated.games.userGames.length == 1)
 			this.menuOfEnd();
+		if (this.score.noWinner == 1 && this.gameDataUpdated.games.userGames.length == 1)
+		{
+			if (this.gameDataUpdated.games)
+			{
+				this.gameDataUpdated.games.userGames[0].status = userGameStatus.DRAW;
+				this.gameDataUpdated.games.userGames[1].status = userGameStatus.DRAW;
+			}
+		}
 		this.socket.emit("leaveGame", { gameId: this.gameData.id, userId: this.userStore.user.id });
    		window.cancelAnimationFrame(this.ball.animation);
 		window.removeEventListener("resize", this.handleWindowResize);
@@ -338,13 +336,6 @@ export default defineComponent({
 				this.socket.emit("sendCanvasSizeP2", { gameId: this.gameData.id, width: this.context.canvas.width, height: this.context.canvas.height });
 		},
 
-		replay() {
-			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-			this.btnOnePlayer = true;
-			this.btnMultiPlayer = true;
-			this.btnQuitGame = false;
-		},
-
 		menuOfEnd() {
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 			this.updatecsore();
@@ -368,7 +359,7 @@ export default defineComponent({
 			}
 			if (!this.gameDataUpdated.games)
 				return ;
-			if (this.gameDataUpdated.games.userGames.length == 2) {
+			if (this.score.noWinner == 0 && this.gameDataUpdated.games.userGames.length == 2) {
 					if (this.score.p1 == this.score.max_score) {
 						this.gameDataUpdated.games.userGames[0].status = userGameStatus.WINNER;
 						this.gameDataUpdated.games.userGames[1].status = userGameStatus.LOSER;
@@ -393,7 +384,25 @@ export default defineComponent({
 							name: "games",
 						});
 					});
-			} else if (this.gameDataUpdated.games.userGames.length == 1) {
+			} else if (this.score.noWinner == 0 && this.gameDataUpdated.games.userGames.length == 1) {
+				endGame(this.gameDataUpdated.games.id, this.gameDataUpdated.games.userGames).catch((err) => {
+					const alert = {
+						status: err.response.status,
+						message: err.response.data.message,
+					} as AlertInterface;
+					this.alertStore.setAlert(alert);
+					router.push({
+						name: "games",
+					});
+				});
+			}
+			if (this.score.noWinner == 1 && this.gameDataUpdated.games.userGames.length == 2)
+			{
+				if (this.gameDataUpdated.games)
+				{
+					this.gameDataUpdated.games.userGames[0].status = userGameStatus.DRAW;
+					this.gameDataUpdated.games.userGames[1].status = userGameStatus.DRAW;
+				}
 				endGame(this.gameDataUpdated.games.id, this.gameDataUpdated.games.userGames).catch((err) => {
 					const alert = {
 						status: err.response.status,
@@ -411,6 +420,7 @@ export default defineComponent({
 			this.score.p1 = 0;
 			this.score.p2 = 0;
 			this.isReady = 0;
+			this.score.noWinner = 0;
 			
 			this.btnOnePlayer = false;
 			this.btnMultiPlayer = false;

@@ -88,6 +88,16 @@ export class AuthService {
     }
   }
 
+  async findUserByEmail(email: string): Promise<Boolean>{
+    const findUser = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    return findUser ? true : false;
+  }
+
   async logout(req: Request, res: Response, id: string) {
     // Find current user
     const findUser = await this.prisma.user.findUnique({
