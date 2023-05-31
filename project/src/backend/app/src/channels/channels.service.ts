@@ -21,6 +21,11 @@ export class ChannelsService {
         }).catch((err) => {
             return null;
         });
+        if (chat !== null) {
+            chat.forEach((element) => {
+                delete element.passwd;
+            });
+        }
         return chat;       
     }
 
@@ -32,6 +37,9 @@ export class ChannelsService {
 
     async getChannelById(chatId: string): Promise<Chat | null> {
         const chat = await this.prisma.chat.findUnique({where: {id: chatId}});
+        if (chat !== null) {
+            delete chat.passwd;
+        }    
         return chat;
     }
 
@@ -119,8 +127,13 @@ export class ChannelsService {
             users: chatUsers
           }
         })
-    
-        return result
+        const resultWithoutPasswd = result.map(chat => {
+            if(chat.passwd) {
+                delete chat.passwd;
+            }
+            return chat;
+        });
+        return resultWithoutPasswd;
     }
 
     async createChannel(userId: string, settings: CreateChannelDto): Promise<Chat | null> {
@@ -151,6 +164,8 @@ export class ChannelsService {
             }).catch((err) => {
                 return null;
             });
+        if (channel !== null)
+            delete channel.passwd;
         return channel;      
     }
 
@@ -179,6 +194,8 @@ export class ChannelsService {
                 status: UserChatStatus.MEMBER,
             }
         })
+        if (channel !== null)
+            delete channel.passwd;
         return channel;
     }
 
@@ -204,7 +221,9 @@ export class ChannelsService {
         if (channelUser.length == 0)
             return null;
         const ids = channelUser.map(obj => obj.id);
-        const channel = await this.prisma.chat.findMany({ where: { id: { in: ids }, type: { not: ChatType.DIRECT } } });    
+        const channel = await this.prisma.chat.findMany({ where: { id: { in: ids }, type: { not: ChatType.DIRECT } } });   
+        if (channel[0] !== null) 
+            delete channel[0].passwd;
         return (channel[0]);
     }
         
@@ -311,6 +330,8 @@ export class ChannelsService {
             }).catch((err) => {
                 throw new BadRequestException(err);
             });
+            if (channel !== null)
+                delete channel.passwd;
             return deleted;
         }
     }
