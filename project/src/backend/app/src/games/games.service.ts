@@ -149,7 +149,7 @@ export class GamesService {
 
   async getGamesStatistics(userId: string): Promise<GamesStatisticsDto> {
     const user = await this.prisma.user
-      .findUnique({ where: { id: userId } })
+    .findUnique({ where: { id: userId } })
       .catch((err) => {
         throw new BadRequestException(err);
       });
@@ -157,7 +157,13 @@ export class GamesService {
       throw new BadRequestException(err);
     });
     const userGames = await this.prisma.userGame
-      .findMany({ where: { userId: userId } })
+      .findMany({ where: {
+          userId: userId,
+          game: {
+            status: 'FINISHED'
+          }
+        }
+      })
       .catch((err) => {
         throw new BadRequestException(err);
       });
@@ -178,7 +184,13 @@ export class GamesService {
       experience: user.experience,
       elo: user.elo,
     };
-    const allUserGames = await this.prisma.userGame.findMany().catch((err) => {
+    const allUserGames = await this.prisma.userGame
+      .findMany({ where: {
+        game: {
+          status: 'FINISHED'
+        }
+      }
+    }).catch((err) => {
       throw new BadRequestException(err);
     });
     const allGames = await this.prisma.game.findMany().catch((err) => {
