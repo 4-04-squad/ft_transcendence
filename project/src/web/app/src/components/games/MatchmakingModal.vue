@@ -14,18 +14,27 @@
 import { useUserStore } from "@/stores/user";
 import { defineComponent, inject } from "vue";
 import type { Socket } from "socket.io-client";
+import { deleteGame } from "@/services/gameServices";
 
   export default defineComponent({
 	name: "MatchmakingModal",
+	props: {
+		gameId: {
+			type: String,
+			default: "",
+		},
+	},
 	setup(props, { emit }) {
-        const userStore = useUserStore();
-        const socket = inject('socket') as Socket;
+		const userStore = useUserStore();
+		const socket = inject('socket') as Socket;
 
 		const closeModal = () => {
-            socket.emit("leaveWaiting", {
-                        userId: userStore.user.id,
-                    })
+			socket.emit("leaveWaiting", {
+					userId: userStore.user.id,
+			})
 			emit("onClose", false);
+			if (props.gameId)
+				deleteGame(props.gameId);
 		};
 
 		return {
