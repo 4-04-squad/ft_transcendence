@@ -132,6 +132,8 @@ export class AuthController {
         // Send the response
         const statusCode = isTwoFactorEnabled ? 206 : 302;
         if (isTwoFactorEnabled) {
+          delete user["password"];
+          delete user["twofasecret"];
           res.status(statusCode).send({ user });
           return;
         }  
@@ -142,6 +144,8 @@ export class AuthController {
         this.usersService.updateUserStatus(user.id, UserStatus.ONLINE);
       }
 
+      delete user["password"];
+      delete user["twofasecret"];
       res.status(200).send({user, redirect });
     } catch (error) {
       res.status(401).send('Error authenticating with 42 API');
