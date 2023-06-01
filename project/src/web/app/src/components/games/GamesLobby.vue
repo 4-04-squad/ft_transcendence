@@ -346,8 +346,8 @@ export default defineComponent({
 
         getGames().then((response) => {
             let waitingGames = response.data.games;
-            waitingGames.forEach((game) => {
-                if (game.status == "WAITING" && game.users.some((user) => user.id == userStore.user.id)) {
+            waitingGames.forEach((game: any) => {
+                if (game.status == "WAITING" && game.users.some((user: any) => user.id == userStore.user.id)) {
                     deleteGame(game.id).then((res) => {
 											updatedAt.value = new Date().toISOString();
 											socket.emit('createGame', {updatedAt: updatedAt});
