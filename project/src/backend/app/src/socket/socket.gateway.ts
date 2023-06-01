@@ -63,7 +63,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
       token = JSON.parse(token.slice(2)).access_token;
     } catch (err) {
       socket.disconnect(true);
-      throw new Error('Failed to parse token');
+      return;
     }
 
     const decodedToken = this.authService.verifyToken(token, false);
@@ -71,26 +71,26 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     if (decodedToken.exp < Date.now() / 1000) {
       socket.emit('clearToken');
       socket.disconnect(true);
-      throw new Error('Invalid authorization token');
+      return ;
     }
     
     if (!decodedToken) {
       socket.disconnect(true);
-      throw new Error('Invalid authorization token');
+      return ;
     }
 
     try {
       const user = await this.usersService.findUserById(decodedToken.sub);
       if (!user) {
         socket.disconnect(true);
-        throw new Error('Invalid authorization token');
+        return ;
       }
 
       socket.user = user;
     } catch (err) {
       socket.emit('clearToken');
       socket.disconnect(true);
-      throw new Error('Invalid authorization token');
+      return ;
     }
 
     // Now do the normal connection handling
