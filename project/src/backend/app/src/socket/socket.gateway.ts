@@ -1,5 +1,5 @@
 import { MessageBody, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server, Socket as BaseSocket } from 'socket.io';
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
 import { Body, Logger, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
@@ -7,6 +7,10 @@ import { User, UserStatus, Prisma } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from 'src/auth/auth.service';
 import { clear } from 'console';
+
+interface Socket extends BaseSocket {
+  user?: User;
+}
 
 @WebSocketGateway({
   cors: {
@@ -31,67 +35,68 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
 
   @WebSocketServer() server;
 
-
   afterInit(server: any) {
-    server.use(async (socket, next) => {
-      const jwtName = process.env.JWT_NAME;
-      
-      if (!socket.handshake.headers.cookie) {
-        return next(new Error('Missing authorization token'));
-      }
-
-      const cookie = socket.handshake.headers.cookie.split(';').find(cookie => cookie.trim().startsWith(jwtName));
-  
-      if (!cookie) {
-        return next(new Error('Missing authorization token'));
-      }
-  
-      let token = cookie.split('=')[1];
-      // Decode the token
-      token = decodeURIComponent(token);
-      // Ignore the first two characters ("j:") before parsing JSON
-      try {
-        token = JSON.parse(token.slice(2)).access_token;
-      } catch (err) {
-        return next(new Error('Failed to parse token'));
-      }
-  
-      const decodedToken = this.authService.verifyToken(token, false);
-
-      // clear token if expired and send to client
-      if (decodedToken.exp < Date.now() / 1000) {
-        socket.emit('clearToken');
-        return next(new Error('Invalid authorization token'));
-      }
-      
-      if (!decodedToken) {
-        return next(new Error('Invalid authorization token'));
-      }
-
-      try {
-        const user = await this.usersService.findUserById(decodedToken.sub);
-        if (!user) {
-          return next(new Error('Invalid authorization token'));
-        }
-  
-        socket.user = user;
-      } catch (err) {
-        //send response to client to clear token
-        socket.emit('clearToken');
-        return next(new Error('Invalid authorization token'));
-      }
-      
-      next();
-    });
     this.logger.log('WebSocket server initialized');
   }
   
   
 
-  async handleConnection(client: Socket) {
-    if (!this.connectedClients.has(client.id)) {
-      this.connectedClients.add(client.id);
-      this.logger.log(`Client connected: ${client.id}`);
+  async handleConnection(socket: Socket, ...args: any[]) {
+    const jwtName = process.env.JWT_NAME;
+    
+    if (!socket.handshake.headers.cookie) {
+      socket.disconnect(true); // disconnect the socket
+      return; // return from the function to stop further execution
+    }
+
+    const cookie = socket.handshake.headers.cookie.split(';').find(cookie => cookie.trim().startsWith(jwtName));
+
+    if (!cookie) {
+      socket.disconnect(true);
+      return;
+    }
+
+    let token = cookie.split('=')[1];
+    token = decodeURIComponent(token);
+
+    try {
+      token = JSON.parse(token.slice(2)).access_token;
+    } catch (err) {
+      socket.disconnect(true);
+      throw new Error('Failed to parse token');
+    }
+
+    const decodedToken = this.authService.verifyToken(token, false);
+
+    if (decodedToken.exp < Date.now() / 1000) {
+      socket.emit('clearToken');
+      socket.disconnect(true);
+      throw new Error('Invalid authorization token');
+    }
+    
+    if (!decodedToken) {
+      socket.disconnect(true);
+      throw new Error('Invalid authorization token');
+    }
+
+    try {
+      const user = await this.usersService.findUserById(decodedToken.sub);
+      if (!user) {
+        socket.disconnect(true);
+        throw new Error('Invalid authorization token');
+      }
+
+      socket.user = user;
+    } catch (err) {
+      socket.emit('clearToken');
+      socket.disconnect(true);
+      throw new Error('Invalid authorization token');
+    }
+
+    // Now do the normal connection handling
+    if (!this.connectedClients.has(socket.id)) {
+      this.connectedClients.add(socket.id);
+      this.logger.log(`Client connected: ${socket.id}`);
     }
   }
   
@@ -105,6 +110,10 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   /*
   * Emit action : User status
   */
+  @SubscribeMessage('tockenValid')
+  onTokenValid(@MessageBody() data: { userId: string, status: string }) {
+    this.server.emit('tockenValid', { userId: data.userId, status: data.status });
+  }
 
   @SubscribeMessage('userStatus')
   onUserStatus(@MessageBody() data: { userId: string, status: string }) {
@@ -122,6 +131,12 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   onLeaveOnline(client: Socket, data: { user: any }) {
     this.logger.log(`Client ${data.user.id} left online`);
     this.server.emit('leaveOnline', { user: data.user });
+
+    // disconnect socket if user is not connected
+    if (this.connectedClients.has(client.id)) {
+      this.connectedClients.delete(client.id);
+      this.logger.log(`Client disconnected: ${client.id}`);
+    }
   }
 
   /*
