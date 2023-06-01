@@ -75,7 +75,7 @@
         </template>
     </EasyDataTable>
     <GameSettingsModal v-if="showCreateGameModal" @onClose="toggleCreateGameModal" @onCreate="onSettingReceived" />
-    <MatchmakingModal v-if="showmatchmaking" @onClose="togglematchmaking" @onCreate="togglematchmaking"/>
+    <MatchmakingModal v-if="showmatchmaking" @onClose="togglematchmaking" @onCreate="togglematchmaking" :gameId="modalGameID"/>
 </template>
   
 <script lang="ts">
@@ -87,7 +87,7 @@ import EasyDataTable from "vue3-easy-data-table";
 import { SearchIcon, AirplayIcon } from "@/components/icons";
 import type { GameInterface, IGameSettings } from "@/interfaces/game.interface";
 import { useUserStore } from "@/stores/user";
-import { joinGame, getGames, createGame, getGameById } from "@/services/gameServices";
+import { joinGame, getGames, createGame, getGameById, deleteGame } from "@/services/gameServices";
 import GameSettingsModal from "@/components/games/GamesSettingsModal.vue";
 import type { AlertInterface } from "@/interfaces/alert.interface";
 import { useAlertStore } from "@/stores/alert";
@@ -113,6 +113,7 @@ export default defineComponent({
         const showCreateGameModal = ref(false);
         const showmatchmaking = ref(false);
         const socket = inject('socket') as Socket;
+        const modalGameID = ref("");
 
         socket.on("createGame", (data: any) => {
             updatedAt.value = data.updatedAt;
@@ -185,6 +186,7 @@ export default defineComponent({
                 // if no waiting game, create one
                 if (waitingGames.length == 0) {
                     createGame(defaultGameSettings).then((response) => {
+                        modalGameID.value = response.data.game.id;
                     })
                     return;
                 } else {
@@ -342,6 +344,19 @@ export default defineComponent({
                 });
         };
 
+        getGames().then((response) => {
+            let waitingGames = response.data.games;
+            waitingGames.forEach((game) => {
+                if (game.status == "WAITING" && game.users.some((user) => user.id == userStore.user.id)) {
+                    deleteGame(game.id).then((res) => {
+											updatedAt.value = new Date().toISOString();
+											socket.emit('createGame', {updatedAt: updatedAt});
+										});
+                }
+            });
+						
+        })
+
         return {
             searchValue,
             headers,
@@ -355,7 +370,8 @@ export default defineComponent({
             searchAndJoinGame,
             socket,
             showmatchmaking,
-            togglematchmaking
+            togglematchmaking,
+            modalGameID
         };
     },
 });
