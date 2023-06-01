@@ -185,7 +185,7 @@ export default defineComponent({
   left: 0;
   z-index: 100;
   color: white;
-  padding: 1rem;
+  padding: 2rem;
   border-radius: var(--radius);
 }
 </style>
