@@ -78,6 +78,8 @@ export class UsersController {
       res.status(401).send({ message: 'Unauthorized' });
     } else {
       let user = await this.usersService.getUserById(userId);
+      delete user["password"];
+		  delete user["twofasecret"];
       res.send({ user });
     }
   }
