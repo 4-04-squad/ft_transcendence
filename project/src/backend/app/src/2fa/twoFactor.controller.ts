@@ -57,6 +57,8 @@ export class TwoFactorAuthenticationController {
       		body.tfa_code, user
     	);
 		if (!isCodeValid) {
+			delete user["password"];
+			delete user["twofasecret"];
 			res.status(206).send({ user });
 			return;
 		}
@@ -64,6 +66,8 @@ export class TwoFactorAuthenticationController {
 
 		user.twofaenabled = true;
 
+		delete user["password"];
+		delete user["twofasecret"];
 		res.status(200).send({ user });
 	}
 
@@ -79,6 +83,8 @@ export class TwoFactorAuthenticationController {
 		user.twofaenabled = false;
 		user.twofasecret = null;
 
+		delete user["password"];
+		delete user["twofasecret"];
 		res.status(200).send({ user });
 	}
 
@@ -121,7 +127,9 @@ export class TwoFactorAuthenticationController {
 			sameSite: 'lax',
 			maxAge: 86400000, // 1 day
 		});
-	
+		
+		delete user["password"];
+		delete user["twofasecret"];
 		res.status(201).send({ user });
 	}
 }
