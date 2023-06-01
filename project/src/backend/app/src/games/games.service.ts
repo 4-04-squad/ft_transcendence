@@ -242,7 +242,11 @@ export class GamesService {
 
   // new user join a game
   async joinGame(gameId: string, userId: string): Promise<Game | void> {
+    if (!gameId || !userId)
+      throw new BadRequestException('Invalid game or user id');
     const game = await this.prisma.game.findUnique({ where: { id: gameId } });
+    if (!game)
+      throw new BadRequestException('Game not found');
     // check if that the user is not already in the game
     const userGame = await this.prisma.userGame.findMany({
       where: { gameId: gameId, userId: userId },
