@@ -63,6 +63,7 @@ export default defineComponent({
                     // set the user in the store
                     userStore.setUser(response.data.user as UserInterface);
                     if (userStore.user) {
+                        socket.connect();
                         socket.emit("joinOnline", {user: userStore.user});
                         if (response.data.redirect === "user-edit")
                             router.push({ name: "user-edit", params: { id: userStore.user.id } });

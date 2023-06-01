@@ -125,7 +125,6 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.logger.log(`Client ${data.user.id} joined online`);
     this.server.emit('joinOnline', { user: data.user });
     this.server.emit('sendNotif', { sender: data.user, type: "online" });
-    
   }
 
   @SubscribeMessage('leaveOnline')
