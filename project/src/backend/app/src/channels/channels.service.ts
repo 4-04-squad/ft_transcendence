@@ -284,6 +284,9 @@ export class ChannelsService {
         }).catch((err) => {
             throw new BadRequestException(err);
         });
+        if (updated !== null)
+            delete updated.passwd;
+        console.log(updated);
         return updated;
         
     }
