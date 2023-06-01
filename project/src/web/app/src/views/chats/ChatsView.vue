@@ -30,7 +30,7 @@ export default defineComponent({
         }).then((response) =>{
           chatData.value = response.data.data;
           socket.emit("joinChat", { chatId: chatId, userId: userStore.user.pseudo });
-        }).catch((err) {
+        }).catch((err) => {
           const alert = {
 						status: err.response.status,
 						message: err.response.data.message,
