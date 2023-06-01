@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+
+    # Nginx
+    server:
+        build:
+            context: ./web/nginx
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        
+        tty: true
+        depends_on:
+            - web
+            - backend
+        ports:
+            #- "443:443"
+            - "80:80"
+        volumes:
+            - web_data:/usr/share/nginx/html/app/dist:ro,Z
+        networks:
+            - 42Pong
+
+    # VueJs - NodeJs
+    web:
+        build:
+            context: ./web
+            dockerfile: Dockerfile
+        env_file: .env
+        tty: true
+        ports:
+            - "3003:3003"
+        volumes:
+          - web_data:/app/dist
+          - ./web/app:/app
+          - exclude_web:/app/node_modules/
+        networks:
+            - 42Pong
+
+    # NestJs - NodeJs
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        ports:
+            - "3001:3001"
+        depends_on:
+            - database
+        volumes:
+            - ./backend/app:/app
+            - exclude_backend:/app/node_modules/
+        networks:
+            - 42Pong
+
+    # PostgresSql - Database
+    database:
+        build:
+            context: ./database
+            dockerfile: Dockerfile
+        env_file: .env
+        restart: always
+        tty: true
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+        ports:
+            - "5432:5432"
+        volumes:
+            - database_data:/var/lib/postgresql/data
+        networks:
+          - 42Pong
+
+    # Adminer - Database management
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - "8080:8080"
+        networks:
+            - 42Pong
+
+# Volumes
+volumes:
+    database_data:
+    web_data:
+    exclude_web:
+    exclude_backend:
+
+# Networks
+networks:
+    42Pong:
+        driver: bridge

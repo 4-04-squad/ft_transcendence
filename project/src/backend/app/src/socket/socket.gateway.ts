@@ -5,7 +5,7 @@ import { Body, Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.WEB_URL,
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     credentials: true,
@@ -177,7 +177,7 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   @SubscribeMessage('createGame')
   onCreateGame(@Body() data: { updatedAt: string }) {
     // emit to all online users
-    this.server.emit('createGame', { updated: data.updatedAt });
+    this.server.emit('createGame', { updatedAt: data.updatedAt });
   }
 
 
@@ -323,14 +323,14 @@ export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   @SubscribeMessage('createChannel')
   onCreateChannel(@Body() data: { updatedAt: string }) {
     // emit to all online users
-    this.server.emit('createChannel', { updated: data.updatedAt });
+    this.server.emit('createChannel', { updatedAt: data.updatedAt });
   }
 
   @SubscribeMessage('updateChannelMembersList')
   onUpdateChannelMembersList(@Body() data: { updatedAt: string, channelId: string }) {
     const roomName = `${data.channelId}`;
     // emit to all online users
-    this.server.to(roomName).emit('updateChannelMembersList', { updated: data.updatedAt, channelId: data.channelId });
+    this.server.to(roomName).emit('updateChannelMembersList', { updatedAt: data.updatedAt, channelId: data.channelId });
   }
 
   @SubscribeMessage('joinChat')

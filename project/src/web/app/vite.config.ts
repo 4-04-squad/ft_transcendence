@@ -11,10 +11,11 @@ export default defineConfig({
     port: 3003,
     proxy: {
       '/ws': {
-        target: 'https://404squad.games/api', // <-- Change this to match your backend URL
+        target: 'http://404squad.games/api',
         ws: true,
-      },
+        changeOrigin: true,
     }
+  }
   },
   resolve: {
     alias: {
