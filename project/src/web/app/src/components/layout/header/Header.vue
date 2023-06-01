@@ -120,6 +120,14 @@ export default defineComponent({
 
 <style lang="scss">
 
+.main-nav--login {
+  .user-card{
+    &__status
+    {
+      display: none;
+    }
+  }
+}
 .main-nav-toggle {
   .close {
     display: none;
