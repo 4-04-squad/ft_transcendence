@@ -286,7 +286,6 @@ export class ChannelsService {
         });
         if (updated !== null)
             delete updated.passwd;
-        console.log(updated);
         return updated;
         
     }
